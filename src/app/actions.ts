@@ -10,7 +10,13 @@ export async function getBrewStatus(): Promise<BrewStatus> {
   return await readBrewData();
 }
 
-export async function startBrew() {
+export async function startBrew(password: string) {
+  const ADMIN_PASSWORD = 'freshbrew'; // Super illegale hardcoded password, only for a simple coffee timer is this Ok :-)
+  
+  if (password !== ADMIN_PASSWORD) {
+    throw new Error('Unauthorized');
+  }
+
   const now = Date.now();
   const today = format(now, 'yyyy-MM-dd');
 

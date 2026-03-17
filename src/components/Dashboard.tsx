@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useTransition } from 'react';
 import { startBrew, BrewStatus } from '@/app/actions';
-import { Coffee, RefreshCw, Clock, History } from 'lucide-react';
+import { Coffee, RefreshCw, Clock, History, Lock, Unlock } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -14,8 +14,18 @@ const FRESHNESS_WINDOW_MS = 30 * 60 * 1000; // 30 minutes in milliseconds
 
 export default function Dashboard({ initialStatus }: { initialStatus: BrewStatus }) {
   const [status, setStatus] = useState<BrewStatus>(initialStatus);
-  const [now, setNow] = useState(Date.now());
+  const [now, setNow] = useState(() => Date.now());
   const [isPending, startTransition] = useTransition();
+  const [adminPassword, setAdminPassword] = useState<string | null>(null);
+
+  // Load password from localStorage on mount (hydration safe)
+  useEffect(() => {
+    const savedPassword = localStorage.getItem('coffee_admin_password');
+    if (savedPassword) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setAdminPassword(savedPassword);
+    }
+  }, []);
 
   // Update timer every second
   useEffect(() => {
@@ -25,19 +35,55 @@ export default function Dashboard({ initialStatus }: { initialStatus: BrewStatus
     return () => clearInterval(interval);
   }, []);
 
+  const handleLogin = () => {
+    const password = prompt('Please enter the admin password to login:');
+    if (password) {
+      setAdminPassword(password);
+      localStorage.setItem('coffee_admin_password', password);
+    }
+  };
+
+  const handleLogout = () => {
+    if (confirm('Are you sure you want to log out of brewer mode?')) {
+      setAdminPassword(null);
+      localStorage.removeItem('coffee_admin_password');
+    }
+  };
+
   const handleStartBrew = async () => {
+    let passwordToUse = adminPassword;
+
+    if (!passwordToUse) {
+      passwordToUse = prompt('Please enter the admin password to start a new brew:');
+      if (!passwordToUse) return;
+    }
+
     startTransition(async () => {
       try {
-        const result = await startBrew();
+        const result = await startBrew(passwordToUse!);
         if (result.success) {
           setStatus({
             lastBrewTimestamp: result.timestamp,
             dailyBrewCount: result.count,
             lastBrewDate: new Date().toISOString().split('T')[0],
           });
+          // If the prompt was used, optionally save it
+          if (!adminPassword && confirm('Stay logged in as coffee brewer?')) {
+            setAdminPassword(passwordToUse!);
+            localStorage.setItem('coffee_admin_password', passwordToUse!);
+          }
         }
       } catch (error) {
-        alert('Failed to start brew. Make sure KV is configured correctly.');
+        if (error instanceof Error && error.message === 'Unauthorized') {
+          alert('Incorrect password. Access denied.');
+          // If stored password failed, clear it
+          if (adminPassword) {
+            setAdminPassword(null);
+            localStorage.removeItem('coffee_admin_password');
+          }
+        } else {
+          alert('Failed to start brew. Make sure storage is configured correctly.');
+        }
       }
     });
   };
@@ -73,9 +119,30 @@ export default function Dashboard({ initialStatus }: { initialStatus: BrewStatus
 
   return (
     <div className={cn(
-      "min-h-screen flex flex-col items-center justify-center p-6 transition-colors duration-1000",
+      "min-h-screen flex flex-col items-center justify-center p-6 transition-colors duration-1000 relative",
       statusColor
     )}>
+      {/* Discrete Login Button */}
+      <div className="absolute top-6 right-6 z-50">
+        {adminPassword ? (
+          <button 
+            onClick={handleLogout}
+            className="flex items-center space-x-2 bg-white/20 hover:bg-white/30 backdrop-blur-md px-4 py-2 rounded-full text-white text-sm font-bold transition-all border border-white/20"
+          >
+            <Unlock className="w-4 h-4" />
+            <span className="hidden md:inline uppercase tracking-tight">Brewer Mode (Active)</span>
+          </button>
+        ) : (
+          <button 
+            onClick={handleLogin}
+            className="flex items-center space-x-2 bg-white/10 hover:bg-white/20 backdrop-blur-md px-4 py-2 rounded-full text-white/70 hover:text-white text-sm font-bold transition-all border border-white/10"
+          >
+            <Lock className="w-4 h-4" />
+            <span className="hidden md:inline uppercase tracking-tight">Coffee Brewer Login</span>
+          </button>
+        )}
+      </div>
+
       <div className="max-w-3xl w-full bg-white/90 backdrop-blur-md rounded-[2.5rem] shadow-2xl p-8 md:p-12 flex flex-col items-center text-center space-y-10 border-4 border-white/20">
         
         {/* Header Section */}
@@ -120,8 +187,14 @@ export default function Dashboard({ initialStatus }: { initialStatus: BrewStatus
         </div>
 
         {/* Stats & Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
-          <div className="bg-slate-100 p-6 rounded-2xl flex flex-col items-center justify-center border border-slate-200">
+        <div className={cn(
+          "grid gap-6 w-full",
+          adminPassword ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1"
+        )}>
+          <div className={cn(
+            "bg-slate-100 p-6 rounded-2xl flex flex-col items-center justify-center border border-slate-200 transition-all duration-500",
+            !adminPassword && "py-12"
+          )}>
             <span className="text-slate-500 font-bold uppercase text-xs tracking-wider mb-2 flex items-center">
               <History className="w-4 h-4 mr-1.5" />
               Daily Pot Count
@@ -129,28 +202,30 @@ export default function Dashboard({ initialStatus }: { initialStatus: BrewStatus
             <span className="text-5xl font-black text-slate-900">{status.dailyBrewCount}</span>
           </div>
           
-          <button
-            onClick={handleStartBrew}
-            disabled={isPending}
-            className={cn(
-              "relative group h-full w-full rounded-2xl py-6 flex flex-col items-center justify-center transition-all duration-300 active:scale-95 disabled:opacity-70 overflow-hidden",
-              "bg-slate-900 hover:bg-slate-800 text-white shadow-xl hover:shadow-2xl"
-            )}
-          >
-            {isPending ? (
-              <RefreshCw className="w-10 h-10 animate-spin" />
-            ) : (
-              <>
-                <span className="text-2xl font-black uppercase tracking-tight">Start Fresh Brew</span>
-                <span className="text-sm text-slate-400 font-bold mt-1 uppercase">Click when coffee is brewing</span>
-              </>
-            )}
-          </button>
+          {adminPassword && (
+            <button
+              onClick={handleStartBrew}
+              disabled={isPending}
+              className={cn(
+                "relative group h-full w-full rounded-2xl py-6 flex flex-col items-center justify-center transition-all duration-300 active:scale-95 disabled:opacity-70 overflow-hidden",
+                "bg-slate-900 hover:bg-slate-800 text-white shadow-xl hover:shadow-2xl"
+              )}
+            >
+              {isPending ? (
+                <RefreshCw className="w-10 h-10 animate-spin" />
+              ) : (
+                <>
+                  <span className="text-2xl font-black uppercase tracking-tight">Start Fresh Brew</span>
+                  <span className="text-sm text-slate-400 font-bold mt-1 uppercase">Click when coffee is brewing</span>
+                </>
+              )}
+            </button>
+          )}
         </div>
 
         {/* Footer Hint */}
         <p className="text-slate-400 font-semibold italic">
-          "{message}"
+          &quot;{message}&quot;
         </p>
       </div>
     </div>
