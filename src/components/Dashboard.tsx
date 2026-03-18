@@ -49,7 +49,7 @@ function computeBrewState(
     return {
       statusText: "STALE / EMPTY",
       statusColor: "bg-slate-500",
-      message: "Prompt users to make a new pot",
+      message: "It's about that time.",
       labelText: "Freshness Timer",
       displayHours: 0,
       displayMins: 0,
@@ -192,13 +192,15 @@ export default function Dashboard({
       "bg-rose-500": "#f43f5e",
     };
     const colorClasses = Object.keys(colorMap);
-    
+
     const updateBodyStyle = () => {
       // Determine the fallback background color based on manually set theme or system preference
-      const isDark = document.documentElement.classList.contains("dark") || 
-                    (window.matchMedia("(prefers-color-scheme: dark)").matches && !document.documentElement.classList.contains("light"));
+      const isDark =
+        document.documentElement.classList.contains("dark") ||
+        (window.matchMedia("(prefers-color-scheme: dark)").matches &&
+          !document.documentElement.classList.contains("light"));
       const fallback = isDark ? "#0a0a0a" : "#ffffff";
-      
+
       document.body.style.backgroundColor = colorMap[statusColor] || fallback;
       document.body.classList.remove(...colorClasses);
       document.body.classList.add(statusColor);
@@ -208,7 +210,10 @@ export default function Dashboard({
 
     // Listen for theme class changes on html element
     const observer = new MutationObserver(updateBodyStyle);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
 
     return () => {
       observer.disconnect();
