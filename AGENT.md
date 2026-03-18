@@ -58,3 +58,9 @@ This project provides a real-time dashboard to monitor when the last pot of coff
 - **Server Actions:** Used for all mutations (`startBrew`).
 - **Tailwind CSS:** Utility-first styling with Tailwind 4.
 - **Lucide Icons:** Standardized icon set for the UI.
+
+## Agent Operating Procedures
+
+### Committing and Pushing Changes
+- **ALWAYS** activate and use the `git-commit-push` skill (located in `.gemini/skills/git-commit-push`) for any git operations (stage, commit, or push).
+- This ensures that `AGENT.md` and project documentation are consistently updated according to the skill's expert workflow.
