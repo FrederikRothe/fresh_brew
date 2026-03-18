@@ -19,11 +19,11 @@ This project provides a real-time dashboard to monitor when the last pot of coff
 - **Date Handling:** `date-fns`
 
 ### Architecture
-### Architecture
 - **`src/app/page.tsx`**: Entry point (Server Component). Fetches initial brew status and renders the `Dashboard`.
-- **`src/components/Dashboard.tsx`**: Main UI (Client Component). Manages the live countdown timer, status-based color changes, admin authentication (via `localStorage`), and the **Admin Stats Panel**.
-- **`src/app/actions.ts`**: Server Actions for data fetching and mutation. Includes Slack notification logic, **brew analytics calculation**, and admin password verification via the `ADMIN_PSW` environment variable.
-- **`src/lib/storage.ts`**: Redis storage abstraction layer. Handles `BrewData` (current status) and `BrewHistory` (record list).
+- **`src/components/Dashboard.tsx`**: Main UI (Client Component). Orchestrates the dashboard using custom hooks.
+- **`src/hooks/`**: Specialized client hooks for timer logic (`useTimer`), brew status polling (`useBrewStatus`), admin authentication (`useAdminAuth`), and theme-aware body styling (`useBodyBackground`).
+- **`src/lib/`**: Shared logic including Redis storage (`storage.ts`), calculation helpers (`brew-utils.ts`), common thresholds (`constants.ts`), and styling utilities (`utils.ts`).
+- **`src/app/actions.ts`**: Server Actions for data fetching and mutation. Includes Slack notification logic, brew analytics calculation, and admin password verification.
 - **`src/app/globals.css`**: Tailwind 4 configuration and global styles.
 
 ## Building and Running

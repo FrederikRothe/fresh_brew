@@ -9,11 +9,12 @@ vi.mock('@/app/actions', () => ({
   startBrew: vi.fn(),
 }));
 
-// Constants from Dashboard for testing
-const BREW_TIME_MS = 7 * 60 * 1000;
-const FRESH_THRESHOLD_MS = 25 * 60 * 1000;
-const SOUR_THRESHOLD_MS = 40 * 60 * 1000;
-const RESET_THRESHOLD_MS = 120 * 60 * 1000;
+import {
+  DEFAULT_BREW_TIME_MS as BREW_TIME_MS,
+  FRESH_THRESHOLD_MS,
+  SOUR_THRESHOLD_MS,
+  RESET_THRESHOLD_MS,
+} from "@/lib/constants";
 
 describe('Dashboard Component', () => {
   const initialStatus: BrewStatus = {

@@ -1,13 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect, useTransition } from "react";
-import {
-  startBrew,
-  getBrewStatus,
-  BrewStatus,
-  validatePassword,
-} from "@/app/actions";
+import { useEffect, useTransition } from "react";
+import { startBrew, type BrewStatus } from "@/app/actions";
 import {
   Coffee,
   RefreshCw,
@@ -18,107 +13,24 @@ import {
   BarChart2,
   ChevronRight,
 } from "lucide-react";
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
-
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
-
-const DEFAULT_BREW_TIME_MS = 7 * 60 * 1000;
-const FRESH_THRESHOLD_MS = 25 * 60 * 1000;
-const SOUR_THRESHOLD_MS = 40 * 60 * 1000;
-const RESET_THRESHOLD_MS = 120 * 60 * 1000;
-
-type BrewState = {
-  statusText: string;
-  statusColor: string;
-  message: string;
-  labelText: string;
-  displayHours: number;
-  displayMins: number;
-  displaySecs: number;
-  isReset: boolean;
-};
-
-function computeBrewState(
-  elapsedMs: number,
-  brewDurationMs: number,
-): BrewState {
-  if (elapsedMs >= RESET_THRESHOLD_MS) {
-    return {
-      statusText: "STALE / EMPTY",
-      statusColor: "bg-slate-500",
-      message: "It's about that time.",
-      labelText: "Freshness Timer",
-      displayHours: 0,
-      displayMins: 0,
-      displaySecs: 0,
-      isReset: true,
-    };
-  }
-
-  if (elapsedMs < brewDurationMs) {
-    const remainingMs = Math.max(0, brewDurationMs - elapsedMs);
-    return {
-      statusText: "BREWING...",
-      statusColor: "bg-blue-500",
-      message: "Patience, the magic is happening.",
-      labelText: "Brewing Countdown",
-      displayHours: Math.floor(remainingMs / 3600000),
-      displayMins: Math.floor((remainingMs % 3600000) / 60000),
-      displaySecs: Math.floor((remainingMs % 60000) / 1000),
-      isReset: false,
-    };
-  }
-
-  const sinceReadyMs = elapsedMs - brewDurationMs;
-  const base = {
-    labelText: "Time Since Ready",
-    displayHours: Math.floor(sinceReadyMs / 3600000),
-    displayMins: Math.floor((sinceReadyMs % 3600000) / 60000),
-    displaySecs: Math.floor((sinceReadyMs % 60000) / 1000),
-    isReset: false,
-  };
-
-  if (sinceReadyMs < FRESH_THRESHOLD_MS) {
-    return {
-      ...base,
-      statusText: "FRESH!",
-      statusColor: "bg-emerald-500",
-      message: "Brewed recently. Enjoy!",
-    };
-  }
-  if (sinceReadyMs < SOUR_THRESHOLD_MS) {
-    return {
-      ...base,
-      statusText: "GETTING SOUR",
-      statusColor: "bg-amber-500",
-      message: "Getting there, but still tasty.",
-    };
-  }
-  return {
-    ...base,
-    statusText: "STALE",
-    statusColor: "bg-rose-500",
-    message: "Running low or getting cold.",
-  };
-}
+import { cn } from "@/lib/utils";
+import { DEFAULT_BREW_TIME_MS } from "@/lib/constants";
+import { computeBrewState } from "@/lib/brew-utils";
+import { useTimer } from "@/hooks/use-timer";
+import { useBrewStatus } from "@/hooks/use-brew-status";
+import { useAdminAuth } from "@/hooks/use-admin-auth";
+import { useBodyBackground } from "@/hooks/use-body-background";
 
 export default function Dashboard({
   initialStatus,
 }: {
   initialStatus: BrewStatus;
 }) {
-  const [status, setStatus] = useState<BrewStatus>(initialStatus);
-  const [now, setNow] = useState(() => Date.now());
+  const { status, setStatus } = useBrewStatus(initialStatus);
+  const now = useTimer();
   const [isPending, startTransition] = useTransition();
-  const [adminPassword, setAdminPassword] = useState<string | null>(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("coffee_admin_password");
-    }
-    return null;
-  });
+  const { adminPassword, setAdminPassword, handleLogin, handleLogout } =
+    useAdminAuth();
 
   const lastBrew = status.lastBrewTimestamp;
   const elapsedMs = lastBrew ? now - lastBrew : Infinity;
@@ -136,7 +48,8 @@ export default function Dashboard({
     status.brewDurationMs || DEFAULT_BREW_TIME_MS,
   );
 
-  // Load password from localStorage on mount (hydration safe)
+  useBodyBackground(statusColor);
+
   useEffect(() => {
     if (
       typeof window !== "undefined" &&
@@ -146,101 +59,6 @@ export default function Dashboard({
       Notification.requestPermission();
     }
   }, []);
-
-  // Update timer every second
-  useEffect(() => {
-    const interval = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Poll for status updates every 30 seconds
-  useEffect(() => {
-    const pollInterval = setInterval(async () => {
-      try {
-        const newStatus = await getBrewStatus();
-        if (
-          newStatus.lastBrewTimestamp &&
-          newStatus.lastBrewTimestamp > (status.lastBrewTimestamp || 0)
-        ) {
-          if (
-            "Notification" in window &&
-            Notification.permission === "granted"
-          ) {
-            new Notification("☕ Fresh Brew Dispatched!", {
-              body: `Pot #${newStatus.dailyBrewCount} is now brewing!`,
-            });
-          }
-          setStatus(newStatus);
-        } else if (newStatus.lastBrewTimestamp !== status.lastBrewTimestamp) {
-          setStatus(newStatus);
-        }
-      } catch (error) {
-        console.error("Failed to poll brew status:", error);
-      }
-    }, 30000);
-
-    return () => clearInterval(pollInterval);
-  }, [status.lastBrewTimestamp]);
-
-  // Apply background to body to handle overscroll on mobile
-  useEffect(() => {
-    const colorMap: Record<string, string> = {
-      "bg-slate-500": "#64748b",
-      "bg-blue-500": "#3b82f6",
-      "bg-emerald-500": "#10b981",
-      "bg-amber-500": "#f59e0b",
-      "bg-rose-500": "#f43f5e",
-    };
-    const colorClasses = Object.keys(colorMap);
-
-    const updateBodyStyle = () => {
-      // Determine the fallback background color based on manually set theme or system preference
-      const isDark =
-        document.documentElement.classList.contains("dark") ||
-        (window.matchMedia("(prefers-color-scheme: dark)").matches &&
-          !document.documentElement.classList.contains("light"));
-      const fallback = isDark ? "#0a0a0a" : "#ffffff";
-
-      document.body.style.backgroundColor = colorMap[statusColor] || fallback;
-      document.body.classList.remove(...colorClasses);
-      document.body.classList.add(statusColor);
-    };
-
-    updateBodyStyle();
-
-    // Listen for theme class changes on html element
-    const observer = new MutationObserver(updateBodyStyle);
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["class"],
-    });
-
-    return () => {
-      observer.disconnect();
-      document.body.classList.remove(...colorClasses);
-      document.body.style.backgroundColor = "";
-    };
-  }, [statusColor]);
-
-  const handleLogin = async () => {
-    const password = prompt("Please enter the admin password to login:");
-    if (password) {
-      const isValid = await validatePassword(password);
-      if (isValid) {
-        setAdminPassword(password);
-        localStorage.setItem("coffee_admin_password", password);
-      } else {
-        alert("Incorrect password. Access denied.");
-      }
-    }
-  };
-
-  const handleLogout = () => {
-    if (confirm("Are you sure you want to log out of brewer mode?")) {
-      setAdminPassword(null);
-      localStorage.removeItem("coffee_admin_password");
-    }
-  };
 
   const handleStartBrew = async (durationMs: number = DEFAULT_BREW_TIME_MS) => {
     const password =
