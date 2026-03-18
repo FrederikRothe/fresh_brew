@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useTransition } from 'react';
-import { startBrew, BrewStatus } from '@/app/actions';
+import { startBrew, getBrewStatus, BrewStatus } from '@/app/actions';
 import { Coffee, RefreshCw, Clock, History, Lock, Unlock } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -10,7 +10,10 @@ function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-const FRESHNESS_WINDOW_MS = 30 * 60 * 1000; // 30 minutes in milliseconds
+const BREW_TIME_MS = 7 * 60 * 1000;
+const FRESH_THRESHOLD_MS = 15 * 60 * 1000;
+const SOUR_THRESHOLD_MS = 25 * 60 * 1000;
+const RESET_THRESHOLD_MS = 60 * 60 * 1000;
 
 export default function Dashboard({ initialStatus }: { initialStatus: BrewStatus }) {
   const [status, setStatus] = useState<BrewStatus>(initialStatus);
@@ -34,6 +37,24 @@ export default function Dashboard({ initialStatus }: { initialStatus: BrewStatus
     }, 1000);
     return () => clearInterval(interval);
   }, []);
+
+  // Poll for status updates every 30 seconds
+  useEffect(() => {
+    const pollInterval = setInterval(async () => {
+      try {
+        const newStatus = await getBrewStatus();
+        // Update local status if the server has a newer brew timestamp
+        if (newStatus.lastBrewTimestamp !== status.lastBrewTimestamp) {
+          setStatus(newStatus);
+        }
+      } catch (error) {
+        // Silently fail polling errors to avoid interrupting the user experience
+        console.error('Failed to poll brew status:', error);
+      }
+    }, 30000);
+
+    return () => clearInterval(pollInterval);
+  }, [status.lastBrewTimestamp]);
 
   const handleLogin = () => {
     const password = prompt('Please enter the admin password to login:');
@@ -90,32 +111,47 @@ export default function Dashboard({ initialStatus }: { initialStatus: BrewStatus
 
   const lastBrew = status.lastBrewTimestamp;
   const elapsedMs = lastBrew ? now - lastBrew : Infinity;
-  const elapsedMins = elapsedMs / 60000;
   
-  const remainingMs = Math.max(0, FRESHNESS_WINDOW_MS - elapsedMs);
-  const remainingMins = Math.floor(remainingMs / 60000);
-  const remainingSecs = Math.floor((remainingMs % 60000) / 1000);
-
   // Status calculation
   let statusText = 'STALE / EMPTY';
   let statusColor = 'bg-slate-500';
   let message = 'Prompt users to make a new pot';
+  let displayMins = 0;
+  let displaySecs = 0;
+  let labelText = 'Freshness Timer';
 
-  if (elapsedMins < 10) {
-    statusText = 'FRESH!';
-    statusColor = 'bg-emerald-500';
-    message = 'Brewed recently. Enjoy!';
-  } else if (elapsedMins < 20) {
-    statusText = 'STILL GOOD';
-    statusColor = 'bg-amber-500';
-    message = 'Getting there, but still tasty.';
-  } else if (elapsedMins < 30) {
-    statusText = 'DRINK AT OWN RISK';
-    statusColor = 'bg-rose-500';
-    message = 'Running low or getting cold.';
+  if (elapsedMs < BREW_TIME_MS) {
+    // Brewing phase: 7 minute countdown
+    const remainingMs = Math.max(0, BREW_TIME_MS - elapsedMs);
+    displayMins = Math.floor(remainingMs / 60000);
+    displaySecs = Math.floor((remainingMs % 60000) / 1000);
+    statusText = 'BREWING...';
+    statusColor = 'bg-blue-500';
+    message = 'Patience, the magic is happening.';
+    labelText = 'Brewing Countdown';
+  } else if (elapsedMs < RESET_THRESHOLD_MS) {
+    // Post-brew phases: counting up from 00:00
+    const sinceBrewedMs = elapsedMs - BREW_TIME_MS;
+    displayMins = Math.floor(sinceBrewedMs / 60000);
+    displaySecs = Math.floor((sinceBrewedMs % 60000) / 1000);
+
+    if (sinceBrewedMs < FRESH_THRESHOLD_MS) {
+      statusText = 'FRESH!';
+      statusColor = 'bg-emerald-500';
+      message = 'Brewed recently. Enjoy!';
+    } else if (sinceBrewedMs < SOUR_THRESHOLD_MS) {
+      statusText = 'GETTING SOUR';
+      statusColor = 'bg-amber-500';
+      message = 'Getting there, but still tasty.';
+    } else {
+      statusText = 'STALE';
+      statusColor = 'bg-rose-500';
+      message = 'Running low or getting cold.';
+    }
+    labelText = 'Time Since Ready';
   }
 
-  const isStale = elapsedMins >= 30;
+  const isReset = elapsedMs >= RESET_THRESHOLD_MS;
 
   return (
     <div className={cn(
@@ -161,16 +197,16 @@ export default function Dashboard({ initialStatus }: { initialStatus: BrewStatus
           <div className="relative z-10 flex flex-col items-center">
             <span className="text-sm font-bold text-slate-400 uppercase tracking-[0.3em] mb-4 flex items-center">
               <Clock className="w-4 h-4 mr-2" />
-              Freshness Countdown
+              {labelText}
             </span>
             
-            {isStale ? (
+            {isReset || lastBrew === null ? (
               <div className="text-7xl md:text-9xl font-black tabular-nums tracking-tighter text-slate-300">
                 --:--
               </div>
             ) : (
               <div className="text-7xl md:text-9xl font-black tabular-nums tracking-tighter">
-                {String(remainingMins).padStart(2, '0')}:{String(remainingSecs).padStart(2, '0')}
+                {String(displayMins).padStart(2, '0')}:{String(displaySecs).padStart(2, '0')}
               </div>
             )}
             
