@@ -57,9 +57,9 @@ This project provides a real-time dashboard to monitor when the last pot of coff
 
 ### Visual States
 - **Brewing (0-7m):** Blue (`bg-blue-500`) - Countdown to ready.
-- **Fresh (0-15m since ready):** Green (`bg-emerald-500`)
-- **Getting Sour (15-25m since ready):** Orange (`bg-amber-500`)
-- **Stale (25-60m since ready):** Red (`bg-rose-500`)
+- **Fresh (0-25m since ready):** Green (`bg-emerald-500`)
+- **Getting Sour (25-40m since ready):** Orange (`bg-amber-500`)
+- **Stale (40-60m since ready):** Red (`bg-rose-500`)
 - **Empty/Old (60m+):** Gray (`bg-slate-500`)
 - **Compact Landscape Mode:** Specialized Tailwind classes (`landscape:`) are used to optimize for short viewports on mobile devices.
 

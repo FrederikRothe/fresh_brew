@@ -11,8 +11,8 @@ function cn(...inputs: ClassValue[]) {
 }
 
 const BREW_TIME_MS = 7 * 60 * 1000;
-const FRESH_THRESHOLD_MS = 15 * 60 * 1000;
-const SOUR_THRESHOLD_MS = 25 * 60 * 1000;
+const FRESH_THRESHOLD_MS = 25 * 60 * 1000;
+const SOUR_THRESHOLD_MS = 40 * 60 * 1000;
 const RESET_THRESHOLD_MS = 60 * 60 * 1000;
 
 export default function Dashboard({ initialStatus }: { initialStatus: BrewStatus }) {
