@@ -1,148 +1,324 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { getBrewAnalytics, BrewAnalytics } from '@/app/actions';
-import { Coffee, ArrowLeft, BarChart2, Calendar, Clock, Coffee as CoffeeIcon } from 'lucide-react';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { getBrewAnalytics, BrewAnalytics } from "@/app/actions";
+import {
+  Coffee,
+  ArrowLeft,
+  BarChart2,
+  Calendar,
+  Clock,
+  Coffee as CoffeeIcon,
+} from "lucide-react";
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-function StatTile({ label, value, icon: Icon }: { label: string; value: string; icon: any }) {
+function StatTile({
+  label,
+  value,
+  icon: Icon,
+}: {
+  label: string;
+  value: string;
+  icon: React.ComponentType<{ className?: string }>;
+}) {
   return (
-    <div className="bg-white rounded-2xl p-6 flex flex-col items-center border border-slate-200 shadow-sm">
-      <Icon className="w-5 h-5 text-slate-400 mb-2" />
-      <span className="text-xs font-bold uppercase text-slate-500 tracking-wider mb-1">{label}</span>
-      <span className="text-4xl font-black text-slate-900">{value}</span>
+    <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 flex flex-col items-center border border-slate-200 dark:border-slate-800 shadow-sm">
+      <Icon className="w-5 h-5 text-slate-400 dark:text-slate-500 mb-2" />
+      <span className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-1">
+        {label}
+      </span>
+      <span className="text-4xl font-black text-slate-900 dark:text-slate-100">
+        {value}
+      </span>
     </div>
   );
 }
 
-import { format, getDay, startOfDay } from 'date-fns';
+import { format, getDay, getDate, getMonth } from "date-fns";
 
-function WeeklyRhythm({ history, label }: { history: { timestamp: number; durationMs: number }[]; label: string }) {
+type RhythmMode = "weekly" | "monthly" | "yearly";
+
+interface ProcessedBrew {
+  unitIdx: number;
+  hour: number;
+  isSmall: boolean;
+  dateStr: string;
+  timeStr: string;
+  jitter: number;
+  count?: number;
+}
+
+function AggregateRhythm({
+  history,
+}: {
+  history: { timestamp: number; durationMs: number }[];
+}) {
+  const [mode, setMode] = useState<RhythmMode>("weekly");
+
   if (history.length === 0) return null;
 
-  const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+  const now = new Date();
+  let currentIdx: number | null = null;
+
+  if (mode === "weekly") {
+    const day = getDay(now); // 0=Sun, 1=Mon...6=Sat
+    if (day >= 1 && day <= 5) {
+      currentIdx = day - 1;
+    }
+  } else if (mode === "monthly") {
+    currentIdx = getDate(now) - 1;
+  } else if (mode === "yearly") {
+    currentIdx = getMonth(now);
+  }
+
   const MIN_HOUR = 7;
   const MAX_HOUR = 18;
   const HOUR_RANGE = MAX_HOUR - MIN_HOUR;
 
-  // Filter for weekdays and the focused time window
-  const processedData = history.map(h => {
-    const d = new Date(h.timestamp);
-    const dayIdx = getDay(d); // 0=Sun, 1=Mon...6=Sat
-    const hour = d.getHours() + d.getMinutes() / 60;
-    
-    return {
-      dayIdx,
-      hour,
-      isSmall: h.durationMs < 5 * 60 * 1000,
-      dateStr: format(d, 'MMM d, yyyy'),
-      timeStr: format(d, 'HH:mm'),
-      // Random jitter for better visualization of overlaps
-      jitter: Math.random() * 40 - 20 
-    };
-  }).filter(d => d.dayIdx >= 1 && d.dayIdx <= 5);
+  let units: string[] = [];
+  let processedData: ProcessedBrew[] = [];
+
+  if (mode === "weekly") {
+    units = ["Mon", "Tue", "Wed", "Thu", "Fri"];
+    processedData = history
+      .map((h) => {
+        const d = new Date(h.timestamp);
+        let dayIdx = getDay(d); // 0=Sun, 1=Mon...6=Sat
+        if (dayIdx === 0 || dayIdx === 6) return null;
+        dayIdx = dayIdx - 1;
+        const hour = d.getHours() + d.getMinutes() / 60;
+        return {
+          unitIdx: dayIdx,
+          hour,
+          isSmall: h.durationMs < 5 * 60 * 1000,
+          dateStr: format(d, "MMM d, yyyy"),
+          timeStr: format(d, "HH:mm"),
+          jitter: 0,
+        };
+      })
+      .filter((d): d is ProcessedBrew => d !== null);
+  } else if (mode === "monthly") {
+    units = Array.from({ length: 31 }, (_, i) => String(i + 1));
+    processedData = history.map((h) => {
+      const d = new Date(h.timestamp);
+      const unitIdx = getDate(d) - 1;
+      const hour = d.getHours() + d.getMinutes() / 60;
+      return {
+        unitIdx,
+        hour,
+        isSmall: h.durationMs < 5 * 60 * 1000,
+        dateStr: format(d, "MMM d, yyyy"),
+        timeStr: format(d, "HH:mm"),
+        jitter: 0,
+      };
+    });
+  } else if (mode === "yearly") {
+    units = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+
+    // For yearly, we aggregate by month and hour-slot to avoid crowding
+    const aggregated = new Map<
+      string,
+      { unitIdx: number; hour: number; isSmall: boolean; count: number }
+    >();
+
+    history.forEach((h) => {
+      const d = new Date(h.timestamp);
+      const unitIdx = getMonth(d);
+      // Group into 20-minute slots (0.33 hours)
+      const slotSize = 1 / 3;
+      const hour = d.getHours() + Math.floor(d.getMinutes() / 20) * slotSize;
+      const isSmall = h.durationMs < 5 * 60 * 1000;
+      const key = `${unitIdx}-${hour}-${isSmall}`;
+
+      const existing = aggregated.get(key);
+      if (existing) {
+        existing.count++;
+      } else {
+        aggregated.set(key, { unitIdx, hour, isSmall, count: 1 });
+      }
+    });
+
+    processedData = Array.from(aggregated.values()).map((a) => ({
+      unitIdx: a.unitIdx,
+      hour: a.hour,
+      isSmall: a.isSmall,
+      count: a.count,
+      dateStr: `${a.count} brew${a.count > 1 ? "s" : ""}`,
+      timeStr: `${Math.floor(a.hour)}:${String(
+        Math.round((a.hour % 1) * 60),
+      ).padStart(2, "0")}`,
+      jitter: 0,
+    }));
+  }
+
+  // Filter out points out of hour range
+  const validPoints = processedData.filter(
+    (d) => d.hour >= MIN_HOUR && d.hour <= MAX_HOUR,
+  );
 
   return (
-    <div className="w-full bg-white rounded-3xl p-6 md:p-8 border border-slate-200 shadow-sm space-y-8">
-      <div className="flex items-center justify-between">
+    <div className="w-full bg-white dark:bg-slate-900 rounded-3xl p-6 md:p-8 border border-slate-200 dark:border-slate-800 shadow-sm space-y-8">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
-          <h3 className="text-lg font-black text-slate-900 uppercase tracking-tight flex items-center gap-2">
+          <h3 className="text-lg font-black text-slate-900 dark:text-slate-100 uppercase tracking-tight flex items-center gap-2">
             <Clock className="w-5 h-5 text-blue-500" />
-            {label}
+            Consumption Rhythm
           </h3>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Weekly Aggregate (7 AM — 6 PM)</p>
+          <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+            {mode === "yearly"
+              ? "Density Map (7 AM — 6 PM)"
+              : "Aggregate (7 AM — 6 PM)"}
+          </p>
         </div>
+
+        <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl self-start">
+          {(["weekly", "monthly", "yearly"] as RhythmMode[]).map((m) => (
+            <button
+              key={m}
+              onClick={() => setMode(m)}
+              className={cn(
+                "px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all",
+                mode === m
+                  ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm"
+                  : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200",
+              )}
+            >
+              {m}
+            </button>
+          ))}
+        </div>
+
         <div className="flex items-center gap-4 text-[9px] font-bold uppercase tracking-wider">
           <div className="flex items-center gap-1.5">
             <div className="w-2.5 h-2.5 rounded-full bg-blue-500/60" />
-            <span className="text-slate-500">Big Brew</span>
+            <span className="text-slate-500 dark:text-slate-400">
+              {mode === "yearly" ? "Big Brew Intensity" : "Big Brew"}
+            </span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-2.5 h-2.5 rounded-full bg-amber-400/60" />
-            <span className="text-slate-500">Small Brew</span>
+            <span className="text-slate-500 dark:text-slate-400">
+              {mode === "yearly" ? "Small Brew Intensity" : "Small Brew"}
+            </span>
           </div>
         </div>
       </div>
 
-      <div className="relative h-[500px] flex group">
+      <div className="relative h-[500px] flex group pt-8">
         {/* Y-Axis Labels (Time) */}
-        <div className="flex flex-col justify-between text-[10px] font-bold text-slate-400 w-12 text-right pr-3 py-4 border-r border-slate-100">
-          <span>6 PM</span>
-          <span>4 PM</span>
-          <span>2 PM</span>
-          <span>12 PM</span>
-          <span>10 AM</span>
-          <span>8 AM</span>
+        <div className="flex flex-col justify-between text-[10px] font-bold text-slate-400 dark:text-slate-500 w-12 text-right pr-3 py-0 border-r border-slate-100 dark:border-slate-800">
           <span>7 AM</span>
+          <span>8 AM</span>
+          <span>10 AM</span>
+          <span>12 PM</span>
+          <span>2 PM</span>
+          <span>4 PM</span>
+          <span>6 PM</span>
         </div>
 
         {/* Swimlanes */}
-        <div className="flex-1 flex">
-          {DAYS.map((day, idx) => {
-            const dayBrews = processedData.filter(d => d.dayIdx === idx + 1);
-            
-            return (
-              <div key={day} className="flex-1 relative border-r border-slate-50 last:border-r-0 group/lane">
-                {/* Lane Background */}
-                <div className="absolute inset-0 bg-slate-50/0 group-hover/lane:bg-slate-50/50 transition-colors" />
-                
-                {/* Day Header */}
-                <div className="absolute -top-8 left-1/2 -translate-x-1/2 text-[11px] font-black text-slate-400 uppercase tracking-tighter">
-                  {day}
-                </div>
-
-                {/* Hour Grid Lines */}
-                {[8, 10, 12, 14, 16, 18].map(h => (
-                  <div 
-                    key={h} 
-                    className="absolute w-full border-t border-slate-100/50" 
-                    style={{ bottom: `${((h - MIN_HOUR) / HOUR_RANGE) * 100}%` }} 
-                  />
-                ))}
-
-                {/* The Brew Dots */}
-                <div className="absolute inset-0 overflow-hidden">
-                  {dayBrews.map((brew, i) => {
-                    const yPos = ((brew.hour - MIN_HOUR) / HOUR_RANGE) * 100;
-                    
-                    // Only render if within range
-                    if (brew.hour < MIN_HOUR || brew.hour > MAX_HOUR) return null;
-
-                    return (
-                      <div
-                        key={i}
-                        className={cn(
-                          "absolute w-3 h-3 rounded-full -translate-x-1/2 -translate-y-1/2 transition-all hover:scale-150 cursor-pointer z-10",
-                          brew.isSmall ? "bg-amber-400/40 hover:bg-amber-500" : "bg-blue-500/40 hover:bg-blue-600",
-                          "ring-1 ring-white/50 shadow-sm"
-                        )}
-                        style={{ 
-                          bottom: `${yPos}%`,
-                          left: `calc(50% + ${brew.jitter}px)`
-                        }}
-                        title={`${brew.dateStr} @ ${brew.timeStr}`}
-                      >
-                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-slate-900 text-white text-[10px] font-bold py-1 px-2 rounded opacity-0 hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
-                          {brew.dateStr} @ {brew.timeStr}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+        <div className="flex-1 flex relative">
+          {/* Lane Backgrounds and Headers */}
+          {units.map((unit, idx) => (
+            <div
+              key={idx}
+              className={cn(
+                "flex-1 relative border-r border-slate-50 dark:border-slate-900 last:border-r-0 group/lane transition-colors",
+                idx === currentIdx && "bg-blue-50/20 dark:bg-blue-900/10",
+              )}
+            >
+              <div className="absolute inset-0 bg-slate-50/0 group-hover/lane:bg-slate-50/50 dark:group-hover/lane:bg-slate-800/30 transition-colors" />
+              <div
+                className={cn(
+                  "absolute -top-8 left-1/2 -translate-x-1/2 font-black uppercase tracking-tighter text-center transition-all",
+                  mode === "monthly" ? "text-[8px]" : "text-[11px]",
+                  idx === currentIdx
+                    ? "text-blue-600 dark:text-blue-400 scale-110"
+                    : "text-slate-400 dark:text-slate-600",
+                )}
+              >
+                {unit}
               </div>
-            );
-          })}
+              {[7, 8, 10, 12, 14, 16, 18].map((h) => (
+                <div
+                  key={h}
+                  className="absolute w-full border-t border-slate-100/50 dark:border-slate-800/50"
+                  style={{ top: `${((h - MIN_HOUR) / HOUR_RANGE) * 100}%` }}
+                />
+              ))}
+            </div>
+          ))}
+
+          {/* Dots Overlay */}
+          <div className="absolute inset-0 pointer-events-none overflow-visible">
+            {validPoints.map((brew, i) => {
+              const unitWidth = 100 / units.length;
+              const xPos = (brew.unitIdx + 0.5) * unitWidth;
+              const yPos = ((brew.hour - MIN_HOUR) / HOUR_RANGE) * 100;
+
+              // Calculate size and opacity for yearly aggregate
+              const isYearly = mode === "yearly";
+              const count = brew.count || 1;
+              const size = isYearly
+                ? Math.min(6, 3 + Math.log2(count) * 1.5) // Grow slightly with count
+                : mode === "monthly"
+                  ? 1.5
+                  : 3;
+
+              const opacity = isYearly
+                ? Math.min(1, 0.4 + (count - 1) * 0.15)
+                : 0.6;
+
+              return (
+                <div
+                  key={i}
+                  className={cn(
+                    "absolute rounded-full -translate-x-1/2 -translate-y-1/2 transition-all hover:scale-150 cursor-pointer pointer-events-auto z-10",
+                    brew.isSmall
+                      ? "bg-amber-400 hover:bg-amber-500"
+                      : "bg-blue-500 hover:bg-blue-600",
+                    "ring-1 ring-white dark:ring-slate-900 shadow-sm",
+                  )}
+                  style={{
+                    top: `${yPos}%`,
+                    left: `${xPos}%`,
+                    width: `${size * 4}px`,
+                    height: `${size * 4}px`,
+                    opacity: opacity,
+                  }}
+                  title={`${brew.dateStr} @ ${brew.timeStr}`}
+                >
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 text-[10px] font-bold py-1 px-2 rounded opacity-0 hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
+                    {brew.dateStr} @ {brew.timeStr}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
-      
-      <p className="text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest italic pt-4">
-        &quot;The darker the cluster, the more reliable the caffeine fix.&quot;
+
+      <p className="text-center text-[10px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-widest italic pt-4">
+        &quot;Nothing like timing a fresh brew.&quot;
       </p>
     </div>
   );
@@ -162,10 +338,12 @@ export default function AnalyzePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <Coffee className="w-12 h-12 text-slate-300 animate-pulse" />
-          <p className="text-slate-400 font-bold uppercase tracking-widest text-sm">Brewing Analytics...</p>
+          <Coffee className="w-12 h-12 text-slate-300 dark:text-slate-700 animate-pulse" />
+          <p className="text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest text-sm">
+            Brewing Analytics...
+          </p>
         </div>
       </div>
     );
@@ -173,42 +351,58 @@ export default function AnalyzePage() {
 
   if (!analytics) return null;
 
-  const peakHour = Object.keys(analytics.hourDistribution).length > 0
-    ? `${Object.entries(analytics.hourDistribution).sort((a, b) => b[1] - a[1])[0][0]}h`
-    : '--';
+  const peakHour =
+    Object.keys(analytics.hourDistribution).length > 0
+      ? `${Object.entries(analytics.hourDistribution).sort(
+          (a, b) => b[1] - a[1],
+        )[0][0]}h`
+      : "--";
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-8">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-4 md:p-8">
       <div className="max-w-4xl mx-auto space-y-8">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <button 
-            onClick={() => router.push('/')}
-            className="flex items-center gap-2 text-slate-500 hover:text-slate-900 font-bold uppercase text-xs tracking-wider transition-colors"
+          <button
+            onClick={() => router.push("/")}
+            className="flex items-center gap-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 font-bold uppercase text-xs tracking-wider"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to Dashboard
           </button>
           <div className="flex items-center gap-3">
-            <BarChart2 className="w-6 h-6 text-slate-900" />
-            <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Analyze Consumption</h1>
+            <BarChart2 className="w-6 h-6 text-slate-900 dark:text-slate-100" />
+            <h1 className="text-2xl font-black text-slate-900 dark:text-slate-100 uppercase tracking-tight">
+              Analyze Consumption
+            </h1>
           </div>
         </div>
 
         {/* Top Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <StatTile label="Total Brews" value={String(analytics.totalBrews)} icon={CoffeeIcon} />
-          <StatTile label="Avg / Day" value={analytics.avgBrewsPerDay.toFixed(1)} icon={Calendar} />
+          <StatTile
+            label="Total Brews"
+            value={String(analytics.totalBrews)}
+            icon={CoffeeIcon}
+          />
+          <StatTile
+            label="Avg / Day"
+            value={analytics.avgBrewsPerDay.toFixed(1)}
+            icon={Calendar}
+          />
           <StatTile label="Peak Hour" value={peakHour} icon={Clock} />
-          <StatTile label="Big / Small" value={`${analytics.durationBreakdown[7 * 60 * 1000] ?? 0}/${analytics.durationBreakdown[4 * 60 * 1000] ?? 0}`} icon={Coffee} />
+          <StatTile
+            label="Big / Small"
+            value={`${analytics.durationBreakdown[7 * 60 * 1000] ?? 0}/${
+              analytics.durationBreakdown[4 * 60 * 1000] ?? 0
+            }`}
+            icon={Coffee}
+          />
         </div>
 
         {/* Charts */}
         <div className="space-y-12">
-          <WeeklyRhythm 
-            label="Weekly Aggregate Rhythm"
-            history={analytics.history}
-          />
+          <AggregateRhythm history={analytics.history} />
         </div>
       </div>
     </div>

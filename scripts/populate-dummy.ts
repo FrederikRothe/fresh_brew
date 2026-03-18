@@ -33,18 +33,24 @@ async function populate() {
 
     // Add 2-5 brews per weekday to ensure it looks "busy"
     const brewsPerDay = Math.floor(Math.random() * 4) + 2;
+    const dayBrews: number[] = [];
     for (let j = 0; j < brewsPerDay; j++) {
-      // Create a new date object for each brew on this day
-      const brewDate = new Date(currentDate);
+      let brewTime: number;
+      let attempts = 0;
       
-      // Generate a random hour between 8 AM and 5 PM (local time)
-      const randomHour = 8 + Math.floor(Math.random() * 10);
-      const randomMinute = Math.floor(Math.random() * 60);
+      // Ensure no brew is within 40 minutes of another on the same day
+      do {
+        const brewDate = new Date(currentDate);
+        const randomHour = 8 + Math.floor(Math.random() * 10);
+        const randomMinute = Math.floor(Math.random() * 60);
+        brewDate.setHours(randomHour, randomMinute, 0, 0);
+        brewTime = brewDate.getTime();
+        attempts++;
+      } while (dayBrews.some(t => Math.abs(t - brewTime) < 40 * 60 * 1000) && attempts < 100);
       
-      brewDate.setHours(randomHour, randomMinute, 0, 0);
-      
+      dayBrews.push(brewTime);
       history.push({
-        timestamp: brewDate.getTime(),
+        timestamp: brewTime,
         durationMs: Math.random() > 0.4 ? BIG_BREW : SMALL_BREW
       });
     }
