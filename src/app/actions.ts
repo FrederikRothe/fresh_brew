@@ -11,7 +11,7 @@ export async function getBrewStatus(): Promise<BrewStatus> {
 }
 
 export async function startBrew(password: string, durationMs: number = 7 * 60 * 1000) {
-  const ADMIN_PASSWORD = 'freshbrew'; // Super illegale hardcoded password, only for a simple coffee timer is this Ok :-)
+  const ADMIN_PASSWORD = process.env.ADMIN_PSW;
   
   if (password !== ADMIN_PASSWORD) {
     throw new Error('Unauthorized');

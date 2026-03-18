@@ -19,9 +19,10 @@ This project provides a real-time dashboard to monitor when the last pot of coff
 - **Date Handling:** `date-fns`
 
 ### Architecture
+### Architecture
 - **`src/app/page.tsx`**: Entry point (Server Component). Fetches initial brew status and renders the `Dashboard`.
 - **`src/components/Dashboard.tsx`**: Main UI (Client Component). Manages the live countdown timer, status-based color changes, admin authentication (via `localStorage`), and the **Admin Stats Panel**.
-- **`src/app/actions.ts`**: Server Actions for data fetching and mutation. Includes Slack notification logic, **brew analytics calculation**, and hardcoded admin password: `freshbrew`.
+- **`src/app/actions.ts`**: Server Actions for data fetching and mutation. Includes Slack notification logic, **brew analytics calculation**, and admin password verification via the `ADMIN_PSW` environment variable.
 - **`src/lib/storage.ts`**: Redis storage abstraction layer. Handles `BrewData` (current status) and `BrewHistory` (record list).
 - **`src/app/globals.css`**: Tailwind 4 configuration and global styles.
 
@@ -32,6 +33,7 @@ This project provides a real-time dashboard to monitor when the last pot of coff
 - A running Redis instance (URL configured in `.env` as `STORAGE_REDIS_URL`).
 - **Docker Compose** (optional, for local Redis).
 - A Slack Webhook URL (configured in `.env` as `SLACK_WEBHOOK_URL`) for brew alerts.
+- **`ADMIN_PSW`**: Set in `.env` for admin authentication.
 
 ### Key Commands
 - `npm install`: Install dependencies.
@@ -41,8 +43,7 @@ This project provides a real-time dashboard to monitor when the last pot of coff
 - `npm run start`: Start the production server.
 - `npm run lint`: Run ESLint for code quality.
 - `npm run test`: Run the Vitest test suite.
-- `npm run test:watch`: Run tests in watch mode.
-
+...
 ## Development Conventions
 
 ### Data Storage
@@ -52,7 +53,7 @@ This project provides a real-time dashboard to monitor when the last pot of coff
 
 ### Authentication
 - A simple "Brewer Mode" is used to prevent unauthorized resets.
-- The admin password is hardcoded as `freshbrew` in `src/app/actions.ts`.
+- The admin password is managed via the `ADMIN_PSW` environment variable in `src/app/actions.ts`.
 - Successful logins are stored in the browser's `localStorage` as `coffee_admin_password`.
 
 ### Notifications
