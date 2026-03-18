@@ -41,6 +41,12 @@ describe('Dashboard Component', () => {
     expect(screen.getByText('1')).toBeInTheDocument();
   });
 
+  it('always shows the Analyze Consumption link', () => {
+    render(<Dashboard initialStatus={initialStatus} />);
+    expect(screen.getByText(/Analyze Consumption/i)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Analyze Consumption/i })).toHaveAttribute('href', '/analyze');
+  });
+
   it('shows BREWING... state immediately after brew starts', () => {
     const now = Date.now();
     const status = { ...initialStatus, lastBrewTimestamp: now };
@@ -102,5 +108,16 @@ describe('Dashboard Component', () => {
     
     expect(screen.getByText('--:--')).toBeInTheDocument();
     expect(screen.getByText(/STALE \/ EMPTY/i)).toBeInTheDocument();
+  });
+
+  it('shows hh:mm:ss when time exceeds 60 minutes', () => {
+    const now = Date.now();
+    // 7m (brew) + 65m (since ready) = 72m total
+    const sixtyFiveMinsMs = 65 * 60 * 1000;
+    const status = { ...initialStatus, lastBrewTimestamp: now - (BREW_TIME_MS + sixtyFiveMinsMs) };
+    render(<Dashboard initialStatus={status} />);
+    
+    // 65 minutes = 01:05:00
+    expect(screen.getByText('01:05:00')).toBeInTheDocument();
   });
 });

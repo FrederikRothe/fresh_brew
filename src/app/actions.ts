@@ -7,7 +7,22 @@ import { readBrewData, writeBrewData, appendBrewRecord, readBrewHistory, type Br
 export type BrewStatus = BrewData;
 
 export async function getBrewStatus(): Promise<BrewStatus> {
-  return await readBrewData();
+  const data = await readBrewData();
+  const today = format(new Date(), 'yyyy-MM-dd');
+
+  if (data.lastBrewDate !== today) {
+    return {
+      ...data,
+      dailyBrewCount: 0,
+    };
+  }
+
+  return data;
+}
+
+export async function validatePassword(password: string): Promise<boolean> {
+  const ADMIN_PASSWORD = process.env.ADMIN_PSW;
+  return password === ADMIN_PASSWORD;
 }
 
 export async function startBrew(password: string, durationMs: number = 7 * 60 * 1000) {
@@ -70,6 +85,7 @@ export type BrewAnalytics = {
   hourDistribution: Record<number, number>; // hour 0-23 → count
   avgBrewsPerDay: number;
   durationBreakdown: Record<number, number>; // durationMs → count
+  history: { timestamp: number; durationMs: number }[];
 };
 
 export async function getBrewAnalytics(): Promise<BrewAnalytics> {
@@ -102,5 +118,6 @@ export async function getBrewAnalytics(): Promise<BrewAnalytics> {
     hourDistribution,
     avgBrewsPerDay,
     durationBreakdown,
+    history,
   };
 }

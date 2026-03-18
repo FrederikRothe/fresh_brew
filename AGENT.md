@@ -39,6 +39,8 @@ This project provides a real-time dashboard to monitor when the last pot of coff
 - `npm install`: Install dependencies.
 - `docker-compose up -d`: Start a local Redis instance.
 - `npm run dev`: Start the development server with Turbopack.
+- `npm run db:populate`: Populate Redis with dummy brew history for testing.
+- `npm run db:clear`: Clear all brew status and history from Redis.
 - `npm run build`: Build the production application.
 - `npm run start`: Start the production server.
 - `npm run lint`: Run ESLint for code quality.
@@ -66,8 +68,10 @@ This project provides a real-time dashboard to monitor when the last pot of coff
 - **Getting Sour (25-40m since ready):** Orange (`bg-amber-500`)
 - **Stale (40-60m since ready):** Red (`bg-rose-500`)
 - **Empty/Old (120m+):** Gray (`bg-slate-500`)
-- **Admin Stats Panel:** Accessible to logged-in brewers. Displays all-time brew counts, peak hours, and average daily consumption.
-- **Compact Landscape Mode:** Specialized Tailwind classes (`landscape:`) are used to optimize for short viewports on mobile devices.
+- **Daily Pot Count:** Automatically resets at midnight (calculated on-the-fly during data fetch).
+- **Analyze Consumption:** Publicly accessible page (`/analyze`) visualizing brew history and usage patterns.
+- **Admin Brewer Mode:** Secure login for starting new brews; stores session in `localStorage`.
+- **Compact Landscape Mode:** Optimized layout for short viewports on mobile devices.
 
 ### Coding Style
 - **Testing:** New features and core logic should be verified with Vitest. Tests are located in `src/__tests__`.

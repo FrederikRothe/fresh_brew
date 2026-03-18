@@ -1,10 +1,25 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useTransition } from 'react';
-import { startBrew, getBrewStatus, getBrewAnalytics, BrewStatus, BrewAnalytics } from '@/app/actions';
-import { Coffee, RefreshCw, Clock, History, Lock, Unlock, BarChart2, ChevronDown, ChevronUp } from 'lucide-react';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import Link from "next/link";
+import { useState, useEffect, useTransition } from "react";
+import {
+  startBrew,
+  getBrewStatus,
+  BrewStatus,
+  validatePassword,
+} from "@/app/actions";
+import {
+  Coffee,
+  RefreshCw,
+  Clock,
+  History,
+  Lock,
+  Unlock,
+  BarChart2,
+  ChevronRight,
+} from "lucide-react";
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -20,24 +35,38 @@ type BrewState = {
   statusColor: string;
   message: string;
   labelText: string;
+  displayHours: number;
   displayMins: number;
   displaySecs: number;
   isReset: boolean;
 };
 
-function computeBrewState(elapsedMs: number, brewDurationMs: number): BrewState {
+function computeBrewState(
+  elapsedMs: number,
+  brewDurationMs: number,
+): BrewState {
   if (elapsedMs >= RESET_THRESHOLD_MS) {
-    return { statusText: 'STALE / EMPTY', statusColor: 'bg-slate-500', message: 'Prompt users to make a new pot', labelText: 'Freshness Timer', displayMins: 0, displaySecs: 0, isReset: true };
+    return {
+      statusText: "STALE / EMPTY",
+      statusColor: "bg-slate-500",
+      message: "Prompt users to make a new pot",
+      labelText: "Freshness Timer",
+      displayHours: 0,
+      displayMins: 0,
+      displaySecs: 0,
+      isReset: true,
+    };
   }
 
   if (elapsedMs < brewDurationMs) {
     const remainingMs = Math.max(0, brewDurationMs - elapsedMs);
     return {
-      statusText: 'BREWING...',
-      statusColor: 'bg-blue-500',
-      message: 'Patience, the magic is happening.',
-      labelText: 'Brewing Countdown',
-      displayMins: Math.floor(remainingMs / 60000),
+      statusText: "BREWING...",
+      statusColor: "bg-blue-500",
+      message: "Patience, the magic is happening.",
+      labelText: "Brewing Countdown",
+      displayHours: Math.floor(remainingMs / 3600000),
+      displayMins: Math.floor((remainingMs % 3600000) / 60000),
       displaySecs: Math.floor((remainingMs % 60000) / 1000),
       isReset: false,
     };
@@ -45,49 +74,69 @@ function computeBrewState(elapsedMs: number, brewDurationMs: number): BrewState 
 
   const sinceReadyMs = elapsedMs - brewDurationMs;
   const base = {
-    labelText: 'Time Since Ready',
-    displayMins: Math.floor(sinceReadyMs / 60000),
+    labelText: "Time Since Ready",
+    displayHours: Math.floor(sinceReadyMs / 3600000),
+    displayMins: Math.floor((sinceReadyMs % 3600000) / 60000),
     displaySecs: Math.floor((sinceReadyMs % 60000) / 1000),
     isReset: false,
   };
 
   if (sinceReadyMs < FRESH_THRESHOLD_MS) {
-    return { ...base, statusText: 'FRESH!', statusColor: 'bg-emerald-500', message: 'Brewed recently. Enjoy!' };
+    return {
+      ...base,
+      statusText: "FRESH!",
+      statusColor: "bg-emerald-500",
+      message: "Brewed recently. Enjoy!",
+    };
   }
   if (sinceReadyMs < SOUR_THRESHOLD_MS) {
-    return { ...base, statusText: 'GETTING SOUR', statusColor: 'bg-amber-500', message: 'Getting there, but still tasty.' };
+    return {
+      ...base,
+      statusText: "GETTING SOUR",
+      statusColor: "bg-amber-500",
+      message: "Getting there, but still tasty.",
+    };
   }
-  return { ...base, statusText: 'STALE', statusColor: 'bg-rose-500', message: 'Running low or getting cold.' };
+  return {
+    ...base,
+    statusText: "STALE",
+    statusColor: "bg-rose-500",
+    message: "Running low or getting cold.",
+  };
 }
 
-function StatTile({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="bg-slate-100 rounded-2xl p-4 flex flex-col items-center border border-slate-200">
-      <span className="text-[10px] font-bold uppercase text-slate-500 tracking-wider mb-1">{label}</span>
-      <span className="text-3xl font-black text-slate-900">{value}</span>
-    </div>
-  );
-}
-
-export default function Dashboard({ initialStatus }: { initialStatus: BrewStatus }) {
+export default function Dashboard({
+  initialStatus,
+}: {
+  initialStatus: BrewStatus;
+}) {
   const [status, setStatus] = useState<BrewStatus>(initialStatus);
   const [now, setNow] = useState(() => Date.now());
   const [isPending, startTransition] = useTransition();
   const [adminPassword, setAdminPassword] = useState<string | null>(null);
-  const [showStats, setShowStats] = useState(false);
-  const [analytics, setAnalytics] = useState<BrewAnalytics | null>(null);
 
   const lastBrew = status.lastBrewTimestamp;
   const elapsedMs = lastBrew ? now - lastBrew : Infinity;
-  const { statusText, statusColor, message, labelText, displayMins, displaySecs, isReset } =
-    computeBrewState(elapsedMs, status.brewDurationMs || DEFAULT_BREW_TIME_MS);
+  const {
+    statusText,
+    statusColor,
+    message,
+    labelText,
+    displayHours,
+    displayMins,
+    displaySecs,
+    isReset,
+  } = computeBrewState(
+    elapsedMs,
+    status.brewDurationMs || DEFAULT_BREW_TIME_MS,
+  );
 
   // Load password from localStorage on mount (hydration safe)
   useEffect(() => {
-    const savedPassword = localStorage.getItem('coffee_admin_password');
+    const savedPassword = localStorage.getItem("coffee_admin_password");
     if (savedPassword) setAdminPassword(savedPassword);
 
-    if ('Notification' in window && Notification.permission === 'default') {
+    if ("Notification" in window && Notification.permission === "default") {
       Notification.requestPermission();
     }
   }, []);
@@ -103,9 +152,15 @@ export default function Dashboard({ initialStatus }: { initialStatus: BrewStatus
     const pollInterval = setInterval(async () => {
       try {
         const newStatus = await getBrewStatus();
-        if (newStatus.lastBrewTimestamp && newStatus.lastBrewTimestamp > (status.lastBrewTimestamp || 0)) {
-          if ('Notification' in window && Notification.permission === 'granted') {
-            new Notification('☕ Fresh Brew Dispatched!', {
+        if (
+          newStatus.lastBrewTimestamp &&
+          newStatus.lastBrewTimestamp > (status.lastBrewTimestamp || 0)
+        ) {
+          if (
+            "Notification" in window &&
+            Notification.permission === "granted"
+          ) {
+            new Notification("☕ Fresh Brew Dispatched!", {
               body: `Pot #${newStatus.dailyBrewCount} is now brewing!`,
             });
           }
@@ -114,7 +169,7 @@ export default function Dashboard({ initialStatus }: { initialStatus: BrewStatus
           setStatus(newStatus);
         }
       } catch (error) {
-        console.error('Failed to poll brew status:', error);
+        console.error("Failed to poll brew status:", error);
       }
     }, 30000);
 
@@ -124,45 +179,46 @@ export default function Dashboard({ initialStatus }: { initialStatus: BrewStatus
   // Apply background to body to handle overscroll on mobile
   useEffect(() => {
     const colorMap: Record<string, string> = {
-      'bg-slate-500': '#64748b',
-      'bg-blue-500': '#3b82f6',
-      'bg-emerald-500': '#10b981',
-      'bg-amber-500': '#f59e0b',
-      'bg-rose-500': '#f43f5e',
+      "bg-slate-500": "#64748b",
+      "bg-blue-500": "#3b82f6",
+      "bg-emerald-500": "#10b981",
+      "bg-amber-500": "#f59e0b",
+      "bg-rose-500": "#f43f5e",
     };
     const colorClasses = Object.keys(colorMap);
-    document.body.style.backgroundColor = colorMap[statusColor] || '#ffffff';
+    document.body.style.backgroundColor = colorMap[statusColor] || "#ffffff";
     document.body.classList.remove(...colorClasses);
     document.body.classList.add(statusColor);
     return () => {
       document.body.classList.remove(...colorClasses);
-      document.body.style.backgroundColor = '';
+      document.body.style.backgroundColor = "";
     };
   }, [statusColor]);
 
-  useEffect(() => {
-    if (showStats && adminPassword) {
-      getBrewAnalytics().then(setAnalytics).catch(console.error);
-    }
-  }, [showStats, adminPassword]);
-
-  const handleLogin = () => {
-    const password = prompt('Please enter the admin password to login:');
+  const handleLogin = async () => {
+    const password = prompt("Please enter the admin password to login:");
     if (password) {
-      setAdminPassword(password);
-      localStorage.setItem('coffee_admin_password', password);
+      const isValid = await validatePassword(password);
+      if (isValid) {
+        setAdminPassword(password);
+        localStorage.setItem("coffee_admin_password", password);
+      } else {
+        alert("Incorrect password. Access denied.");
+      }
     }
   };
 
   const handleLogout = () => {
-    if (confirm('Are you sure you want to log out of brewer mode?')) {
+    if (confirm("Are you sure you want to log out of brewer mode?")) {
       setAdminPassword(null);
-      localStorage.removeItem('coffee_admin_password');
+      localStorage.removeItem("coffee_admin_password");
     }
   };
 
   const handleStartBrew = async (durationMs: number = DEFAULT_BREW_TIME_MS) => {
-    const password = adminPassword ?? prompt('Please enter the admin password to start a new brew:');
+    const password =
+      adminPassword ??
+      prompt("Please enter the admin password to start a new brew:");
     if (!password) return;
 
     startTransition(async () => {
@@ -172,37 +228,37 @@ export default function Dashboard({ initialStatus }: { initialStatus: BrewStatus
           setStatus({
             lastBrewTimestamp: result.timestamp,
             dailyBrewCount: result.count,
-            lastBrewDate: new Date().toISOString().split('T')[0],
+            lastBrewDate: new Date().toISOString().split("T")[0],
             brewDurationMs: durationMs,
           });
-          if (!adminPassword && confirm('Stay logged in as coffee brewer?')) {
+          if (!adminPassword && confirm("Stay logged in as coffee brewer?")) {
             setAdminPassword(password);
-            localStorage.setItem('coffee_admin_password', password);
+            localStorage.setItem("coffee_admin_password", password);
           }
         }
       } catch (error) {
-        if (error instanceof Error && error.message === 'Unauthorized') {
-          alert('Incorrect password. Access denied.');
+        if (error instanceof Error && error.message === "Unauthorized") {
+          alert("Incorrect password. Access denied.");
           if (adminPassword) {
             setAdminPassword(null);
-            localStorage.removeItem('coffee_admin_password');
+            localStorage.removeItem("coffee_admin_password");
           }
         } else {
-          alert('Failed to start brew. Make sure storage is configured correctly.');
+          alert(
+            "Failed to start brew. Make sure storage is configured correctly.",
+          );
         }
       }
     });
   };
 
-  const peakHour = Object.keys(analytics?.hourDistribution ?? {}).length > 0
-    ? `${Object.entries(analytics!.hourDistribution).sort((a, b) => b[1] - a[1])[0][0]}h`
-    : '--';
-
   return (
-    <div className={cn(
-      'min-h-screen flex flex-col items-center justify-center p-3 md:p-6 relative',
-      'landscape:py-4 landscape:justify-start landscape:md:justify-center'
-    )}>
+    <div
+      className={cn(
+        "min-h-screen flex flex-col items-center justify-center p-3 md:p-6 relative",
+        "landscape:py-4 landscape:justify-start landscape:md:justify-center",
+      )}
+    >
       {/* Discrete Login Button */}
       <div className="absolute top-4 right-4 md:top-6 md:right-6 landscape:top-2 landscape:right-2 landscape:md:top-6 landscape:md:right-6 z-50">
         {adminPassword ? (
@@ -212,8 +268,9 @@ export default function Dashboard({ initialStatus }: { initialStatus: BrewStatus
           >
             <Unlock className="w-3.5 h-3.5 md:w-4 md:h-4" />
             <span className="uppercase tracking-tight">
-              <span className="md:hidden landscape:hidden landscape:md:inline">Admin</span>
-              <span className="hidden md:inline landscape:hidden landscape:md:inline">Brewer Mode (Active)</span>
+              <span className="hidden md:inline landscape:hidden landscape:md:inline">
+                Brewer Mode (Active)
+              </span>
             </span>
           </button>
         ) : (
@@ -223,14 +280,15 @@ export default function Dashboard({ initialStatus }: { initialStatus: BrewStatus
           >
             <Lock className="w-3.5 h-3.5 md:w-4 md:h-4" />
             <span className="uppercase tracking-tight">
-              <span className="hidden md:inline landscape:hidden landscape:md:inline">Coffee Brewer Login</span>
+              <span className="hidden md:inline landscape:hidden landscape:md:inline">
+                Coffee Brewer Login
+              </span>
             </span>
           </button>
         )}
       </div>
 
       <div className="max-w-3xl w-full bg-white/90 backdrop-blur-md rounded-3xl md:rounded-[2.5rem] shadow-2xl p-5 md:p-12 landscape:p-4 landscape:md:p-12 flex flex-col items-center text-center space-y-8 md:space-y-10 landscape:space-y-4 landscape:md:space-y-10 border-4 border-white/20">
-
         {/* Header */}
         <div className="space-y-1 md:space-y-2 landscape:space-y-0 landscape:md:space-y-2">
           <div className="flex items-center justify-center space-x-2 md:space-x-3 mb-2 md:mb-4 landscape:mb-1 landscape:md:mb-4">
@@ -239,7 +297,9 @@ export default function Dashboard({ initialStatus }: { initialStatus: BrewStatus
               Coffee Tracker
             </h1>
           </div>
-          <p className="text-slate-600 font-medium text-[11px] md:text-lg landscape:text-[10px] landscape:md:text-lg uppercase tracking-widest px-2">Office Refreshment Dashboard</p>
+          <p className="text-slate-600 font-medium text-[11px] md:text-lg landscape:text-[10px] landscape:md:text-lg uppercase tracking-widest px-2">
+            Office Refreshment Dashboard
+          </p>
         </div>
 
         {/* Main Timer Display */}
@@ -256,15 +316,20 @@ export default function Dashboard({ initialStatus }: { initialStatus: BrewStatus
               </div>
             ) : (
               <div className="text-6xl md:text-9xl landscape:text-5xl landscape:md:text-9xl font-black tabular-nums tracking-tighter">
-                {String(displayMins).padStart(2, '0')}:{String(displaySecs).padStart(2, '0')}
+                {displayHours > 0 &&
+                  `${String(displayHours).padStart(2, "0")}:`}
+                {String(displayMins).padStart(2, "0")}:
+                {String(displaySecs).padStart(2, "0")}
               </div>
             )}
 
-            <div className={cn(
-              'mt-5 md:mt-6 landscape:mt-2 landscape:md:mt-6 px-5 md:px-6 py-1.5 md:py-2 rounded-full text-base md:text-xl landscape:text-sm landscape:md:text-xl font-bold uppercase tracking-wider',
-              statusColor,
-              'text-white shadow-lg animate-pulse'
-            )}>
+            <div
+              className={cn(
+                "mt-5 md:mt-6 landscape:mt-2 landscape:md:mt-6 px-5 md:px-6 py-1.5 md:py-2 rounded-full text-base md:text-xl landscape:text-sm landscape:md:text-xl font-bold uppercase tracking-wider",
+                statusColor,
+                "text-white shadow-lg animate-pulse",
+              )}
+            >
               {statusText}
             </div>
           </div>
@@ -272,19 +337,28 @@ export default function Dashboard({ initialStatus }: { initialStatus: BrewStatus
         </div>
 
         {/* Daily Count + Brew Buttons */}
-        <div className={cn(
-          'grid gap-4 md:gap-6 w-full',
-          adminPassword ? 'grid-cols-1 md:grid-cols-2 landscape:grid-cols-2' : 'grid-cols-1'
-        )}>
-          <div className={cn(
-            'bg-slate-100 p-5 md:p-6 landscape:p-3 landscape:md:p-6 rounded-2xl flex flex-col items-center justify-center border border-slate-200 transition-all duration-500',
-            !adminPassword && 'py-8 md:py-12 landscape:py-4 landscape:md:py-12'
-          )}>
+        <div
+          className={cn(
+            "grid gap-4 md:gap-6 w-full",
+            adminPassword
+              ? "grid-cols-1 md:grid-cols-2 landscape:grid-cols-2"
+              : "grid-cols-1",
+          )}
+        >
+          <div
+            className={cn(
+              "bg-slate-100 p-5 md:p-6 landscape:p-3 landscape:md:p-6 rounded-2xl flex flex-col items-center justify-center border border-slate-200 transition-all duration-500",
+              !adminPassword &&
+                "py-8 md:py-12 landscape:py-4 landscape:md:py-12",
+            )}
+          >
             <span className="text-slate-500 font-bold uppercase text-[10px] md:text-xs tracking-wider mb-1 md:mb-2 flex items-center">
               <History className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1 md:mr-1.5" />
               Daily Pot Count
             </span>
-            <span className="text-4xl md:text-5xl landscape:text-2xl landscape:md:text-5xl font-black text-slate-900">{status.dailyBrewCount}</span>
+            <span className="text-4xl md:text-5xl landscape:text-2xl landscape:md:text-5xl font-black text-slate-900">
+              {status.dailyBrewCount}
+            </span>
           </div>
 
           {adminPassword && (
@@ -294,10 +368,16 @@ export default function Dashboard({ initialStatus }: { initialStatus: BrewStatus
                 disabled={isPending}
                 className="w-full rounded-2xl py-4 md:py-6 flex flex-col items-center justify-center transition-all duration-300 active:scale-95 disabled:opacity-70 bg-slate-900 hover:bg-slate-800 text-white shadow-xl hover:shadow-2xl"
               >
-                {isPending ? <RefreshCw className="w-6 h-6 md:w-8 md:h-8 animate-spin" /> : (
+                {isPending ? (
+                  <RefreshCw className="w-6 h-6 md:w-8 md:h-8 animate-spin" />
+                ) : (
                   <>
-                    <span className="text-lg md:text-xl font-black uppercase tracking-tight px-4">Start BIG Brew</span>
-                    <span className="text-[10px] md:text-xs text-slate-400 font-bold mt-1 uppercase">7 Minutes</span>
+                    <span className="text-lg md:text-xl font-black uppercase tracking-tight px-4">
+                      Start BIG Brew
+                    </span>
+                    <span className="text-[10px] md:text-xs text-slate-400 font-bold mt-1 uppercase">
+                      7 Minutes
+                    </span>
                   </>
                 )}
               </button>
@@ -306,10 +386,16 @@ export default function Dashboard({ initialStatus }: { initialStatus: BrewStatus
                 disabled={isPending}
                 className="w-full rounded-2xl py-4 md:py-6 flex flex-col items-center justify-center transition-all duration-300 active:scale-95 disabled:opacity-70 bg-slate-800 hover:bg-slate-700 text-white shadow-lg hover:shadow-xl border border-white/10"
               >
-                {isPending ? <RefreshCw className="w-6 h-6 md:w-8 md:h-8 animate-spin" /> : (
+                {isPending ? (
+                  <RefreshCw className="w-6 h-6 md:w-8 md:h-8 animate-spin" />
+                ) : (
                   <>
-                    <span className="text-lg md:text-xl font-black uppercase tracking-tight px-4 text-slate-200">Start Small Brew</span>
-                    <span className="text-[10px] md:text-xs text-slate-400 font-bold mt-1 uppercase">4 Minutes</span>
+                    <span className="text-lg md:text-xl font-black uppercase tracking-tight px-4 text-slate-200">
+                      Start Small Brew
+                    </span>
+                    <span className="text-[10px] md:text-xs text-slate-400 font-bold mt-1 uppercase">
+                      4 Minutes
+                    </span>
                   </>
                 )}
               </button>
@@ -317,38 +403,19 @@ export default function Dashboard({ initialStatus }: { initialStatus: BrewStatus
           )}
         </div>
 
-        {/* Admin Stats Panel */}
-        {adminPassword && (
-          <div className="w-full">
-            <button
-              onClick={() => setShowStats(v => !v)}
-              className="w-full flex items-center justify-between px-4 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-600 font-bold uppercase text-[10px] md:text-xs tracking-wider transition-colors"
-            >
-              <span className="flex items-center gap-1.5">
-                <BarChart2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                Brew Stats
-              </span>
-              {showStats ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-            </button>
-
-            {showStats && (
-              <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-3">
-                {analytics ? (
-                  <>
-                    <StatTile label="All-Time Brews" value={String(analytics.totalBrews)} />
-                    <StatTile label="Avg / Day" value={analytics.avgBrewsPerDay.toFixed(1)} />
-                    <StatTile label="Peak Hour" value={peakHour} />
-                    <StatTile label="Big / Small" value={`${analytics.durationBreakdown[7 * 60 * 1000] ?? 0}/${analytics.durationBreakdown[4 * 60 * 1000] ?? 0}`} />
-                  </>
-                ) : (
-                  <div className="col-span-2 md:col-span-4 flex items-center justify-center py-4 text-slate-400 text-sm">
-                    Loading stats...
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
+        {/* Analyze Consumption Link */}
+        <div className="w-full">
+          <Link
+            href="/analyze"
+            className="w-full flex items-center justify-between px-4 py-3 md:py-4 rounded-2xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-600 hover:text-slate-900 transition-all group"
+          >
+            <span className="flex items-center gap-2 font-black uppercase text-[11px] md:text-sm tracking-widest">
+              <BarChart2 className="w-4 h-4 md:w-5 md:h-5 text-slate-500 group-hover:text-blue-500 transition-colors" />
+              Analyze Consumption
+            </span>
+            <ChevronRight className="w-4 h-4 md:w-5 md:h-5 text-slate-400 group-hover:translate-x-1 transition-transform" />
+          </Link>
+        </div>
 
         {/* Footer Hint */}
         <p className="text-slate-400 font-semibold italic text-xs md:text-base landscape:text-[10px] landscape:md:text-base px-2">
