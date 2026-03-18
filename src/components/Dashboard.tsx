@@ -166,13 +166,37 @@ export default function Dashboard({ initialStatus }: { initialStatus: BrewStatus
     labelText = 'Time Since Ready';
   }
 
+  // Apply background to body to handle overscroll on mobile
+  useEffect(() => {
+    // Map Tailwind classes to hex values for direct style application (failsafe)
+    const colorMap: Record<string, string> = {
+      'bg-slate-500': '#64748b',
+      'bg-blue-500': '#3b82f6',
+      'bg-emerald-500': '#10b981',
+      'bg-amber-500': '#f59e0b',
+      'bg-rose-500': '#f43f5e',
+    };
+    
+    const hexColor = colorMap[statusColor] || '#ffffff';
+    document.body.style.backgroundColor = hexColor;
+    
+    // Also keep the class for potential other styling
+    const colorClasses = Object.keys(colorMap);
+    document.body.classList.remove(...colorClasses);
+    document.body.classList.add(statusColor);
+    
+    return () => {
+      document.body.classList.remove(...colorClasses);
+      document.body.style.backgroundColor = '';
+    };
+  }, [statusColor]);
+
   const isReset = elapsedMs >= RESET_THRESHOLD_MS;
 
   return (
     <div className={cn(
-      "min-h-screen flex flex-col items-center justify-center p-3 md:p-6 transition-colors duration-1000 relative",
-      "landscape:py-4 landscape:justify-start landscape:md:justify-center",
-      statusColor
+      "min-h-screen flex flex-col items-center justify-center p-3 md:p-6 relative",
+      "landscape:py-4 landscape:justify-start landscape:md:justify-center"
     )}>
       {/* Discrete Login Button */}
       <div className="absolute top-4 right-4 md:top-6 md:right-6 landscape:top-2 landscape:right-2 landscape:md:top-6 landscape:md:right-6 z-50">
