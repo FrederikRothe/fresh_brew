@@ -36,6 +36,22 @@ export async function startBrew(password: string) {
 
     await writeBrewData(newData);
 
+    // Notify Copenhagen Coffee Minion Slack workflow
+    const slackWebhookUrl = process.env.SLACK_WEBHOOK_URL;
+    if (slackWebhookUrl) {
+      try {
+        await fetch(slackWebhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text: `☕ Pot #${newCount} is now brewing! It'll be ready in ~7 minutes.`,
+          }),
+        });
+      } catch (slackError) {
+        console.error('Failed to notify Slack:', slackError);
+      }
+    }
+
     revalidatePath('/');
     return { success: true, timestamp: now, count: newCount };
   } catch (error) {

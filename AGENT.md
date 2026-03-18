@@ -10,7 +10,7 @@ This project provides a real-time dashboard to monitor when the last pot of coff
 - **Language:** TypeScript
 - **Styling:** Tailwind CSS 4
 - **State/Countdown:** React Client Components with `useEffect` timers
-- **Notifications:** Standard Web Notification API (client-side polling)
+- **Notifications:** Standard Web Notification API (client-side polling) and Slack (via Webhook)
 - **Backend/Logic:** Next.js Server Actions
 - **Storage:** Redis (via `redis` package)
 - **Testing:** Vitest, React Testing Library, JSDOM
@@ -20,7 +20,7 @@ This project provides a real-time dashboard to monitor when the last pot of coff
 ### Architecture
 - **`src/app/page.tsx`**: Entry point (Server Component). Fetches initial brew status and renders the `Dashboard`.
 - **`src/components/Dashboard.tsx`**: Main UI (Client Component). Manages the live countdown timer, status-based color changes, and admin authentication (via `localStorage`).
-- **`src/app/actions.ts`**: Server Actions for data fetching and mutation. Includes a hardcoded admin password: `freshbrew`.
+- **`src/app/actions.ts`**: Server Actions for data fetching and mutation. Includes Slack notification logic and hardcoded admin password: `freshbrew`.
 - **`src/lib/storage.ts`**: Redis storage abstraction layer. Uses the `STORAGE_REDIS_URL` environment variable.
 - **`src/app/globals.css`**: Tailwind 4 configuration and global styles.
 
@@ -28,7 +28,8 @@ This project provides a real-time dashboard to monitor when the last pot of coff
 
 ### Prerequisites
 - Node.js (Latest LTS recommended)
-- A running Redis instance (URL configured in `.env`)
+- A running Redis instance (URL configured in `.env` as `STORAGE_REDIS_URL`)
+- A Slack Webhook URL (configured in `.env` as `SLACK_WEBHOOK_URL`) for brew alerts.
 
 ### Key Commands
 - `npm install`: Install dependencies.
@@ -51,9 +52,9 @@ This project provides a real-time dashboard to monitor when the last pot of coff
 - The admin password is hardcoded as `freshbrew` in `src/app/actions.ts`.
 - Successful logins are stored in the browser's `localStorage` as `coffee_admin_password`.
 
-### Browser Notifications
-- Permission is requested on the initial mount of the dashboard.
-- Notifications are triggered client-side during the 30-second polling interval when a new brew timestamp is detected.
+### Notifications
+- **Browser Notifications:** Permission is requested on the initial mount of the dashboard. Notifications are triggered client-side during the 30-second polling interval when a new brew timestamp is detected.
+- **Slack Notifications:** When a new brew is started via `startBrew` in `src/app/actions.ts`, a message is sent to the configured Slack Webhook URL.
 
 ### Visual States
 - **Brewing (0-7m):** Blue (`bg-blue-500`) - Countdown to ready.
