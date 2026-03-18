@@ -24,8 +24,6 @@ export function AggregateRhythm({
 }) {
   const [mode, setMode] = useState<RhythmMode>("weekly");
 
-  if (history.length === 0) return null;
-
   const now = new Date();
   let currentIdx: number | null = null;
 

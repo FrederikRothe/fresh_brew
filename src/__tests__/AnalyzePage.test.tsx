@@ -80,4 +80,27 @@ describe('AnalyzePage Component', () => {
     const marchLabel = screen.getByText('Mar');
     expect(marchLabel).toHaveClass('text-blue-600');
   });
+
+  it('renders graph even with empty history', async () => {
+    const emptyAnalytics = {
+      totalBrews: 0,
+      avgBrewsPerDay: 0,
+      hourDistribution: {},
+      durationBreakdown: {},
+      history: [],
+    };
+    vi.mocked(actions.getBrewAnalytics).mockResolvedValue(emptyAnalytics as actions.BrewAnalytics);
+
+    render(<AnalyzePage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Consumption Rhythm')).toBeInTheDocument();
+      expect(screen.getByText('Total Brews')).toBeInTheDocument();
+      // Should show "--" or "0" stats
+      expect(screen.getByText('0')).toBeInTheDocument(); // Total Brews
+      expect(screen.getByText('0.0')).toBeInTheDocument(); // Avg / Day
+      expect(screen.getByText('0/0')).toBeInTheDocument(); // Big / Small
+      expect(screen.getByText('--')).toBeInTheDocument(); // Peak Hour
+    });
+  });
 });
