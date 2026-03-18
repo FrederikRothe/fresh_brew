@@ -218,7 +218,6 @@ export default function Dashboard({ initialStatus }: { initialStatus: BrewStatus
           >
             <Lock className="w-3.5 h-3.5 md:w-4 md:h-4" />
             <span className="uppercase tracking-tight">
-              <span className="md:hidden landscape:hidden landscape:md:inline">Login</span>
               <span className="hidden md:inline landscape:hidden landscape:md:inline">Coffee Brewer Login</span>
             </span>
           </button>
