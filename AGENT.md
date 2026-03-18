@@ -10,6 +10,7 @@ This project provides a real-time dashboard to monitor when the last pot of coff
 - **Language:** TypeScript
 - **Styling:** Tailwind CSS 4
 - **State/Countdown:** React Client Components with `useEffect` timers
+- **Notifications:** Standard Web Notification API (client-side polling)
 - **Backend/Logic:** Next.js Server Actions
 - **Storage:** Redis (via `redis` package)
 - **Testing:** Vitest, React Testing Library, JSDOM
@@ -49,6 +50,10 @@ This project provides a real-time dashboard to monitor when the last pot of coff
 - A simple "Brewer Mode" is used to prevent unauthorized resets.
 - The admin password is hardcoded as `freshbrew` in `src/app/actions.ts`.
 - Successful logins are stored in the browser's `localStorage` as `coffee_admin_password`.
+
+### Browser Notifications
+- Permission is requested on the initial mount of the dashboard.
+- Notifications are triggered client-side during the 30-second polling interval when a new brew timestamp is detected.
 
 ### Visual States
 - **Brewing (0-7m):** Blue (`bg-blue-500`) - Countdown to ready.

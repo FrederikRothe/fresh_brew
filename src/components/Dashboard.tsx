@@ -28,6 +28,11 @@ export default function Dashboard({ initialStatus }: { initialStatus: BrewStatus
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setAdminPassword(savedPassword);
     }
+
+    // Request notification permission
+    if ("Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission();
+    }
   }, []);
 
   // Update timer every second
@@ -43,8 +48,18 @@ export default function Dashboard({ initialStatus }: { initialStatus: BrewStatus
     const pollInterval = setInterval(async () => {
       try {
         const newStatus = await getBrewStatus();
-        // Update local status if the server has a newer brew timestamp
-        if (newStatus.lastBrewTimestamp !== status.lastBrewTimestamp) {
+        
+        // If the server has a newer brew timestamp
+        if (newStatus.lastBrewTimestamp && newStatus.lastBrewTimestamp > (status.lastBrewTimestamp || 0)) {
+          // Trigger Notification
+          if ("Notification" in window && Notification.permission === "granted") {
+            new Notification("☕ Fresh Brew Dispatched!", {
+              body: `Pot #${newStatus.dailyBrewCount} is now brewing!`,
+            });
+          }
+          setStatus(newStatus);
+        } else if (newStatus.lastBrewTimestamp !== status.lastBrewTimestamp) {
+          // Update status even if it's not "newer" (e.g. data was reset to null)
           setStatus(newStatus);
         }
       } catch (error) {
