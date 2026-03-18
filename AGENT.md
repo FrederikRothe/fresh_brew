@@ -12,6 +12,7 @@ This project provides a real-time dashboard to monitor when the last pot of coff
 - **State/Countdown:** React Client Components with `useEffect` timers
 - **Backend/Logic:** Next.js Server Actions
 - **Storage:** Redis (via `redis` package)
+- **Testing:** Vitest, React Testing Library, JSDOM
 - **Icons:** Lucide React
 - **Date Handling:** `date-fns`
 
@@ -34,6 +35,8 @@ This project provides a real-time dashboard to monitor when the last pot of coff
 - `npm run build`: Build the production application.
 - `npm run start`: Start the production server.
 - `npm run lint`: Run ESLint for code quality.
+- `npm run test`: Run the Vitest test suite.
+- `npm run test:watch`: Run tests in watch mode.
 
 ## Development Conventions
 
@@ -48,12 +51,14 @@ This project provides a real-time dashboard to monitor when the last pot of coff
 - Successful logins are stored in the browser's `localStorage` as `coffee_admin_password`.
 
 ### Visual States
-- **Fresh (0-10m):** Green (`bg-emerald-500`)
-- **Still Good (10-20m):** Orange (`bg-amber-500`)
-- **Drink at Own Risk (20-30m):** Red (`bg-rose-500`)
-- **Stale (30m+):** Gray (`bg-slate-500`)
+- **Brewing (0-7m):** Blue (`bg-blue-500`) - Countdown to ready.
+- **Fresh (0-15m since ready):** Green (`bg-emerald-500`)
+- **Getting Sour (15-25m since ready):** Orange (`bg-amber-500`)
+- **Stale (25-60m since ready):** Red (`bg-rose-500`)
+- **Empty/Old (60m+):** Gray (`bg-slate-500`)
 
 ### Coding Style
+- **Testing:** New features and core logic should be verified with Vitest. Tests are located in `src/__tests__`.
 - **Server Components:** Used for initial data fetching to minimize client-side waterfall.
 - **Server Actions:** Used for all mutations (`startBrew`).
 - **Tailwind CSS:** Utility-first styling with Tailwind 4.
