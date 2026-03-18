@@ -2,6 +2,11 @@ import { createClient } from 'redis';
 
 const redisUrl = process.env.STORAGE_REDIS_URL;
 
+export type BrewRecord = {
+  timestamp: number;  // Unix ms — when brew started
+  durationMs: number; // brew duration in ms
+};
+
 export type BrewData = {
   lastBrewTimestamp: number | null;
   dailyBrewCount: number;
@@ -10,6 +15,7 @@ export type BrewData = {
 };
 
 const BREW_KEY = 'coffee_brew_data';
+const BREW_HISTORY_KEY = 'coffee_brew_history';
 
 async function getRedisClient() {
   const client = createClient({
@@ -28,10 +34,6 @@ export async function readBrewData(): Promise<BrewData> {
   try {
     const client = await getRedisClient();
     const data = await client.get(BREW_KEY);
-    
-    // In serverless, we should quit the client to avoid leaking connections
-    // but Node-Redis 4.x client can be reused if kept in a global variable.
-    // For simplicity and to avoid "connection limit" errors on some Redis plans:
     await client.quit();
 
     if (!data) {
@@ -52,5 +54,28 @@ export async function writeBrewData(data: BrewData) {
   } catch (error) {
     console.error('Error writing to Redis:', error);
     throw new Error('Failed to update brew data storage.');
+  }
+}
+
+export async function appendBrewRecord(record: BrewRecord): Promise<void> {
+  try {
+    const client = await getRedisClient();
+    await client.rPush(BREW_HISTORY_KEY, JSON.stringify(record));
+    await client.quit();
+  } catch (error) {
+    console.error('Error appending brew record:', error);
+    throw new Error('Failed to append brew record.');
+  }
+}
+
+export async function readBrewHistory(): Promise<BrewRecord[]> {
+  try {
+    const client = await getRedisClient();
+    const raw = await client.lRange(BREW_HISTORY_KEY, 0, -1);
+    await client.quit();
+    return raw.map(r => JSON.parse(r));
+  } catch (error) {
+    console.error('Error reading brew history:', error);
+    return [];
   }
 }

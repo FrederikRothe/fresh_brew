@@ -1,8 +1,8 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { format } from 'date-fns';
-import { readBrewData, writeBrewData, type BrewData } from '@/lib/storage';
+import { format, getISOWeek, getYear, getHours } from 'date-fns';
+import { readBrewData, writeBrewData, appendBrewRecord, readBrewHistory, type BrewData } from '@/lib/storage';
 
 export type BrewStatus = BrewData;
 
@@ -36,6 +36,7 @@ export async function startBrew(password: string, durationMs: number = 7 * 60 * 
     };
 
     await writeBrewData(newData);
+    await appendBrewRecord({ timestamp: now, durationMs });
 
     const durationMins = Math.round(durationMs / 60000);
 
@@ -61,4 +62,45 @@ export async function startBrew(password: string, durationMs: number = 7 * 60 * 
     console.error('Failed to update brew status in Redis:', error);
     throw new Error('Could not start fresh brew. Storage error.');
   }
+}
+
+export type BrewAnalytics = {
+  totalBrews: number;
+  brewsPerWeek: Record<string, number>;    // e.g. "2026-W11" → count
+  hourDistribution: Record<number, number>; // hour 0-23 → count
+  avgBrewsPerDay: number;
+  durationBreakdown: Record<number, number>; // durationMs → count
+};
+
+export async function getBrewAnalytics(): Promise<BrewAnalytics> {
+  const history = await readBrewHistory();
+
+  const brewsPerWeek: Record<string, number> = {};
+  const hourDistribution: Record<number, number> = {};
+  const durationBreakdown: Record<number, number> = {};
+  const daysSeen = new Set<string>();
+
+  for (const record of history) {
+    const date = new Date(record.timestamp);
+
+    const weekKey = `${getYear(date)}-W${String(getISOWeek(date)).padStart(2, '0')}`;
+    brewsPerWeek[weekKey] = (brewsPerWeek[weekKey] ?? 0) + 1;
+
+    const hour = getHours(date);
+    hourDistribution[hour] = (hourDistribution[hour] ?? 0) + 1;
+
+    durationBreakdown[record.durationMs] = (durationBreakdown[record.durationMs] ?? 0) + 1;
+
+    daysSeen.add(format(date, 'yyyy-MM-dd'));
+  }
+
+  const avgBrewsPerDay = daysSeen.size > 0 ? history.length / daysSeen.size : 0;
+
+  return {
+    totalBrews: history.length,
+    brewsPerWeek,
+    hourDistribution,
+    avgBrewsPerDay,
+    durationBreakdown,
+  };
 }
