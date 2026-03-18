@@ -1,31 +1,53 @@
-# Coffee Freshness Tracker
+# Coffee Tracker (isitfresh) ☕
 
-A Next.js web application for tracking office coffee freshness and daily consumption.
+A high-performance Next.js 16 dashboard for tracking office coffee freshness and consumption patterns.
+
+## The Essence
+This project provides a real-time, high-visibility dashboard for shared office environments. It solves the "is there fresh coffee?" problem by tracking brew timestamps, managing freshness countdowns, and visualizing historical consumption habits.
+
+- **Real-time Status:** Live countdowns and color-coded freshness states (Fresh → Sour → Stale → Empty).
+- **Daily Counter:** Automatic midnight reset to track today's caffeine output.
+- **Consumption Analytics:** A dedicated public `/analyze` page visualizing weekly rhythms and usage peaks.
+- **Admin Control:** Secure "Brewer Mode" for starting Big (7m) or Small (4m) pots.
+- **Notifications:** Integrated Web Notifications and Slack Webhook alerts.
 
 ## Tech Stack
-- **Next.js 15+ (App Router)**
-- **Tailwind CSS**
-- **Local CSV Storage (Node.js FS)**
-- **Lucide React (Icons)**
+- **Framework:** Next.js 16 (App Router + Server Actions)
+- **Styling:** Tailwind CSS 4 (with optimized landscape mobile support)
+- **Storage:** Redis (Persistent status and historical logs)
+- **Icons:** Lucide React
+- **Testing:** Vitest + React Testing Library
 
-## Core Features
-- **Global Freshness Timer:** Tracks the exact timestamp of the last brew in a local CSV file.
-- **Real-time Countdown:** Displays a 30-minute freshness window with a live countdown.
-- **Dynamic Visual Cues:** Background and status colors change based on coffee age (Green, Orange, Red, Gray).
-- **Daily Pot Counter:** Tracks total coffee pots brewed today, resetting automatically at midnight.
+## Quick Start
 
-## Setup & Local Development
-
-### 1. Data Persistence
-The app uses a local file named `coffee_data.csv` in the project root to store status. This file is created automatically on the first run.
-
-### 2. Local Development
+### 1. Environment Setup
+Create a `.env` file with the following:
 ```bash
+STORAGE_REDIS_URL=redis://localhost:6379
+ADMIN_PSW=your_secret_password
+SLACK_WEBHOOK_URL=your_slack_webhook (optional)
+```
+
+### 2. Run with Docker (Redis)
+```bash
+docker-compose up -d
 npm install
 npm run dev
 ```
 
-## Note on Deployment
-This app is currently configured for **local storage via CSV**. 
+## Essential Commands
 
-**Important for Vercel users:** Standard Vercel deployments use serverless functions with a **read-only** ephemeral filesystem. Writes to `coffee_data.csv` will not persist across requests or deployments. For persistent storage in a production Vercel environment, consider integrating a database like **Upstash Redis** or a similar external storage provider.
+| Command | Description |
+| :--- | :--- |
+| `npm run dev` | Start development server with Turbopack |
+| `npm run build` | Build for production |
+| `npm run test` | Execute Vitest suite |
+| `npm run lint` | Run ESLint checks |
+| `npm run db:populate` | Seed Redis with dummy history for analytics testing |
+| `npm run db:clear` | Wipe all brew data and history from Redis |
+
+## Architecture
+- **`/analyze`**: Public consumption analytics dashboard.
+- **`/src/lib/storage.ts`**: Redis abstraction layer.
+- **`/src/app/actions.ts`**: Server-side logic for brews and analytics.
+- **`/src/components/Dashboard.tsx`**: Main interactive dashboard.
