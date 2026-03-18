@@ -61,6 +61,7 @@ This project provides a real-time dashboard to monitor when the last pot of coff
 - **Getting Sour (15-25m since ready):** Orange (`bg-amber-500`)
 - **Stale (25-60m since ready):** Red (`bg-rose-500`)
 - **Empty/Old (60m+):** Gray (`bg-slate-500`)
+- **Compact Landscape Mode:** Specialized Tailwind classes (`landscape:`) are used to optimize for short viewports on mobile devices.
 
 ### Coding Style
 - **Testing:** New features and core logic should be verified with Vitest. Tests are located in `src/__tests__`.
