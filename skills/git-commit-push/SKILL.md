@@ -1,30 +1,30 @@
 ---
 name: git-commit-push
-description: Commits and pushes staged changes while automatically documenting them in AGENT.md. Use when the user wants to commit changes and ensure the project's record is up-to-date.
+description: Commits and pushes staged changes while ensuring AGENT.md is updated to reflect any architectural or functional changes. Use when committing to keep project documentation in sync with the codebase.
 ---
 
-# Git Commit and Push with Documentation
+# Git Commit and Push with Documentation Review
 
-This skill streamlines the workflow of committing and pushing changes, ensuring every commit is documented in `AGENT.md` with the staged diff.
+This skill ensures that `AGENT.md` remains a concise and accurate reflection of the current codebase state by reviewing staged changes before committing.
 
 ## Workflow
 
 1. **Verify Staged Changes**: Ensure all relevant changes are staged with `git add`.
-2. **Update AGENT.md**: Run the documentation script to append staged changes to `AGENT.md`.
-3. **Stage AGENT.md**: Stage the updated `AGENT.md` itself.
-4. **Commit**: Perform a standard commit with a descriptive message.
-5. **Push**: Push the changes to the remote repository.
-
-## Commands
-
-To update the documentation:
-```bash
-./skills/git-commit-push/scripts/update_agent_md.sh
-```
+2. **Review for Impact**: Analyze the staged diff to identify changes that affect:
+    - Core technologies or versions.
+    - Project architecture or file structure.
+    - Development conventions (storage, auth, visual states).
+    - Building, running, or testing commands.
+3. **Update AGENT.md**: If impacts are found, surgically update `AGENT.md`.
+    - **Constraint**: Keep `AGENT.md` short and focused (< 200 lines).
+    - **No Change Logs**: Do not append commit history or diffs. Update the *current state* descriptions only.
+4. **Stage AGENT.md**: Stage the updated `AGENT.md` itself.
+5. **Commit**: Perform a standard commit with a descriptive message.
+6. **Push**: Push the changes to the remote repository.
 
 ## Implementation Guide
 
-1. Run the script: `./skills/git-commit-push/scripts/update_agent_md.sh`.
-2. Run `git add AGENT.md` to include the documentation change in the commit.
-3. Use `git commit -m "..."` to commit the changes.
-4. Use `git push` to push to the current branch.
+- Use `git diff --staged` to review changes.
+- Read `AGENT.md` to identify sections requiring updates.
+- Use `replace` or `write_file` to keep `AGENT.md` concise.
+- Always stage `AGENT.md` if it was modified before committing.
