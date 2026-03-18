@@ -46,18 +46,17 @@ export default function ThemeToggle() {
     <button
       onClick={toggleTheme}
       className={cn(
-        "fixed top-4 left-4 z-50 p-2.5 rounded-xl",
-        "bg-white/80 dark:bg-slate-900/80 backdrop-blur-md",
-        "border border-slate-200 dark:border-slate-800",
-        "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100",
-        "shadow-sm hover:shadow-md active:scale-95"
+        "fixed bottom-4 left-4 z-50 p-2 rounded-lg",
+        "text-slate-400 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-400",
+        "opacity-50 hover:opacity-100 transition-opacity",
+        "active:scale-95"
       )}
       aria-label="Toggle Dark Mode"
     >
       {theme === "light" ? (
-        <Moon className="w-5 h-5 rotate-0 hover:-rotate-12" />
+        <Moon className="w-4 h-4 rotate-0 hover:-rotate-12" />
       ) : (
-        <Sun className="w-5 h-5 rotate-0 hover:rotate-90 text-amber-400" />
+        <Sun className="w-4 h-4 rotate-0 hover:rotate-90 text-amber-400" />
       )}
     </button>
   );
