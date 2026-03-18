@@ -39,7 +39,7 @@ export async function startBrew(password: string) {
     revalidatePath('/');
     return { success: true, timestamp: now, count: newCount };
   } catch (error) {
-    console.error('Failed to update brew status in CSV:', error);
-    throw new Error('Could not start fresh brew. Check local filesystem permissions.');
+    console.error('Failed to update brew status in Redis:', error);
+    throw new Error('Could not start fresh brew. Storage error.');
   }
 }

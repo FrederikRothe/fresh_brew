@@ -1,7 +1,6 @@
-import fs from 'fs/promises';
-import path from 'path';
+import { createClient } from 'redis';
 
-const CSV_FILE_PATH = path.join(process.cwd(), 'coffee_data.csv');
+const redisUrl = process.env.STORAGE_REDIS_URL;
 
 export type BrewData = {
   lastBrewTimestamp: number | null;
@@ -9,45 +8,48 @@ export type BrewData = {
   lastBrewDate: string | null;
 };
 
-// Initialize CSV with headers if it doesn't exist
-export async function initializeCSV() {
-  try {
-    await fs.access(CSV_FILE_PATH);
-  } catch {
-    const headers = 'lastBrewTimestamp,dailyBrewCount,lastBrewDate\n';
-    const initialData = '0,0,\n';
-    await fs.writeFile(CSV_FILE_PATH, headers + initialData, 'utf-8');
+const BREW_KEY = 'coffee_brew_data';
+
+async function getRedisClient() {
+  const client = createClient({
+    url: redisUrl
+  });
+
+  client.on('error', (err) => console.error('Redis Client Error', err));
+
+  if (!client.isOpen) {
+    await client.connect();
   }
+  return client;
 }
 
 export async function readBrewData(): Promise<BrewData> {
   try {
-    await initializeCSV();
-    const content = await fs.readFile(CSV_FILE_PATH, 'utf-8');
-    const lines = content.trim().split('\n');
+    const client = await getRedisClient();
+    const data = await client.get(BREW_KEY);
     
-    if (lines.length < 2) return { lastBrewTimestamp: null, dailyBrewCount: 0, lastBrewDate: null };
+    // In serverless, we should quit the client to avoid leaking connections
+    // but Node-Redis 4.x client can be reused if kept in a global variable.
+    // For simplicity and to avoid "connection limit" errors on some Redis plans:
+    await client.quit();
 
-    const [timestamp, count, date] = lines[1].split(',');
-    
-    return {
-      lastBrewTimestamp: timestamp === '0' ? null : Number(timestamp),
-      dailyBrewCount: Number(count) || 0,
-      lastBrewDate: date || null,
-    };
+    if (!data) {
+      return { lastBrewTimestamp: null, dailyBrewCount: 0, lastBrewDate: null };
+    }
+    return JSON.parse(data);
   } catch (error) {
-    console.error('Error reading CSV:', error);
+    console.error('Error reading from Redis:', error);
     return { lastBrewTimestamp: null, dailyBrewCount: 0, lastBrewDate: null };
   }
 }
 
 export async function writeBrewData(data: BrewData) {
   try {
-    const headers = 'lastBrewTimestamp,dailyBrewCount,lastBrewDate\n';
-    const row = `${data.lastBrewTimestamp || 0},${data.dailyBrewCount},${data.lastBrewDate || ''}\n`;
-    await fs.writeFile(CSV_FILE_PATH, headers + row, 'utf-8');
+    const client = await getRedisClient();
+    await client.set(BREW_KEY, JSON.stringify(data));
+    await client.quit();
   } catch (error) {
-    console.error('Error writing CSV:', error);
+    console.error('Error writing to Redis:', error);
     throw new Error('Failed to update brew data storage.');
   }
 }
