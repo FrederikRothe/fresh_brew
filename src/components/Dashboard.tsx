@@ -109,7 +109,7 @@ export default function Dashboard({
         {adminPassword ? (
           <button
             onClick={handleLogout}
-            className="flex items-center space-x-2 bg-white/20 dark:bg-slate-800/40 hover:bg-white/30 dark:hover:bg-slate-800/60 backdrop-blur-md px-3 md:px-4 py-1.5 md:py-2 landscape:px-2 landscape:py-1 landscape:md:px-4 landscape:md:py-2 rounded-full text-white text-[11px] md:text-sm font-bold transition-all border border-white/20 dark:border-slate-700"
+            className="flex items-center space-x-2 bg-white/20 dark:bg-slate-800/40 hover:bg-white/30 dark:hover:bg-slate-800/60 backdrop-blur-md px-3 md:px-4 py-1.5 md:py-2 landscape:px-2 landscape:py-1 landscape:md:px-4 landscape:md:py-2 rounded-full text-white text-[11px] md:text-sm font-bold transition-none border border-white/20 dark:border-slate-700"
           >
             <Unlock className="w-3.5 h-3.5 md:w-4 md:h-4" />
             <span className="uppercase tracking-tight">
@@ -121,7 +121,7 @@ export default function Dashboard({
         ) : (
           <button
             onClick={handleLogin}
-            className="flex items-center space-x-2 bg-white/10 dark:bg-slate-800/20 hover:bg-white/20 dark:hover:bg-slate-800/40 backdrop-blur-md px-3 md:px-4 py-1.5 md:py-2 landscape:px-2 landscape:py-1 landscape:md:px-4 landscape:md:py-2 rounded-full text-white/70 dark:text-slate-400 hover:text-white dark:hover:text-slate-200 text-[11px] md:text-sm font-bold transition-all border border-white/10 dark:border-slate-700/50"
+            className="flex items-center space-x-2 bg-white/10 dark:bg-slate-800/20 hover:bg-white/20 dark:hover:bg-slate-800/40 backdrop-blur-md px-3 md:px-4 py-1.5 md:py-2 landscape:px-2 landscape:py-1 landscape:md:px-4 landscape:md:py-2 rounded-full text-white/70 dark:text-slate-400 hover:text-white dark:hover:text-slate-200 text-[11px] md:text-sm font-bold transition-none border border-white/10 dark:border-slate-700/50"
           >
             <Lock className="w-3.5 h-3.5 md:w-4 md:h-4" />
             <span className="uppercase tracking-tight">
@@ -192,7 +192,7 @@ export default function Dashboard({
         >
           <div
             className={cn(
-              "bg-slate-100 dark:bg-slate-800/50 p-5 md:p-6 landscape:p-3 landscape:md:p-6 rounded-2xl flex flex-col items-center justify-center border border-slate-200 dark:border-slate-800 transition-all duration-500",
+              "bg-slate-100 dark:bg-slate-800/50 p-5 md:p-6 landscape:p-3 landscape:md:p-6 rounded-2xl flex flex-col items-center justify-center border border-slate-200 dark:border-slate-800",
               !adminPassword &&
                 "py-8 md:py-12 landscape:py-4 landscape:md:py-12",
             )}
@@ -211,7 +211,7 @@ export default function Dashboard({
               <button
                 onClick={() => handleStartBrew(7 * 60 * 1000)}
                 disabled={isPending}
-                className="w-full rounded-2xl py-4 md:py-6 flex flex-col items-center justify-center transition-all duration-300 active:scale-95 disabled:opacity-70 bg-slate-900 dark:bg-black hover:bg-slate-800 dark:hover:bg-slate-950 text-white shadow-xl hover:shadow-2xl border border-white/5"
+                className="w-full rounded-2xl py-4 md:py-6 flex flex-col items-center justify-center active:scale-95 disabled:opacity-70 bg-slate-900 dark:bg-black hover:bg-slate-800 dark:hover:bg-slate-950 text-white shadow-xl hover:shadow-2xl border border-white/5"
               >
                 {isPending ? (
                   <RefreshCw className="w-6 h-6 md:w-8 md:h-8 animate-spin" />
@@ -229,7 +229,7 @@ export default function Dashboard({
               <button
                 onClick={() => handleStartBrew(4 * 60 * 1000)}
                 disabled={isPending}
-                className="w-full rounded-2xl py-4 md:py-6 flex flex-col items-center justify-center transition-all duration-300 active:scale-95 disabled:opacity-70 bg-slate-800 dark:bg-slate-900 hover:bg-slate-700 dark:hover:bg-slate-800 text-white shadow-lg hover:shadow-xl border border-white/10 dark:border-slate-700"
+                className="w-full rounded-2xl py-4 md:py-6 flex flex-col items-center justify-center active:scale-95 disabled:opacity-70 bg-slate-800 dark:bg-slate-900 hover:bg-slate-700 dark:hover:bg-slate-800 text-white shadow-lg hover:shadow-xl border border-white/10 dark:border-slate-700"
               >
                 {isPending ? (
                   <RefreshCw className="w-6 h-6 md:w-8 md:h-8 animate-spin" />
@@ -252,10 +252,10 @@ export default function Dashboard({
         <div className="w-full">
           <Link
             href="/analyze"
-            className="w-full flex items-center justify-between px-4 py-3 md:py-4 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-all group"
+            className="w-full flex items-center justify-between px-4 py-3 md:py-4 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 group"
           >
             <span className="flex items-center gap-2 font-black uppercase text-[11px] md:text-sm tracking-widest">
-              <BarChart2 className="w-4 h-4 md:w-5 md:h-5 text-slate-500 dark:text-slate-400 group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors" />
+              <BarChart2 className="w-4 h-4 md:w-5 md:h-5 text-slate-500 dark:text-slate-400 group-hover:text-blue-500 dark:group-hover:text-blue-400" />
               Analyze Consumption
             </span>
             <ChevronRight className="w-4 h-4 md:w-5 md:h-5 text-slate-400 dark:text-slate-500 group-hover:translate-x-1 transition-transform" />

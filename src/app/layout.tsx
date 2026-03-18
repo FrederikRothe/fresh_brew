@@ -25,7 +25,7 @@ export default function RootLayout({
           href="https://github.com/FrederikRothe/fresh_brew"
           target="_blank"
           rel="noopener noreferrer"
-          className="fixed bottom-4 right-4 text-gray-400 dark:text-gray-600 hover:text-gray-600 dark:hover:text-gray-400 transition-colors opacity-50 hover:opacity-100"
+          className="fixed bottom-4 right-4 text-gray-400 dark:text-gray-600 hover:text-gray-600 dark:hover:text-gray-400 opacity-50 hover:opacity-100"
           aria-label="GitHub Repository"
         >
           <Github size={16} />
