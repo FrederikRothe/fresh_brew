@@ -23,7 +23,7 @@ describe('Storage Library', () => {
   });
 
   it('reads brew data from redis', async () => {
-    const mockData = { lastBrewTimestamp: 123456789, dailyBrewCount: 5, lastBrewDate: '2026-03-18' };
+    const mockData = { lastBrewTimestamp: 123456789, dailyBrewCount: 5, lastBrewDate: '2026-03-18', brewDurationMs: 420000 };
     mockClient.get.mockResolvedValue(JSON.stringify(mockData));
     
     const data = await readBrewData();
@@ -37,11 +37,11 @@ describe('Storage Library', () => {
     
     const data = await readBrewData();
     
-    expect(data).toEqual({ lastBrewTimestamp: null, dailyBrewCount: 0, lastBrewDate: null });
+    expect(data).toEqual({ lastBrewTimestamp: null, dailyBrewCount: 0, lastBrewDate: null, brewDurationMs: null });
   });
 
   it('writes brew data to redis', async () => {
-    const data = { lastBrewTimestamp: 987654321, dailyBrewCount: 10, lastBrewDate: '2026-03-19' };
+    const data = { lastBrewTimestamp: 987654321, dailyBrewCount: 10, lastBrewDate: '2026-03-19', brewDurationMs: 240000 };
     
     await writeBrewData(data);
     
@@ -54,6 +54,6 @@ describe('Storage Library', () => {
     
     const data = await readBrewData();
     
-    expect(data).toEqual({ lastBrewTimestamp: null, dailyBrewCount: 0, lastBrewDate: null });
+    expect(data).toEqual({ lastBrewTimestamp: null, dailyBrewCount: 0, lastBrewDate: null, brewDurationMs: null });
   });
 });

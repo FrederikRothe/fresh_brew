@@ -11,8 +11,8 @@ vi.mock('@/app/actions', () => ({
 
 // Constants from Dashboard for testing
 const BREW_TIME_MS = 7 * 60 * 1000;
-const FRESH_THRESHOLD_MS = 15 * 60 * 1000;
-const SOUR_THRESHOLD_MS = 25 * 60 * 1000;
+const FRESH_THRESHOLD_MS = 25 * 60 * 1000;
+const SOUR_THRESHOLD_MS = 40 * 60 * 1000;
 const RESET_THRESHOLD_MS = 60 * 60 * 1000;
 
 describe('Dashboard Component', () => {
@@ -20,6 +20,7 @@ describe('Dashboard Component', () => {
     lastBrewTimestamp: Date.now(),
     dailyBrewCount: 1,
     lastBrewDate: new Date().toISOString().split('T')[0],
+    brewDurationMs: null,
   };
 
   beforeEach(() => {
@@ -77,6 +78,21 @@ describe('Dashboard Component', () => {
     
     expect(screen.getByText(/STALE/i)).toBeInTheDocument();
     expect(screen.getByText(/Running low or getting cold/i)).toBeInTheDocument();
+  });
+
+  it('shows FRESH! state after small brew is complete (4m)', () => {
+    const now = Date.now();
+    const SMALL_BREW_TIME_MS = 4 * 60 * 1000;
+    // 5 minutes later (4m brew time + 1m)
+    const status = { 
+      ...initialStatus, 
+      lastBrewTimestamp: now - (SMALL_BREW_TIME_MS + 60000),
+      brewDurationMs: SMALL_BREW_TIME_MS 
+    };
+    render(<Dashboard initialStatus={status} />);
+    
+    expect(screen.getByText(/FRESH!/i)).toBeInTheDocument();
+    expect(screen.getByText(/Brewed recently. Enjoy!/i)).toBeInTheDocument();
   });
 
   it('shows --:-- when data is too old (RESET_THRESHOLD)', () => {

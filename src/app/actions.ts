@@ -10,7 +10,7 @@ export async function getBrewStatus(): Promise<BrewStatus> {
   return await readBrewData();
 }
 
-export async function startBrew(password: string) {
+export async function startBrew(password: string, durationMs: number = 7 * 60 * 1000) {
   const ADMIN_PASSWORD = 'freshbrew'; // Super illegale hardcoded password, only for a simple coffee timer is this Ok :-)
   
   if (password !== ADMIN_PASSWORD) {
@@ -32,9 +32,12 @@ export async function startBrew(password: string) {
       lastBrewTimestamp: now,
       dailyBrewCount: newCount,
       lastBrewDate: today,
+      brewDurationMs: durationMs,
     };
 
     await writeBrewData(newData);
+
+    const durationMins = Math.round(durationMs / 60000);
 
     // Notify Copenhagen Coffee Minion Slack workflow
     const slackWebhookUrl = process.env.SLACK_WEBHOOK_URL;
@@ -44,7 +47,7 @@ export async function startBrew(password: string) {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            text: `☕ Pot #${newCount} is now brewing! It'll be ready in ~7 minutes.`,
+            text: `☕ Pot #${newCount} is now brewing! It'll be ready in ~${durationMins} minutes.`,
           }),
         });
       } catch (slackError) {
@@ -53,7 +56,7 @@ export async function startBrew(password: string) {
     }
 
     revalidatePath('/');
-    return { success: true, timestamp: now, count: newCount };
+    return { success: true, timestamp: now, count: newCount, durationMs };
   } catch (error) {
     console.error('Failed to update brew status in Redis:', error);
     throw new Error('Could not start fresh brew. Storage error.');

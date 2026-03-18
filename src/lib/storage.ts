@@ -6,6 +6,7 @@ export type BrewData = {
   lastBrewTimestamp: number | null;
   dailyBrewCount: number;
   lastBrewDate: string | null;
+  brewDurationMs: number | null;
 };
 
 const BREW_KEY = 'coffee_brew_data';
@@ -34,12 +35,12 @@ export async function readBrewData(): Promise<BrewData> {
     await client.quit();
 
     if (!data) {
-      return { lastBrewTimestamp: null, dailyBrewCount: 0, lastBrewDate: null };
+      return { lastBrewTimestamp: null, dailyBrewCount: 0, lastBrewDate: null, brewDurationMs: null };
     }
     return JSON.parse(data);
   } catch (error) {
     console.error('Error reading from Redis:', error);
-    return { lastBrewTimestamp: null, dailyBrewCount: 0, lastBrewDate: null };
+    return { lastBrewTimestamp: null, dailyBrewCount: 0, lastBrewDate: null, brewDurationMs: null };
   }
 }
 

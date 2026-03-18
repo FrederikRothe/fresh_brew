@@ -10,7 +10,7 @@ function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-const BREW_TIME_MS = 7 * 60 * 1000;
+const DEFAULT_BREW_TIME_MS = 7 * 60 * 1000;
 const FRESH_THRESHOLD_MS = 25 * 60 * 1000;
 const SOUR_THRESHOLD_MS = 40 * 60 * 1000;
 const RESET_THRESHOLD_MS = 60 * 60 * 1000;
@@ -86,7 +86,7 @@ export default function Dashboard({ initialStatus }: { initialStatus: BrewStatus
     }
   };
 
-  const handleStartBrew = async () => {
+  const handleStartBrew = async (durationMs: number = DEFAULT_BREW_TIME_MS) => {
     let passwordToUse = adminPassword;
 
     if (!passwordToUse) {
@@ -96,12 +96,13 @@ export default function Dashboard({ initialStatus }: { initialStatus: BrewStatus
 
     startTransition(async () => {
       try {
-        const result = await startBrew(passwordToUse!);
+        const result = await startBrew(passwordToUse!, durationMs);
         if (result.success) {
           setStatus({
             lastBrewTimestamp: result.timestamp,
             dailyBrewCount: result.count,
             lastBrewDate: new Date().toISOString().split('T')[0],
+            brewDurationMs: durationMs,
           });
           // If the prompt was used, optionally save it
           if (!adminPassword && confirm('Stay logged in as coffee brewer?')) {
@@ -125,6 +126,7 @@ export default function Dashboard({ initialStatus }: { initialStatus: BrewStatus
   };
 
   const lastBrew = status.lastBrewTimestamp;
+  const currentBrewTimeMs = status.brewDurationMs || DEFAULT_BREW_TIME_MS;
   const elapsedMs = lastBrew ? now - lastBrew : Infinity;
   
   // Status calculation
@@ -135,9 +137,9 @@ export default function Dashboard({ initialStatus }: { initialStatus: BrewStatus
   let displaySecs = 0;
   let labelText = 'Freshness Timer';
 
-  if (elapsedMs < BREW_TIME_MS) {
-    // Brewing phase: 7 minute countdown
-    const remainingMs = Math.max(0, BREW_TIME_MS - elapsedMs);
+  if (elapsedMs < currentBrewTimeMs) {
+    // Brewing phase countdown
+    const remainingMs = Math.max(0, currentBrewTimeMs - elapsedMs);
     displayMins = Math.floor(remainingMs / 60000);
     displaySecs = Math.floor((remainingMs % 60000) / 1000);
     statusText = 'BREWING...';
@@ -146,15 +148,15 @@ export default function Dashboard({ initialStatus }: { initialStatus: BrewStatus
     labelText = 'Brewing Countdown';
   } else if (elapsedMs < RESET_THRESHOLD_MS) {
     // Post-brew phases: counting up from 00:00
-    const sinceBrewedMs = elapsedMs - BREW_TIME_MS;
-    displayMins = Math.floor(sinceBrewedMs / 60000);
-    displaySecs = Math.floor((sinceBrewedMs % 60000) / 1000);
+    const sinceReadyMs = elapsedMs - currentBrewTimeMs;
+    displayMins = Math.floor(sinceReadyMs / 60000);
+    displaySecs = Math.floor((sinceReadyMs % 60000) / 1000);
 
-    if (sinceBrewedMs < FRESH_THRESHOLD_MS) {
+    if (sinceReadyMs < FRESH_THRESHOLD_MS) {
       statusText = 'FRESH!';
       statusColor = 'bg-emerald-500';
       message = 'Brewed recently. Enjoy!';
-    } else if (sinceBrewedMs < SOUR_THRESHOLD_MS) {
+    } else if (sinceReadyMs < SOUR_THRESHOLD_MS) {
       statusText = 'GETTING SOUR';
       statusColor = 'bg-amber-500';
       message = 'Getting there, but still tasty.';
@@ -284,23 +286,42 @@ export default function Dashboard({ initialStatus }: { initialStatus: BrewStatus
           </div>
           
           {adminPassword && (
-            <button
-              onClick={handleStartBrew}
-              disabled={isPending}
-              className={cn(
-                "relative group h-full w-full rounded-2xl py-5 md:py-6 landscape:py-2 landscape:md:py-6 flex flex-col items-center justify-center transition-all duration-300 active:scale-95 disabled:opacity-70 overflow-hidden",
-                "bg-slate-900 hover:bg-slate-800 text-white shadow-xl hover:shadow-2xl"
-              )}
-            >
-              {isPending ? (
-                <RefreshCw className="w-8 h-8 md:w-10 md:h-10 animate-spin" />
-              ) : (
-                <>
-                  <span className="text-xl md:text-2xl landscape:text-lg landscape:md:text-2xl font-black uppercase tracking-tight px-4">Start Fresh Brew</span>
-                  <span className="text-[10px] md:text-sm text-slate-400 font-bold mt-1 uppercase landscape:hidden landscape:md:inline">Click when coffee is brewing</span>
-                </>
-              )}
-            </button>
+            <div className="flex flex-col space-y-3 md:space-y-4">
+              <button
+                onClick={() => handleStartBrew(7 * 60 * 1000)}
+                disabled={isPending}
+                className={cn(
+                  "relative group w-full rounded-2xl py-4 md:py-6 flex flex-col items-center justify-center transition-all duration-300 active:scale-95 disabled:opacity-70 overflow-hidden",
+                  "bg-slate-900 hover:bg-slate-800 text-white shadow-xl hover:shadow-2xl"
+                )}
+              >
+                {isPending ? (
+                  <RefreshCw className="w-6 h-6 md:w-8 md:h-8 animate-spin" />
+                ) : (
+                  <>
+                    <span className="text-lg md:text-xl font-black uppercase tracking-tight px-4">Start BIG Brew</span>
+                    <span className="text-[10px] md:text-xs text-slate-400 font-bold mt-1 uppercase">7 Minutes</span>
+                  </>
+                )}
+              </button>
+              <button
+                onClick={() => handleStartBrew(4 * 60 * 1000)}
+                disabled={isPending}
+                className={cn(
+                  "relative group w-full rounded-2xl py-4 md:py-6 flex flex-col items-center justify-center transition-all duration-300 active:scale-95 disabled:opacity-70 overflow-hidden",
+                  "bg-slate-800 hover:bg-slate-700 text-white shadow-lg hover:shadow-xl border border-white/10"
+                )}
+              >
+                {isPending ? (
+                  <RefreshCw className="w-6 h-6 md:w-8 md:h-8 animate-spin" />
+                ) : (
+                  <>
+                    <span className="text-lg md:text-xl font-black uppercase tracking-tight px-4 text-slate-200">Start Small Brew</span>
+                    <span className="text-[10px] md:text-xs text-slate-400 font-bold mt-1 uppercase">4 Minutes</span>
+                  </>
+                )}
+              </button>
+            </div>
           )}
         </div>
 

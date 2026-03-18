@@ -57,7 +57,7 @@ This project provides a real-time dashboard to monitor when the last pot of coff
 - **Slack Notifications:** When a new brew is started via `startBrew` in `src/app/actions.ts`, a message is sent to the configured Slack Webhook URL.
 
 ### Visual States
-- **Brewing (0-7m):** Blue (`bg-blue-500`) - Countdown to ready.
+- **Brewing:** Blue (`bg-blue-500`) - Countdown to ready. **BIG Brew: 7m**, **Small Brew: 4m**.
 - **Fresh (0-25m since ready):** Green (`bg-emerald-500`)
 - **Getting Sour (25-40m since ready):** Orange (`bg-amber-500`)
 - **Stale (40-60m since ready):** Red (`bg-rose-500`)
