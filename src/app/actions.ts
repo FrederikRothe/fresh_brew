@@ -1,14 +1,15 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { format, getISOWeek, getYear, getHours } from 'date-fns';
+import { getISOWeek, getYear } from 'date-fns';
 import { readBrewData, writeBrewData, appendBrewRecord, readBrewHistory, type BrewData } from '@/lib/storage';
+import { formatCphDate, formatCphTime, getCphHour } from '@/lib/utils';
 
 export type BrewStatus = BrewData;
 
 export async function getBrewStatus(): Promise<BrewStatus> {
   const data = await readBrewData();
-  const today = format(new Date(), 'yyyy-MM-dd');
+  const today = formatCphDate(new Date());
 
   if (data.lastBrewDate !== today) {
     return {
@@ -33,7 +34,7 @@ export async function startBrew(password: string, durationMs: number = 7 * 60 * 
   }
 
   const now = Date.now();
-  const today = format(now, 'yyyy-MM-dd');
+  const today = formatCphDate(now);
 
   try {
     const currentData = await readBrewData();
@@ -54,7 +55,7 @@ export async function startBrew(password: string, durationMs: number = 7 * 60 * 
     await appendBrewRecord({ timestamp: now, durationMs });
 
     const durationMins = Math.round(durationMs / 60000);
-    const etc = format(now + durationMs, 'HH:mm');
+    const etc = formatCphTime(now + durationMs);
     const batchSize = durationMs > 5 * 60 * 1000 ? 'BIG' : 'small';
 
     // Notify Copenhagen Coffee Minion Slack workflow
@@ -107,12 +108,12 @@ export async function getBrewAnalytics(): Promise<BrewAnalytics> {
     const weekKey = `${getYear(date)}-W${String(getISOWeek(date)).padStart(2, '0')}`;
     brewsPerWeek[weekKey] = (brewsPerWeek[weekKey] ?? 0) + 1;
 
-    const hour = getHours(date);
+    const hour = getCphHour(date);
     hourDistribution[hour] = (hourDistribution[hour] ?? 0) + 1;
 
     durationBreakdown[record.durationMs] = (durationBreakdown[record.durationMs] ?? 0) + 1;
 
-    daysSeen.add(format(date, 'yyyy-MM-dd'));
+    daysSeen.add(formatCphDate(date));
   }
 
   const avgBrewsPerDay = daysSeen.size > 0 ? history.length / daysSeen.size : 0;

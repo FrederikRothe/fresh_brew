@@ -16,7 +16,7 @@ This project provides a real-time dashboard to monitor when the last pot of coff
 - **Deployment:** Docker Compose (local Redis service)
 - **Testing:** Vitest, React Testing Library, JSDOM
 - **Icons:** Lucide React
-- **Date Handling:** `date-fns`
+- **Date Handling:** `date-fns` (week/year grouping) + native `Intl.DateTimeFormat` for all timezone-sensitive formatting (pinned to `Europe/Copenhagen`)
 
 ### Architecture
 - **`src/app/page.tsx`**: Entry point (Server Component). Fetches initial brew status and renders the `Dashboard`.
@@ -52,6 +52,14 @@ This project provides a real-time dashboard to monitor when the last pot of coff
 - Although the `README.md` mentions a local CSV file, the current implementation strictly uses **Redis**.
 - The `STORAGE_REDIS_URL` must be defined in the `.env` file.
 - The storage model includes `BrewData` (current) and a list of `BrewRecord` objects for historical analytics.
+
+### Timezone Handling
+- All server-side date/time formatting is pinned to **`Europe/Copenhagen`** via `Intl.DateTimeFormat` to avoid server timezone drift.
+- Three helpers in `src/lib/utils.ts` centralise this:
+  - `formatCphDate(ts)` → `yyyy-MM-dd` (used for daily brew count tracking and analytics day grouping)
+  - `formatCphTime(ts)` → `HH:mm` (used for Slack `estimated_time_of_completion`)
+  - `getCphHour(ts)` → `0–23` (used for the hourly consumption rhythm chart)
+- Never use `date-fns` `format()` or `getHours()` for server-side time output — use the helpers above instead.
 
 ### Authentication
 - A simple "Brewer Mode" is used to prevent unauthorized resets.
