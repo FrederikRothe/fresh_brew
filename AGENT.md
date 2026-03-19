@@ -60,7 +60,7 @@ This project provides a real-time dashboard to monitor when the last pot of coff
 
 ### Notifications
 - **Browser Notifications:** Permission is requested on the initial mount of the dashboard. Notifications are triggered client-side during the 30-second polling interval when a new brew timestamp is detected.
-- **Slack Notifications:** When a new brew is started via `startBrew` in `src/app/actions.ts`, a message is sent to the configured Slack Webhook URL.
+- **Slack Notifications:** When a new brew is started via `startBrew` in `src/app/actions.ts`, a message is sent to the configured Slack Webhook URL. The POST payload includes `batch_size` (Big/small) and `estimated_time_of_completion` (HH:mm). A JSON debug log is emitted to the server console before sending.
 
 ### Visual States & Features
 - **Brewing:** Blue (`bg-blue-500`) - Countdown to ready. **BIG Brew: 7m**, **Small Brew: 4m**.

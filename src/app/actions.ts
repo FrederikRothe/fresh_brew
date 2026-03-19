@@ -54,17 +54,22 @@ export async function startBrew(password: string, durationMs: number = 7 * 60 * 
     await appendBrewRecord({ timestamp: now, durationMs });
 
     const durationMins = Math.round(durationMs / 60000);
+    const etc = format(now + durationMs, 'HH:mm');
+    const batchSize = durationMs > 5 * 60 * 1000 ? 'BIG' : 'small';
 
     // Notify Copenhagen Coffee Minion Slack workflow
     const slackWebhookUrl = process.env.SLACK_WEBHOOK_URL;
     if (slackWebhookUrl) {
       try {
+        const payload = {
+          text: `☕ Pot #${newCount} is now brewing! It'll be ready in ~${durationMins} minutes.`,
+          batch_size: batchSize,
+          estimated_time_of_completion: etc,
+        };
         await fetch(slackWebhookUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            text: `☕ Pot #${newCount} is now brewing! It'll be ready in ~${durationMins} minutes.`,
-          }),
+          body: JSON.stringify(payload),
         });
       } catch (slackError) {
         console.error('Failed to notify Slack:', slackError);
