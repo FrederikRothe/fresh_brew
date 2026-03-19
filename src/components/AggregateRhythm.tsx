@@ -186,14 +186,16 @@ export function AggregateRhythm({
 
       <div className="relative h-[500px] flex group pt-8">
         {/* Y-Axis Labels (Time) */}
-        <div className="flex flex-col justify-between text-[10px] font-bold text-slate-400 dark:text-slate-500 w-12 text-right pr-3 py-0 border-r border-slate-100 dark:border-slate-800">
-          <span>7 AM</span>
-          <span>8 AM</span>
-          <span>10 AM</span>
-          <span>12 PM</span>
-          <span>2 PM</span>
-          <span>4 PM</span>
-          <span>6 PM</span>
+        <div className="relative w-12 border-r border-slate-100 dark:border-slate-800">
+          {[7, 8, 10, 12, 14, 16, 18].map((h) => (
+            <span
+              key={h}
+              className="absolute right-3 -translate-y-1/2 text-[10px] font-bold text-slate-400 dark:text-slate-500 whitespace-nowrap"
+              style={{ top: `${((h - MIN_HOUR) / HOUR_RANGE) * 100}%` }}
+            >
+              {h === 12 ? "12 PM" : h > 12 ? `${h - 12} PM` : `${h} AM`}
+            </span>
+          ))}
         </div>
 
         {/* Swimlanes */}

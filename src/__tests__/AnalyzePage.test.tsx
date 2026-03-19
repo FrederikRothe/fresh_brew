@@ -103,4 +103,26 @@ describe('AnalyzePage Component', () => {
       expect(screen.getByText('--')).toBeInTheDocument(); // Peak Hour
     });
   });
+
+  it('correctly positions time labels on the Y-axis', async () => {
+    render(<AnalyzePage />);
+    
+    await waitFor(() => {
+      const label7AM = screen.getByText('7 AM');
+      const label8AM = screen.getByText('8 AM');
+      const label10AM = screen.getByText('10 AM');
+      const label12PM = screen.getByText('12 PM');
+      const label2PM = screen.getByText('2 PM');
+      const label4PM = screen.getByText('4 PM');
+      const label6PM = screen.getByText('6 PM');
+
+      expect(label7AM.style.top).toBe('0%');
+      expect(label8AM.style.top).toContain('9.09');
+      expect(label10AM.style.top).toContain('27.27');
+      expect(label12PM.style.top).toContain('45.45');
+      expect(label2PM.style.top).toContain('63.63');
+      expect(label4PM.style.top).toContain('81.81');
+      expect(label6PM.style.top).toBe('100%');
+    });
+  });
 });
