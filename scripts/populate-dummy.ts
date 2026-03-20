@@ -1,5 +1,6 @@
 import { createClient } from 'redis';
 import { BrewData, BrewRecord } from '../src/lib/storage';
+import { formatCphDate } from '../src/lib/utils';
 
 const redisUrl = process.env.STORAGE_REDIS_URL || 'redis://localhost:6379';
 const BREW_KEY = 'coffee_brew_data';
@@ -49,6 +50,10 @@ async function populate() {
       } while (dayBrews.some(t => Math.abs(t - brewTime) < 40 * 60 * 1000) && attempts < 100);
       
       dayBrews.push(brewTime);
+
+      // Skip if this is a future brew (e.g. it's 9 AM and the random time is 6 PM today)
+      if (brewTime > refDate.getTime()) continue;
+
       history.push({
         timestamp: brewTime,
         durationMs: Math.random() > 0.4 ? BIG_BREW : SMALL_BREW
@@ -67,15 +72,9 @@ async function populate() {
   }
 
   const lastBrew = history[0];
-  const lastBrewDateObj = new Date(lastBrew.timestamp);
-  const lastBrewDateStr = `${lastBrewDateObj.getFullYear()}-${String(lastBrewDateObj.getMonth() + 1).padStart(2, '0')}-${String(lastBrewDateObj.getDate()).padStart(2, '0')}`;
+  const lastBrewDateStr = formatCphDate(lastBrew.timestamp);
   
-  const dailyBrewCount = history.filter(r => {
-    const d = new Date(r.timestamp);
-    return d.getFullYear() === lastBrewDateObj.getFullYear() &&
-           d.getMonth() === lastBrewDateObj.getMonth() &&
-           d.getDate() === lastBrewDateObj.getDate();
-  }).length;
+  const dailyBrewCount = history.filter(r => formatCphDate(r.timestamp) === lastBrewDateStr).length;
 
   const data: BrewData = {
     lastBrewTimestamp: lastBrew.timestamp,
