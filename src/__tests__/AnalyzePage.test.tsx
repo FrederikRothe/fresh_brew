@@ -19,7 +19,12 @@ vi.mock('next/navigation', () => ({
 describe('AnalyzePage Component', () => {
   const mockAnalytics = {
     totalBrews: 10,
+    totalCoffeeGrams: 3080,
+    bigBrews: 8,
+    smallBrews: 2,
+    brewsPerWeek: { '2026-W12': 10 },
     avgBrewsPerDay: 2,
+    avgCoffeePerDay: 616,
     hourDistribution: { '9': 5, '10': 5 },
     durationBreakdown: { [7 * 60 * 1000]: 8, [4 * 60 * 1000]: 2 },
     history: [
@@ -44,6 +49,7 @@ describe('AnalyzePage Component', () => {
     
     await waitFor(() => {
       expect(screen.getByText('Total Brews')).toBeInTheDocument();
+      expect(screen.getByText('Coffee Burn Rate')).toBeInTheDocument();
       expect(screen.getByText('Consumption Rhythm')).toBeInTheDocument();
     });
   });
@@ -52,8 +58,10 @@ describe('AnalyzePage Component', () => {
     render(<AnalyzePage />);
     
     await waitFor(() => {
-      const wednesdayLabel = screen.getByText('Wed');
-      expect(wednesdayLabel).toHaveClass('text-blue-600');
+      // AggregateRhythm uses div for day labels, CoffeeBurnChart uses span
+      const wednesdayLabels = screen.getAllByText('Wed');
+      const rhythmLabel = wednesdayLabels.find(el => el.tagName === 'DIV');
+      expect(rhythmLabel).toHaveClass('text-blue-600');
     });
   });
 
@@ -61,8 +69,9 @@ describe('AnalyzePage Component', () => {
     render(<AnalyzePage />);
     
     await waitFor(() => {
-      const monthlyButton = screen.getByRole('button', { name: /monthly/i });
-      fireEvent.click(monthlyButton);
+      // Click the monthly button in the first chart (AggregateRhythm)
+      const monthlyButtons = screen.getAllByRole('button', { name: /monthly/i });
+      fireEvent.click(monthlyButtons[0]);
     });
 
     const day18Label = screen.getByText('18');
@@ -73,8 +82,8 @@ describe('AnalyzePage Component', () => {
     render(<AnalyzePage />);
     
     await waitFor(() => {
-      const yearlyButton = screen.getByRole('button', { name: /yearly/i });
-      fireEvent.click(yearlyButton);
+      const yearlyButtons = screen.getAllByRole('button', { name: /yearly/i });
+      fireEvent.click(yearlyButtons[0]);
     });
 
     const marchLabel = screen.getByText('Mar');
@@ -84,7 +93,12 @@ describe('AnalyzePage Component', () => {
   it('renders graph even with empty history', async () => {
     const emptyAnalytics = {
       totalBrews: 0,
+      totalCoffeeGrams: 0,
+      bigBrews: 0,
+      smallBrews: 0,
+      brewsPerWeek: {},
       avgBrewsPerDay: 0,
+      avgCoffeePerDay: 0,
       hourDistribution: {},
       durationBreakdown: {},
       history: [],
@@ -96,9 +110,12 @@ describe('AnalyzePage Component', () => {
     await waitFor(() => {
       expect(screen.getByText('Consumption Rhythm')).toBeInTheDocument();
       expect(screen.getByText('Total Brews')).toBeInTheDocument();
+      expect(screen.getByText('Coffee Burn Rate')).toBeInTheDocument();
+      
       // Should show "--" or "0" stats
       expect(screen.getByText('0')).toBeInTheDocument(); // Total Brews
       expect(screen.getByText('0.0')).toBeInTheDocument(); // Avg / Day
+      
       expect(screen.getByText('0/0')).toBeInTheDocument(); // Big / Small
       expect(screen.getByText('--')).toBeInTheDocument(); // Peak Hour
     });

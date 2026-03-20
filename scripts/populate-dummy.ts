@@ -5,6 +5,7 @@ const redisUrl = process.env.STORAGE_REDIS_URL || 'redis://localhost:6379';
 const BREW_KEY = 'coffee_brew_data';
 const BREW_HISTORY_KEY = 'coffee_brew_history';
 
+// Durations to match SMALL_BATCH_THRESHOLD_MS (5 min) in src/lib/constants.ts
 const BIG_BREW = 7 * 60 * 1000;
 const SMALL_BREW = 4 * 60 * 1000;
 
@@ -19,16 +20,15 @@ async function populate() {
 
   const history: BrewRecord[] = [];
   
-  // Use a fixed reference date (Wednesday, March 18, 2026)
-  // We'll work backwards from there
-  const refDate = new Date(2026, 2, 18, 12, 0, 0); // Month is 0-indexed, so 2 = March
+  // Use current date to ensure charts are populated
+  const refDate = new Date();
 
-  for (let i = 0; i < 14; i++) {
+  // Populate 60 days of history for better monthly/yearly coverage
+  for (let i = 0; i < 60; i++) {
     const currentDate = new Date(refDate.getTime() - (i * 24 * 60 * 60 * 1000));
     const dayOfWeek = currentDate.getDay();
 
     // Skip weekends for plotting visibility if we want to ensure they show up in the weekday chart
-    // although the chart component handles filtering, it's better to have data that fits.
     if (dayOfWeek === 0 || dayOfWeek === 6) continue;
 
     // Add 2-5 brews per weekday to ensure it looks "busy"

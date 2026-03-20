@@ -23,7 +23,9 @@ This project provides a real-time dashboard to monitor when the last pot of coff
 - **`src/components/Dashboard.tsx`**: Main UI (Client Component). Orchestrates the dashboard using custom hooks.
 - **`src/hooks/`**: Specialized client hooks for timer logic (`useTimer`), brew status polling (`useBrewStatus`), admin authentication (`useAdminAuth`), and theme-aware body styling (`useBodyBackground`).
 - **`src/lib/`**: Shared logic including Redis storage (`storage.ts`), calculation helpers (`brew-utils.ts`), common thresholds (`constants.ts`), and styling utilities (`utils.ts`).
-- **`src/app/actions.ts`**: Server Actions for data fetching and mutation. Includes Slack notification logic, brew analytics calculation, and admin password verification.
+- **`src/app/actions.ts`**: Server Actions for data fetching and mutation. Includes Slack notification logic, brew analytics calculation (grams, frequency, density), and admin password verification.
+- **`src/components/AggregateRhythm.tsx`**: Visualizes consumption density over weekly, monthly, and yearly intervals.
+- **`src/components/CoffeeBurnChart.tsx`**: Tracks daily coffee consumption in grams (Big: 340g, Small: 180g) with bar charts.
 - **`src/app/globals.css`**: Tailwind 4 configuration and global styles.
 
 ## Building and Running
@@ -72,12 +74,15 @@ This project provides a real-time dashboard to monitor when the last pot of coff
 
 ### Visual States & Features
 - **Brewing:** Blue (`bg-blue-500`) - Countdown to ready. **BIG Brew: 7m**, **Small Brew: 4m**.
+- **Anti-Spam Cooldown:** 60-second lockout after starting a brew (server-side and UI) to prevent accidental double-brews.
 - **Fresh (0-25m since ready):** Green (`bg-emerald-500`)
 - **Getting Sour (25-40m since ready):** Orange (`bg-amber-500`)
 - **Stale (40-60m since ready):** Red (`bg-rose-500`)
 - **Empty/Old (120m+):** Gray (`bg-slate-500`)
 - **Daily Pot Count:** Automatically resets at midnight (calculated on-the-fly during data fetch).
-- **Analyze Consumption:** Publicly accessible page (`/analyze`) visualizing brew history and usage patterns.
+- **Analyze Consumption:** Publicly accessible page (`/analyze`) with:
+  - **Consumption Rhythm:** Density map of brews over time (7 AM — 6 PM).
+  - **Coffee Burn Rate:** Bar chart tracking grams consumed (Big: 340g, Small: 180g).
 - **Admin Brewer Mode:** Secure login for starting new brews; stores session in `localStorage`.
 - **Compact Landscape Mode:** Optimized layout for short viewports on mobile devices.
 

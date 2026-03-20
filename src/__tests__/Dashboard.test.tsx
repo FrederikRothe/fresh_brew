@@ -3,10 +3,19 @@ import Dashboard from '@/components/Dashboard';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import type { BrewStatus } from '@/app/actions';
 
-// Mock the actions
+// Mock the actions and hooks
 vi.mock('@/app/actions', () => ({
   getBrewStatus: vi.fn(),
   startBrew: vi.fn(),
+}));
+
+vi.mock('@/hooks/use-admin-auth', () => ({
+  useAdminAuth: () => ({
+    adminPassword: 'password123',
+    setAdminPassword: vi.fn(),
+    handleLogin: vi.fn(),
+    handleLogout: vi.fn(),
+  }),
 }));
 
 import {
@@ -40,6 +49,32 @@ describe('Dashboard Component', () => {
     expect(screen.getByText(/Coffee Tracker/i)).toBeInTheDocument();
     expect(screen.getByText(/Daily Pot Count/i)).toBeInTheDocument();
     expect(screen.getByText('1')).toBeInTheDocument();
+  });
+
+  it('disables the Start Brew buttons for 60 seconds after a brew starts', () => {
+    const now = Date.now();
+    const status = { ...initialStatus, lastBrewTimestamp: now - 30000 }; // 30 seconds ago
+    render(<Dashboard initialStatus={status} />);
+    
+    // Both buttons should show "Brew Started"
+    const brewStartedButtons = screen.getAllByText(/Brew Started/i, { selector: 'span' });
+    expect(brewStartedButtons).toHaveLength(2);
+    
+    brewStartedButtons.forEach(span => {
+      expect(span.closest('button')).toBeDisabled();
+    });
+    
+    expect(screen.getAllByText(/Cooldown active/i, { selector: 'span' })).toHaveLength(2);
+  });
+
+  it('enables the Start Brew buttons after 60 seconds have passed', () => {
+    const now = Date.now();
+    const status = { ...initialStatus, lastBrewTimestamp: now - 61000 }; // 61 seconds ago
+    render(<Dashboard initialStatus={status} />);
+    
+    const bigBrewButton = screen.getByText(/Start BIG Brew/i).closest('button');
+    expect(bigBrewButton).not.toBeDisabled();
+    expect(screen.queryByText(/Cooldown active/i)).not.toBeInTheDocument();
   });
 
   it('always shows the Analyze Consumption link', () => {
