@@ -96,5 +96,5 @@ This project provides a real-time dashboard to monitor when the last pot of coff
 ## Agent Operating Procedures
 
 ### Committing and Pushing Changes
-- **ALWAYS** activate and use the `git-commit-push` skill (located in `.gemini/skills/git-commit-push`) for any git operations (stage, commit, or push).
+- **ALWAYS** activate and use the `git-commit-push` skill for any git operations (stage, commit, or push).
 - This ensures that `AGENT.md` and project documentation in the `README.md` are consistently updated according to the skill's expert workflow.

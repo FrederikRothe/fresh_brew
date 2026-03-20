@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Weight } from "lucide-react";
-import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, subDays, startOfMonth, endOfMonth, startOfYear, endOfYear, eachMonthOfInterval, isSameMonth } from "date-fns";
+import { format, eachDayOfInterval, isSameDay, subDays, startOfMonth, endOfMonth, startOfYear, endOfYear, eachMonthOfInterval, isSameMonth } from "date-fns";
 import { cn } from "@/lib/utils";
 import { SMALL_BATCH_GRAMS, BIG_BATCH_GRAMS, SMALL_BATCH_THRESHOLD_MS } from "@/lib/constants";
 
@@ -70,21 +70,26 @@ export function CoffeeBurnChart({ history }: CoffeeBurnChartProps) {
           </p>
         </div>
 
-        <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl self-start">
-          {(["weekly", "monthly", "yearly"] as ChartMode[]).map((m) => (
-            <button
-              key={m}
-              onClick={() => setMode(m)}
-              className={cn(
-                "px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all",
-                mode === m
-                  ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm"
-                  : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200",
-              )}
-            >
-              {m}
-            </button>
-          ))}
+        <div className="flex flex-col items-start md:items-end gap-2">
+          <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+            {(["weekly", "monthly", "yearly"] as ChartMode[]).map((m) => (
+              <button
+                key={m}
+                onClick={() => setMode(m)}
+                className={cn(
+                  "px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all",
+                  mode === m
+                    ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm"
+                    : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200",
+                )}
+              >
+                {m}
+              </button>
+            ))}
+          </div>
+          <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">
+            {mode === "weekly" ? `Week ${format(now, "w")}` : mode === "monthly" ? format(now, "MMMM") : format(now, "yyyy")}
+          </span>
         </div>
       </div>
 
