@@ -48,6 +48,8 @@ export default function Dashboard({
     status.brewDurationMs || DEFAULT_BREW_TIME_MS,
   );
 
+  const isRecentlyBrewed = lastBrew !== null && elapsedMs < 60000;
+
   useBodyBackground(statusColor);
 
   useEffect(() => {
@@ -88,6 +90,11 @@ export default function Dashboard({
             setAdminPassword(null);
             localStorage.removeItem("coffee_admin_password");
           }
+        } else if (
+          error instanceof Error &&
+          error.message.includes("Too many requests")
+        ) {
+          alert(error.message);
         } else {
           alert(
             "Failed to start brew. Make sure storage is configured correctly.",
@@ -210,36 +217,36 @@ export default function Dashboard({
             <div className="flex flex-col space-y-3 md:space-y-4">
               <button
                 onClick={() => handleStartBrew(7 * 60 * 1000)}
-                disabled={isPending}
-                className="w-full rounded-2xl py-4 md:py-6 flex flex-col items-center justify-center active:scale-95 disabled:opacity-70 bg-slate-900 dark:bg-black hover:bg-slate-800 dark:hover:bg-slate-950 text-white shadow-xl hover:shadow-2xl border border-white/5"
+                disabled={isPending || isRecentlyBrewed}
+                className="w-full rounded-2xl py-4 md:py-6 flex flex-col items-center justify-center active:scale-95 disabled:opacity-50 disabled:grayscale-[0.5] bg-slate-900 dark:bg-black hover:bg-slate-800 dark:hover:bg-slate-950 text-white shadow-xl hover:shadow-2xl border border-white/5 transition-all"
               >
                 {isPending ? (
                   <RefreshCw className="w-6 h-6 md:w-8 md:h-8 animate-spin" />
                 ) : (
                   <>
                     <span className="text-lg md:text-xl font-black uppercase tracking-tight px-4">
-                      Start BIG Brew
+                      {isRecentlyBrewed ? "Brew Started" : "Start BIG Brew"}
                     </span>
                     <span className="text-[10px] md:text-xs text-slate-400 font-bold mt-1 uppercase">
-                      7 Minutes
+                      {isRecentlyBrewed ? "Cooldown active" : "7 Minutes"}
                     </span>
                   </>
                 )}
               </button>
               <button
                 onClick={() => handleStartBrew(4 * 60 * 1000)}
-                disabled={isPending}
-                className="w-full rounded-2xl py-4 md:py-6 flex flex-col items-center justify-center active:scale-95 disabled:opacity-70 bg-slate-800 dark:bg-slate-900 hover:bg-slate-700 dark:hover:bg-slate-800 text-white shadow-lg hover:shadow-xl border border-white/10 dark:border-slate-700"
+                disabled={isPending || isRecentlyBrewed}
+                className="w-full rounded-2xl py-4 md:py-6 flex flex-col items-center justify-center active:scale-95 disabled:opacity-50 disabled:grayscale-[0.5] bg-slate-800 dark:bg-slate-900 hover:bg-slate-700 dark:hover:bg-slate-800 text-white shadow-lg hover:shadow-xl border border-white/10 dark:border-slate-700 transition-all"
               >
                 {isPending ? (
                   <RefreshCw className="w-6 h-6 md:w-8 md:h-8 animate-spin" />
                 ) : (
                   <>
                     <span className="text-lg md:text-xl font-black uppercase tracking-tight px-4 text-slate-200">
-                      Start Small Brew
+                      {isRecentlyBrewed ? "Brew Started" : "Start Small Brew"}
                     </span>
                     <span className="text-[10px] md:text-xs text-slate-400 font-bold mt-1 uppercase">
-                      4 Minutes
+                      {isRecentlyBrewed ? "Cooldown active" : "4 Minutes"}
                     </span>
                   </>
                 )}

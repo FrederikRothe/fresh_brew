@@ -6,6 +6,7 @@ import { getBrewAnalytics, BrewAnalytics } from "@/app/actions";
 import { Coffee, ArrowLeft, BarChart2, Calendar, Clock, Coffee as CoffeeIcon } from "lucide-react";
 import { StatTile } from "@/components/StatTile";
 import { AggregateRhythm } from "@/components/AggregateRhythm";
+import { CoffeeBurnChart } from "@/components/CoffeeBurnChart";
 
 export default function AnalyzePage() {
   const router = useRouter();
@@ -76,9 +77,7 @@ export default function AnalyzePage() {
           <StatTile label="Peak Hour" value={peakHour} icon={Clock} />
           <StatTile
             label="Big / Small"
-            value={`${analytics.durationBreakdown[7 * 60 * 1000] ?? 0}/${
-              analytics.durationBreakdown[4 * 60 * 1000] ?? 0
-            }`}
+            value={`${analytics.bigBrews}/${analytics.smallBrews}`}
             icon={Coffee}
           />
         </div>
@@ -86,6 +85,7 @@ export default function AnalyzePage() {
         {/* Charts */}
         <div className="space-y-12">
           <AggregateRhythm history={analytics.history} />
+          <CoffeeBurnChart history={analytics.history} />
         </div>
       </div>
     </div>
