@@ -97,25 +97,23 @@ export function CoffeeBurnChart({ history }: CoffeeBurnChartProps) {
         {data.map((val, i) => {
           const height = (val / maxVal) * 100;
           const isToday = mode === "weekly" && i === 6;
-          
+
           return (
-            <div key={i} className="flex-1 flex flex-col items-center gap-2 group">
+            <div key={i} className="flex-1 flex flex-col items-center gap-1 group">
+              <span className={cn(
+                "text-[10px] font-black whitespace-nowrap min-h-[16px]",
+                isToday ? "text-amber-600 dark:text-amber-500" : "text-slate-500 dark:text-slate-400"
+              )}>
+                {val > 0 ? `${val}g` : ""}
+              </span>
               <div className="relative w-full flex flex-col justify-end h-32">
-                <div 
+                <div
                   className={cn(
                     "w-full rounded-t-lg transition-all duration-500 ease-out min-h-[4px]",
                     isToday ? "bg-amber-500" : "bg-slate-200 dark:bg-slate-800 group-hover:bg-slate-300 dark:group-hover:bg-slate-700"
                   )}
                   style={{ height: `${height}%` }}
-                >
-                  {val > 0 && (
-                    <div className="absolute -top-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                      <span className="text-[10px] font-black text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800 px-1.5 py-0.5 rounded shadow-sm border border-slate-100 dark:border-slate-700">
-                        {val}g
-                      </span>
-                    </div>
-                  )}
-                </div>
+                />
               </div>
               <span className={cn(
                 "text-[9px] font-bold uppercase tracking-tighter",
@@ -134,12 +132,6 @@ export function CoffeeBurnChart({ history }: CoffeeBurnChartProps) {
             <span className="text-[8px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Total</span>
             <span className="text-sm font-black text-slate-900 dark:text-slate-100 uppercase tracking-tight">
               {data.reduce((a, b) => a + b, 0).toLocaleString()}g
-            </span>
-          </div>
-          <div className="flex flex-col">
-            <span className="text-[8px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Daily Avg</span>
-            <span className="text-sm font-black text-slate-900 dark:text-slate-100 uppercase tracking-tight">
-              {Math.round(data.reduce((a, b) => a + b, 0) / data.length)}g
             </span>
           </div>
         </div>
