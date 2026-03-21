@@ -131,9 +131,6 @@ export function CoffeeBurnChart({ history }: CoffeeBurnChartProps) {
             </span>
           </div>
         </div>
-        <p className="text-[10px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-widest italic">
-          &quot;Fueling the grind, one gram at a time.&quot;
-        </p>
       </div>
     </div>
   );
