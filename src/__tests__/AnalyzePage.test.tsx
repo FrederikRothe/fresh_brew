@@ -166,7 +166,7 @@ describe('AnalyzePage Component', () => {
     
     await waitFor(() => {
       expect(screen.getByText('Deep Dive Fun Facts')).toBeInTheDocument();
-      expect(screen.getByText('51.3L')).toBeInTheDocument();
+      expect(screen.getByText('51L')).toBeInTheDocument();
       expect(screen.getByText('171 Shots')).toBeInTheDocument();
       expect(screen.getByText('1.2h')).toBeInTheDocument(); // 70 mins = 1.166...h -> 1.2h
     });

@@ -143,7 +143,7 @@ export default function AnalyzePage() {
                     Total Volume
                   </p>
                   <p className="text-2xl font-black text-slate-900 dark:text-slate-100">
-                    {analytics.totalLiters.toFixed(1)}L
+                    {Math.round(analytics.totalLiters)}L
                   </p>
                   <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-1">
                     Enough to fill {Math.floor(analytics.totalLiters / 0.25)} standard cups.
