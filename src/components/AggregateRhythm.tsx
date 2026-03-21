@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Clock } from "lucide-react";
+ // Clock removed
 import { format, getDay, getDate, getMonth } from "date-fns";
 import { cn } from "@/lib/utils";
 
@@ -137,13 +137,9 @@ export function AggregateRhythm({
   );
 
   return (
-    <div className="w-full bg-white dark:bg-slate-900 rounded-3xl p-6 md:p-8 border border-slate-200 dark:border-slate-800 shadow-sm space-y-8">
+    <div className="w-full space-y-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
-          <h3 className="text-lg font-black text-slate-900 dark:text-slate-100 uppercase tracking-tight flex items-center gap-2">
-            <Clock className="w-5 h-5 text-blue-500" />
-            Consumption Rhythm
-          </h3>
           <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
             {mode === "yearly"
               ? "Density Map (7 AM — 6 PM)"

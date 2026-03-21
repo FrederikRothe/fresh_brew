@@ -15,14 +15,10 @@ export default function ThemeToggle() {
       : "light";
     const initialTheme = savedTheme || systemTheme;
     
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setTheme(initialTheme);
-    if (initialTheme === "dark") {
-      document.documentElement.classList.add("dark");
-      document.documentElement.classList.remove("light");
-    } else {
-      document.documentElement.classList.add("light");
-      document.documentElement.classList.remove("dark");
-    }
+    document.documentElement.classList.add(initialTheme);
+    document.documentElement.classList.remove(initialTheme === "dark" ? "light" : "dark");
   }, []);
 
   const toggleTheme = () => {

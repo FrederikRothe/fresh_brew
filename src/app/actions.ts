@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { getISOWeek, getYear } from 'date-fns';
 import { readBrewData, writeBrewData, appendBrewRecord, readBrewHistory, type BrewData } from '@/lib/storage';
-import { formatCphDate, formatCphTime, getCphHour } from '@/lib/utils';
+import { formatCphDate, formatCphTime, getCphHour, getCphDayOfWeek, getCphSecondsSinceMidnight } from '@/lib/utils';
 import { SMALL_BATCH_GRAMS, BIG_BATCH_GRAMS, SMALL_BATCH_THRESHOLD_MS } from '@/lib/constants';
 
 export type BrewStatus = BrewData;
@@ -102,6 +102,10 @@ export type BrewAnalytics = {
   avgCoffeePerDay: number;
   durationBreakdown: Record<number, number>; // durationMs → count
   history: { timestamp: number; durationMs: number }[];
+  predictedNextBrew: string | null;
+  totalLiters: number;
+  espressoEquivalent: number;
+  totalWaitingMins: number;
 };
 
 export async function getBrewAnalytics(): Promise<BrewAnalytics> {
@@ -115,8 +119,30 @@ export async function getBrewAnalytics(): Promise<BrewAnalytics> {
   let bigBrews = 0;
   let smallBrews = 0;
 
-  for (const record of history) {
+  // For predictive analytics
+  const seqData: Record<number, Record<number, number[]>> = {}; // dayOfWeek -> seqIndex -> [secondsSinceMidnight]
+  let lastDateStr = '';
+  let currentSeq = 0;
+
+  // History is likely sorted by timestamp (appended), but let's be safe
+  const sortedHistory = [...history].sort((a, b) => a.timestamp - b.timestamp);
+
+  for (const record of sortedHistory) {
     const date = new Date(record.timestamp);
+    const dateStr = formatCphDate(date);
+    const dayOfWeek = getCphDayOfWeek(date);
+    const secondsSinceMidnight = getCphSecondsSinceMidnight(date);
+
+    if (dateStr !== lastDateStr) {
+      currentSeq = 0;
+      lastDateStr = dateStr;
+    } else {
+      currentSeq++;
+    }
+
+    if (!seqData[dayOfWeek]) seqData[dayOfWeek] = {};
+    if (!seqData[dayOfWeek][currentSeq]) seqData[dayOfWeek][currentSeq] = [];
+    seqData[dayOfWeek][currentSeq].push(secondsSinceMidnight);
 
     const weekKey = `${getYear(date)}-W${String(getISOWeek(date)).padStart(2, '0')}`;
     brewsPerWeek[weekKey] = (brewsPerWeek[weekKey] ?? 0) + 1;
@@ -135,11 +161,41 @@ export async function getBrewAnalytics(): Promise<BrewAnalytics> {
       totalCoffeeGrams += BIG_BATCH_GRAMS;
     }
 
-    daysSeen.add(formatCphDate(date));
+    daysSeen.add(dateStr);
   }
 
   const avgBrewsPerDay = daysSeen.size > 0 ? history.length / daysSeen.size : 0;
   const avgCoffeePerDay = daysSeen.size > 0 ? totalCoffeeGrams / daysSeen.size : 0;
+
+  // Fun facts
+  const totalLiters = totalCoffeeGrams / 60; // 60g/L
+  const espressoEquivalent = totalCoffeeGrams / 18; // 18g double
+  const totalWaitingMins = history.reduce((acc, h) => acc + (h.durationMs / 60000), 0);
+
+  // Calculate predicted next brew
+  let predictedNextBrew: string | null = null;
+  const today = new Date();
+  const todayStr = formatCphDate(today);
+  const todayDayOfWeek = getCphDayOfWeek(today);
+  
+  // Count how many brewed today so far
+  const brewedTodayCount = sortedHistory.filter(h => formatCphDate(h.timestamp) === todayStr).length;
+  
+  // Next brew sequence for today
+  const nextSeq = brewedTodayCount;
+  const typicalTimes = seqData[todayDayOfWeek]?.[nextSeq];
+
+  if (typicalTimes && typicalTimes.length > 0) {
+    const avgSeconds = typicalTimes.reduce((a, b) => a + b, 0) / typicalTimes.length;
+    const h = Math.floor(avgSeconds / 3600);
+    const m = Math.floor((avgSeconds % 3600) / 60);
+    
+    // Check if predicted time is in the past for today
+    const nowSeconds = getCphSecondsSinceMidnight(today);
+    if (avgSeconds > nowSeconds) {
+      predictedNextBrew = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    }
+  }
 
   return {
     totalBrews: history.length,
@@ -152,5 +208,9 @@ export async function getBrewAnalytics(): Promise<BrewAnalytics> {
     avgCoffeePerDay,
     durationBreakdown,
     history,
+    predictedNextBrew,
+    totalLiters,
+    espressoEquivalent,
+    totalWaitingMins,
   };
 }

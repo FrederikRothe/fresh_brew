@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { formatCphDate, formatCphTime, getCphHour } from '@/lib/utils';
+import { formatCphDate, formatCphTime, getCphHour, getCphDayOfWeek, getCphSecondsSinceMidnight } from '@/lib/utils';
 
 // Copenhagen is CET (UTC+1) in winter and CEST (UTC+2) in summer.
 // All timestamps below are in UTC; expected values are in Copenhagen local time.
@@ -79,5 +79,35 @@ describe('getCphHour', () => {
 
   it('accepts a numeric timestamp', () => {
     expect(getCphHour(new Date('2026-01-15T10:00:00Z').getTime())).toBe(11);
+  });
+});
+
+describe('getCphDayOfWeek', () => {
+  it('returns 3 for Wednesday, March 18, 2026', () => {
+    // 2026-03-18 10:00 UTC = 11:00 CET
+    expect(getCphDayOfWeek(new Date('2026-03-18T10:00:00Z'))).toBe(3);
+  });
+
+  it('returns 0 for Sunday', () => {
+    // 2026-03-22 is Sunday
+    expect(getCphDayOfWeek(new Date('2026-03-22T10:00:00Z'))).toBe(0);
+  });
+});
+
+describe('getCphSecondsSinceMidnight', () => {
+  it('returns 0 at midnight CET', () => {
+    // 2026-01-15 23:00 UTC = 00:00 CET
+    expect(getCphSecondsSinceMidnight(new Date('2026-01-15T23:00:00Z'))).toBe(0);
+  });
+
+  it('returns 3600 at 01:00 CET', () => {
+    // 2026-01-16 00:00 UTC = 01:00 CET
+    expect(getCphSecondsSinceMidnight(new Date('2026-01-16T00:00:00Z'))).toBe(3600);
+  });
+
+  it('returns correctly for 12:34:56 CEST', () => {
+    // 2026-07-15 10:34:56 UTC = 12:34:56 CEST
+    // 12 * 3600 + 34 * 60 + 56 = 43200 + 2040 + 56 = 45296
+    expect(getCphSecondsSinceMidnight(new Date('2026-07-15T10:34:56Z'))).toBe(45296);
   });
 });

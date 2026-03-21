@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Weight } from "lucide-react";
+ // Weight removed
 import { format, eachDayOfInterval, isSameDay, subDays, startOfMonth, endOfMonth, startOfYear, endOfYear, eachMonthOfInterval, isSameMonth } from "date-fns";
 import { cn } from "@/lib/utils";
 import { SMALL_BATCH_GRAMS, BIG_BATCH_GRAMS, SMALL_BATCH_THRESHOLD_MS } from "@/lib/constants";
@@ -58,13 +58,9 @@ export function CoffeeBurnChart({ history }: CoffeeBurnChartProps) {
   maxVal = Math.max(...data, 1000); // Minimum scale of 1kg
 
   return (
-    <div className="w-full bg-white dark:bg-slate-900 rounded-3xl p-6 md:p-8 border border-slate-200 dark:border-slate-800 shadow-sm space-y-8">
+    <div className="w-full space-y-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
-          <h3 className="text-lg font-black text-slate-900 dark:text-slate-100 uppercase tracking-tight flex items-center gap-2">
-            <Weight className="w-5 h-5 text-amber-600" />
-            Coffee Burn Rate
-          </h3>
           <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
             Grams consumed {mode === "weekly" ? "last 7 days" : mode === "monthly" ? "this month" : "this year"}
           </p>
@@ -135,9 +131,6 @@ export function CoffeeBurnChart({ history }: CoffeeBurnChartProps) {
             </span>
           </div>
         </div>
-        <p className="text-[10px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-widest italic">
-          &quot;Fueling the grind, one gram at a time.&quot;
-        </p>
       </div>
     </div>
   );

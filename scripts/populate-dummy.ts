@@ -29,12 +29,10 @@ async function populate() {
     const currentDate = new Date(refDate.getTime() - (i * 24 * 60 * 60 * 1000));
     const dayOfWeek = currentDate.getDay();
 
-    // Skip weekends for plotting visibility if we want to ensure they show up in the weekday chart
-    if (dayOfWeek === 0 || dayOfWeek === 6) continue;
-
-    // Add 2-5 brews per weekday to ensure it looks "busy"
+    // Add 2-5 brews per day to ensure it looks "busy"
     const brewsPerDay = Math.floor(Math.random() * 4) + 2;
     const dayBrews: number[] = [];
+    
     for (let j = 0; j < brewsPerDay; j++) {
       let brewTime: number;
       let attempts = 0;
@@ -42,7 +40,9 @@ async function populate() {
       // Ensure no brew is within 40 minutes of another on the same day
       do {
         const brewDate = new Date(currentDate);
-        const randomHour = 8 + Math.floor(Math.random() * 10);
+        // On Saturdays (like today), add more late brews to trigger prediction
+        const minHour = (dayOfWeek === 6) ? 14 : 8;
+        const randomHour = minHour + Math.floor(Math.random() * 8); // 14:00 - 22:00 for Sat
         const randomMinute = Math.floor(Math.random() * 60);
         brewDate.setHours(randomHour, randomMinute, 0, 0);
         brewTime = brewDate.getTime();
@@ -51,8 +51,9 @@ async function populate() {
       
       dayBrews.push(brewTime);
 
-      // Skip if this is a future brew (e.g. it's 9 AM and the random time is 6 PM today)
-      if (brewTime > refDate.getTime()) continue;
+      // Skip if this is a future brew for today specifically
+      // But we WANT historical future-hour brews for previous Saturdays
+      if (i === 0 && brewTime > refDate.getTime()) continue;
 
       history.push({
         timestamp: brewTime,
