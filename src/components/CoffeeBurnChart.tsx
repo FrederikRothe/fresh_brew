@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Weight } from "lucide-react";
+ // Weight removed
 import { format, eachDayOfInterval, isSameDay, subDays, startOfMonth, endOfMonth, startOfYear, endOfYear, eachMonthOfInterval, isSameMonth } from "date-fns";
 import { cn } from "@/lib/utils";
 import { SMALL_BATCH_GRAMS, BIG_BATCH_GRAMS, SMALL_BATCH_THRESHOLD_MS } from "@/lib/constants";

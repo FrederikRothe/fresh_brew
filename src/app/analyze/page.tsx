@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getBrewAnalytics, BrewAnalytics } from "@/app/actions";
-import { Coffee, ArrowLeft, BarChart2, Calendar, Clock, Coffee as CoffeeIcon, Activity, LayoutGrid, Weight } from "lucide-react";
+import { Coffee, ArrowLeft, BarChart2, Calendar, Clock, Coffee as CoffeeIcon, LayoutGrid, Weight } from "lucide-react";
 import { StatTile } from "@/components/StatTile";
 import { AggregateRhythm } from "@/components/AggregateRhythm";
 import { CoffeeBurnChart } from "@/components/CoffeeBurnChart";

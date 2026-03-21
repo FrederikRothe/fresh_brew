@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Clock } from "lucide-react";
+ // Clock removed
 import { format, getDay, getDate, getMonth } from "date-fns";
 import { cn } from "@/lib/utils";
 
