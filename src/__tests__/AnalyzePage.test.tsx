@@ -31,6 +31,10 @@ describe('AnalyzePage Component', () => {
       { timestamp: new Date('2026-03-18T09:00:00Z').getTime(), durationMs: 7 * 60 * 1000 },
       { timestamp: new Date('2026-03-18T10:00:00Z').getTime(), durationMs: 4 * 60 * 1000 },
     ],
+    predictedNextBrew: '14:30',
+    totalLiters: 51.3,
+    espressoEquivalent: 171,
+    totalWaitingMins: 70,
   };
 
   beforeEach(() => {
@@ -102,6 +106,10 @@ describe('AnalyzePage Component', () => {
       hourDistribution: {},
       durationBreakdown: {},
       history: [],
+      predictedNextBrew: null,
+      totalLiters: 0,
+      espressoEquivalent: 0,
+      totalWaitingMins: 0,
     };
     vi.mocked(actions.getBrewAnalytics).mockResolvedValue(emptyAnalytics as actions.BrewAnalytics);
 
@@ -140,6 +148,27 @@ describe('AnalyzePage Component', () => {
       expect(label2PM.style.top).toContain('63.63');
       expect(label4PM.style.top).toContain('81.81');
       expect(label6PM.style.top).toBe('100%');
+    });
+  });
+
+  it('renders Predicted Next Brew banner when available', async () => {
+    render(<AnalyzePage />);
+    
+    await waitFor(() => {
+      expect(screen.getByText('Next Brew Predicted')).toBeInTheDocument();
+      expect(screen.getByText('14:30')).toBeInTheDocument();
+      expect(screen.getByText(/Based on your typical Wednesday rhythm/i)).toBeInTheDocument();
+    });
+  });
+
+  it('renders Deep Dive Fun Facts section', async () => {
+    render(<AnalyzePage />);
+    
+    await waitFor(() => {
+      expect(screen.getByText('Deep Dive Fun Facts')).toBeInTheDocument();
+      expect(screen.getByText('51.3L')).toBeInTheDocument();
+      expect(screen.getByText('171 Shots')).toBeInTheDocument();
+      expect(screen.getByText('1.2h')).toBeInTheDocument(); // 70 mins = 1.166...h -> 1.2h
     });
   });
 });

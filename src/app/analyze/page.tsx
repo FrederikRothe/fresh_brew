@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getBrewAnalytics, BrewAnalytics } from "@/app/actions";
-import { Coffee, ArrowLeft, BarChart2, Calendar, Clock, Coffee as CoffeeIcon, LayoutGrid, Weight } from "lucide-react";
+import { Coffee, ArrowLeft, BarChart2, Calendar, Clock, Coffee as CoffeeIcon, LayoutGrid, Weight, Sparkles, Droplets, Zap, Hourglass, Info } from "lucide-react";
+import { format } from "date-fns";
 import { StatTile } from "@/components/StatTile";
 import { AggregateRhythm } from "@/components/AggregateRhythm";
 import { CoffeeBurnChart } from "@/components/CoffeeBurnChart";
@@ -63,6 +64,33 @@ export default function AnalyzePage() {
           </div>
         </div>
 
+        {/* Predictive Insight Banner */}
+        {analytics.predictedNextBrew && (
+          <div className="bg-amber-50 dark:bg-amber-950/20 border-2 border-amber-200/50 dark:border-amber-800/30 rounded-3xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl shadow-amber-500/5">
+            <div className="flex items-center gap-4">
+              <div className="bg-amber-500 rounded-2xl p-3 shadow-lg shadow-amber-500/30">
+                <Sparkles className="w-6 h-6 text-white" />
+              </div>
+              <div className="space-y-1 text-center md:text-left">
+                <h3 className="text-amber-900 dark:text-amber-100 font-black uppercase tracking-tight text-xl">
+                  Next Brew Predicted
+                </h3>
+                <p className="text-amber-700/80 dark:text-amber-400/80 text-xs font-bold uppercase tracking-widest">
+                  Based on your typical {format(new Date(), "EEEE")} rhythm
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-col items-center md:items-end">
+              <span className="text-6xl font-black text-amber-600 dark:text-amber-500 tabular-nums leading-none tracking-tighter">
+                {analytics.predictedNextBrew}
+              </span>
+              <span className="text-[10px] font-black text-amber-500/60 dark:text-amber-600/60 uppercase tracking-[0.3em] mt-3">
+                Estimated Time
+              </span>
+            </div>
+          </div>
+        )}
+
         {/* Top Stats */}
         <CollapsibleSection title="Key Metrics" icon={LayoutGrid}>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -92,6 +120,62 @@ export default function AnalyzePage() {
           </CollapsibleSection>
           <CollapsibleSection title="Coffee Burn Rate" icon={Weight}>
             <CoffeeBurnChart history={analytics.history} />
+          </CollapsibleSection>
+
+          {/* Deep Dive / Fun Facts */}
+          <CollapsibleSection title="Deep Dive Fun Facts" icon={Info}>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 flex items-start gap-4">
+                <div className="bg-blue-100 dark:bg-blue-900/30 p-3 rounded-xl">
+                  <Droplets className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-1">
+                    Total Volume
+                  </p>
+                  <p className="text-2xl font-black text-slate-900 dark:text-slate-100">
+                    {analytics.totalLiters.toFixed(1)}L
+                  </p>
+                  <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-1">
+                    Enough to fill {Math.floor(analytics.totalLiters / 0.25)} standard cups.
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 flex items-start gap-4">
+                <div className="bg-amber-100 dark:bg-amber-900/30 p-3 rounded-xl">
+                  <Zap className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-1">
+                    Caffeine Load
+                  </p>
+                  <p className="text-2xl font-black text-slate-900 dark:text-slate-100">
+                    {Math.round(analytics.espressoEquivalent)} Shots
+                  </p>
+                  <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-1">
+                    Equivalent to double espressos brewed.
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 flex items-start gap-4">
+                <div className="bg-emerald-100 dark:bg-emerald-900/30 p-3 rounded-xl">
+                  <Hourglass className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-1">
+                    Patience Metric
+                  </p>
+                  <p className="text-2xl font-black text-slate-900 dark:text-slate-100">
+                    {(analytics.totalWaitingMins / 60).toFixed(1)}h
+                  </p>
+                  <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-1">
+                    Total time spent waiting for the pot to brew.
+                  </p>
+                </div>
+              </div>
+            </div>
           </CollapsibleSection>
         </div>
       </div>
