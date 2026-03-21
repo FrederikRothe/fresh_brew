@@ -3,10 +3,11 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getBrewAnalytics, BrewAnalytics } from "@/app/actions";
-import { Coffee, ArrowLeft, BarChart2, Calendar, Clock, Coffee as CoffeeIcon } from "lucide-react";
+import { Coffee, ArrowLeft, BarChart2, Calendar, Clock, Coffee as CoffeeIcon, Activity, LayoutGrid, Weight } from "lucide-react";
 import { StatTile } from "@/components/StatTile";
 import { AggregateRhythm } from "@/components/AggregateRhythm";
 import { CoffeeBurnChart } from "@/components/CoffeeBurnChart";
+import { CollapsibleSection } from "@/components/CollapsibleSection";
 
 export default function AnalyzePage() {
   const router = useRouter();
@@ -63,29 +64,35 @@ export default function AnalyzePage() {
         </div>
 
         {/* Top Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <StatTile
-            label="Total Brews"
-            value={String(analytics.totalBrews)}
-            icon={CoffeeIcon}
-          />
-          <StatTile
-            label="Avg / Day"
-            value={analytics.avgBrewsPerDay.toFixed(1)}
-            icon={Calendar}
-          />
-          <StatTile label="Peak Hour" value={peakHour} icon={Clock} />
-          <StatTile
-            label="Big / Small"
-            value={`${analytics.bigBrews}/${analytics.smallBrews}`}
-            icon={Coffee}
-          />
-        </div>
+        <CollapsibleSection title="Key Metrics" icon={LayoutGrid}>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <StatTile
+              label="Total Brews"
+              value={String(analytics.totalBrews)}
+              icon={CoffeeIcon}
+            />
+            <StatTile
+              label="Avg / Day"
+              value={analytics.avgBrewsPerDay.toFixed(1)}
+              icon={Calendar}
+            />
+            <StatTile label="Peak Hour" value={peakHour} icon={Clock} />
+            <StatTile
+              label="Big / Small"
+              value={`${analytics.bigBrews}/${analytics.smallBrews}`}
+              icon={Coffee}
+            />
+          </div>
+        </CollapsibleSection>
 
         {/* Charts */}
-        <div className="space-y-12">
-          <AggregateRhythm history={analytics.history} />
-          <CoffeeBurnChart history={analytics.history} />
+        <div className="space-y-8">
+          <CollapsibleSection title="Consumption Rhythm" icon={Clock}>
+            <AggregateRhythm history={analytics.history} />
+          </CollapsibleSection>
+          <CollapsibleSection title="Coffee Burn Rate" icon={Weight}>
+            <CoffeeBurnChart history={analytics.history} />
+          </CollapsibleSection>
         </div>
       </div>
     </div>
