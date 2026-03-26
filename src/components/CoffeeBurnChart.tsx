@@ -95,12 +95,12 @@ export function CoffeeBurnChart({ history }: CoffeeBurnChartProps) {
           const isToday = mode === "weekly" && i === 6;
 
           return (
-            <div key={i} className="flex-1 flex flex-col items-center gap-1 group">
+            <div key={i} className="flex-1 min-w-0 flex flex-col items-center gap-1 group">
               <span className={cn(
-                "text-[10px] font-black whitespace-nowrap min-h-[16px]",
+                "text-[10px] font-black min-h-[16px]",
                 isToday ? "text-amber-600 dark:text-amber-500" : "text-slate-500 dark:text-slate-400"
               )}>
-                {val > 0 ? `${val}g` : ""}
+                {mode !== "monthly" && val > 0 ? `${val}g` : ""}
               </span>
               <div className="relative w-full flex flex-col justify-end h-32">
                 <div
