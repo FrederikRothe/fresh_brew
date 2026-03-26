@@ -45,40 +45,77 @@ export function AggregateRhythm({
   let units: string[] = [];
   let processedData: ProcessedBrew[] = [];
 
+  // Group into 20-minute slots (0.33 hours) for aggregation
+  const slotSize = 1 / 3;
+
   if (mode === "weekly") {
     units = ["Mon", "Tue", "Wed", "Thu", "Fri"];
-    processedData = history
-      .map((h) => {
-        const d = new Date(h.timestamp);
-        let dayIdx = getDay(d); // 0=Sun, 1=Mon...6=Sat
-        if (dayIdx === 0 || dayIdx === 6) return null;
-        dayIdx = dayIdx - 1;
-        const hour = d.getHours() + d.getMinutes() / 60;
-        return {
-          unitIdx: dayIdx,
-          hour,
-          isSmall: h.durationMs < 5 * 60 * 1000,
-          dateStr: format(d, "MMM d, yyyy"),
-          timeStr: format(d, "HH:mm"),
-          jitter: 0,
-        };
-      })
-      .filter((d): d is ProcessedBrew => d !== null);
+    const aggregated = new Map<
+      string,
+      { unitIdx: number; hour: number; isSmall: boolean; count: number }
+    >();
+
+    history.forEach((h) => {
+      const d = new Date(h.timestamp);
+      let dayIdx = getDay(d); // 0=Sun, 1=Mon...6=Sat
+      if (dayIdx === 0 || dayIdx === 6) return;
+      dayIdx = dayIdx - 1;
+      const hour = d.getHours() + Math.floor(d.getMinutes() / 20) * slotSize;
+      const isSmall = h.durationMs < 5 * 60 * 1000;
+      const key = `${dayIdx}-${hour}-${isSmall}`;
+
+      const existing = aggregated.get(key);
+      if (existing) {
+        existing.count++;
+      } else {
+        aggregated.set(key, { unitIdx: dayIdx, hour, isSmall, count: 1 });
+      }
+    });
+
+    processedData = Array.from(aggregated.values()).map((a) => ({
+      unitIdx: a.unitIdx,
+      hour: a.hour,
+      isSmall: a.isSmall,
+      count: a.count,
+      dateStr: `${a.count} brew${a.count > 1 ? "s" : ""}`,
+      timeStr: `${Math.floor(a.hour)}:${String(
+        Math.round((a.hour % 1) * 60),
+      ).padStart(2, "0")}`,
+      jitter: 0,
+    }));
   } else if (mode === "monthly") {
     units = Array.from({ length: 31 }, (_, i) => String(i + 1));
-    processedData = history.map((h) => {
+    const aggregated = new Map<
+      string,
+      { unitIdx: number; hour: number; isSmall: boolean; count: number }
+    >();
+
+    history.forEach((h) => {
       const d = new Date(h.timestamp);
       const unitIdx = getDate(d) - 1;
-      const hour = d.getHours() + d.getMinutes() / 60;
-      return {
-        unitIdx,
-        hour,
-        isSmall: h.durationMs < 5 * 60 * 1000,
-        dateStr: format(d, "MMM d, yyyy"),
-        timeStr: format(d, "HH:mm"),
-        jitter: 0,
-      };
+      const hour = d.getHours() + Math.floor(d.getMinutes() / 20) * slotSize;
+      const isSmall = h.durationMs < 5 * 60 * 1000;
+      const key = `${unitIdx}-${hour}-${isSmall}`;
+
+      const existing = aggregated.get(key);
+      if (existing) {
+        existing.count++;
+      } else {
+        aggregated.set(key, { unitIdx, hour, isSmall, count: 1 });
+      }
     });
+
+    processedData = Array.from(aggregated.values()).map((a) => ({
+      unitIdx: a.unitIdx,
+      hour: a.hour,
+      isSmall: a.isSmall,
+      count: a.count,
+      dateStr: `${a.count} brew${a.count > 1 ? "s" : ""}`,
+      timeStr: `${Math.floor(a.hour)}:${String(
+        Math.round((a.hour % 1) * 60),
+      ).padStart(2, "0")}`,
+      jitter: 0,
+    }));
   } else if (mode === "yearly") {
     units = [
       "Jan",
@@ -95,7 +132,6 @@ export function AggregateRhythm({
       "Dec",
     ];
 
-    // For yearly, we aggregate by month and hour-slot to avoid crowding
     const aggregated = new Map<
       string,
       { unitIdx: number; hour: number; isSmall: boolean; count: number }
@@ -104,8 +140,6 @@ export function AggregateRhythm({
     history.forEach((h) => {
       const d = new Date(h.timestamp);
       const unitIdx = getMonth(d);
-      // Group into 20-minute slots (0.33 hours)
-      const slotSize = 1 / 3;
       const hour = d.getHours() + Math.floor(d.getMinutes() / 20) * slotSize;
       const isSmall = h.durationMs < 5 * 60 * 1000;
       const key = `${unitIdx}-${hour}-${isSmall}`;
@@ -234,18 +268,10 @@ export function AggregateRhythm({
               const xPos = (brew.unitIdx + 0.5) * unitWidth;
               const yPos = ((brew.hour - MIN_HOUR) / HOUR_RANGE) * 100;
 
-              // Calculate size and opacity for yearly aggregate
-              const isYearly = mode === "yearly";
+              // Calculate size and opacity for aggregated views (all now aggregate)
               const count = brew.count || 1;
-              const size = isYearly
-                ? Math.min(6, 3 + Math.log2(count) * 1.5) // Grow slightly with count
-                : mode === "monthly"
-                  ? 1.5
-                  : 3;
-
-              const opacity = isYearly
-                ? Math.min(1, 0.4 + (count - 1) * 0.15)
-                : 0.6;
+              const size = Math.min(6, 3 + Math.log2(count) * 1.5); // Grow with count
+              const opacity = Math.min(1, 0.4 + (count - 1) * 0.15);
 
               return (
                 <div
