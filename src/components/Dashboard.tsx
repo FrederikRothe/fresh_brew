@@ -12,6 +12,7 @@ import {
   Unlock,
   BarChart2,
   ChevronRight,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DEFAULT_BREW_TIME_MS } from "@/lib/constants";
@@ -23,8 +24,10 @@ import { useBodyBackground } from "@/hooks/use-body-background";
 
 export default function Dashboard({
   initialStatus,
+  predictedNextBrew,
 }: {
   initialStatus: BrewStatus;
+  predictedNextBrew: string | null;
 }) {
   const { status, setStatus } = useBrewStatus(initialStatus);
   const now = useTimer();
@@ -153,6 +156,30 @@ export default function Dashboard({
             Office Refreshment Dashboard
           </p>
         </div>
+
+        {/* Predictive Insight Banner (Dashboard Version - less dramatic) */}
+        {!adminPassword && predictedNextBrew && (
+          <div className="w-full bg-amber-50/50 dark:bg-amber-950/10 border border-amber-200/50 dark:border-amber-800/20 rounded-2xl py-3 px-4 flex items-center justify-between shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="bg-amber-100 dark:bg-amber-900/30 rounded-xl p-2">
+                <Sparkles className="w-4 h-4 text-amber-600 dark:text-amber-500" />
+              </div>
+              <div className="text-left">
+                <h3 className="text-amber-900 dark:text-amber-100 font-bold uppercase tracking-tight text-xs">
+                  Next Brew Predicted
+                </h3>
+                <p className="text-amber-700/60 dark:text-amber-500/60 text-[10px] font-bold uppercase tracking-wider">
+                  Historical Estimate
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-2xl font-black text-amber-600 dark:text-amber-500 tabular-nums tracking-tighter">
+                {predictedNextBrew}
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* Main Timer Display */}
         <div className="w-full py-8 md:py-12 landscape:py-4 landscape:md:py-12 px-3 md:px-6 rounded-[2rem] md:rounded-3xl bg-slate-900 dark:bg-black text-white shadow-inner relative overflow-hidden">
