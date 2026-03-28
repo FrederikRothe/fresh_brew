@@ -1,4 +1,13 @@
 services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - STORAGE_REDIS_URL=redis://redis:6379
+    depends_on:
+      - redis
+
   redis:
     image: redis:7-alpine
     ports:
