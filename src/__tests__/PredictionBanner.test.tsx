@@ -35,11 +35,44 @@ describe('Dashboard Prediction Banner', () => {
       handleLogout: vi.fn(),
     });
 
-    render(<Dashboard initialStatus={initialStatus} predictedNextBrew="14:30" />);
+    render(
+      <Dashboard
+        initialStatus={initialStatus}
+        predictedNextBrew={{
+          time: '14:30',
+          isOverdue: false,
+          overdueMins: 0,
+        }}
+      />,
+    );
     
     expect(screen.getByText('Next Brew Predicted')).toBeInTheDocument();
     expect(screen.getByText('14:30')).toBeInTheDocument();
     expect(screen.getByText('Historical Estimate')).toBeInTheDocument();
+  });
+
+  it('renders overdue banner when brew is late', () => {
+    mockUseAdminAuth.mockReturnValue({
+      adminPassword: null,
+      setAdminPassword: vi.fn(),
+      handleLogin: vi.fn(),
+      handleLogout: vi.fn(),
+    });
+
+    render(
+      <Dashboard
+        initialStatus={initialStatus}
+        predictedNextBrew={{
+          time: '11:30',
+          isOverdue: true,
+          overdueMins: 30,
+        }}
+      />,
+    );
+    
+    expect(screen.getByText('Next Brew Overdue')).toBeInTheDocument();
+    expect(screen.getByText('11:30')).toBeInTheDocument();
+    expect(screen.getByText('Should have been brewed 30m ago')).toBeInTheDocument();
   });
 
   it('does NOT render prediction banner when in admin mode', () => {
@@ -50,7 +83,16 @@ describe('Dashboard Prediction Banner', () => {
       handleLogout: vi.fn(),
     });
 
-    render(<Dashboard initialStatus={initialStatus} predictedNextBrew="14:30" />);
+    render(
+      <Dashboard
+        initialStatus={initialStatus}
+        predictedNextBrew={{
+          time: '14:30',
+          isOverdue: false,
+          overdueMins: 0,
+        }}
+      />,
+    );
     
     expect(screen.queryByText('Next Brew Predicted')).not.toBeInTheDocument();
     expect(screen.queryByText('14:30')).not.toBeInTheDocument();

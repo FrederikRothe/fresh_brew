@@ -13,6 +13,7 @@ import {
   BarChart2,
   ChevronRight,
   Sparkles,
+  AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DEFAULT_BREW_TIME_MS } from "@/lib/constants";
@@ -21,13 +22,14 @@ import { useTimer } from "@/hooks/use-timer";
 import { useBrewStatus } from "@/hooks/use-brew-status";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
 import { useBodyBackground } from "@/hooks/use-body-background";
+import type { PredictionData } from "@/app/actions";
 
 export default function Dashboard({
   initialStatus,
   predictedNextBrew,
 }: {
   initialStatus: BrewStatus;
-  predictedNextBrew: string | null;
+  predictedNextBrew: PredictionData | null;
 }) {
   const { status, setStatus } = useBrewStatus(initialStatus);
   const now = useTimer();
@@ -159,23 +161,66 @@ export default function Dashboard({
 
         {/* Predictive Insight Banner (Dashboard Version - less dramatic) */}
         {!adminPassword && predictedNextBrew && (
-          <div className="w-full bg-amber-50/50 dark:bg-amber-950/10 border border-amber-200/50 dark:border-amber-800/20 rounded-2xl py-3 px-4 flex items-center justify-between shadow-sm">
+          <div
+            className={cn(
+              "w-full border rounded-2xl py-3 px-4 flex items-center justify-between shadow-sm transition-colors",
+              predictedNextBrew.isOverdue
+                ? "bg-rose-50/50 dark:bg-rose-950/10 border-rose-200/50 dark:border-rose-800/20"
+                : "bg-amber-50/50 dark:bg-amber-950/10 border-amber-200/50 dark:border-amber-800/20",
+            )}
+          >
             <div className="flex items-center gap-3">
-              <div className="bg-amber-100 dark:bg-amber-900/30 rounded-xl p-2">
-                <Sparkles className="w-4 h-4 text-amber-600 dark:text-amber-500" />
+              <div
+                className={cn(
+                  "rounded-xl p-2",
+                  predictedNextBrew.isOverdue
+                    ? "bg-rose-100 dark:bg-rose-900/30"
+                    : "bg-amber-100 dark:bg-amber-900/30",
+                )}
+              >
+                {predictedNextBrew.isOverdue ? (
+                  <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-500" />
+                ) : (
+                  <Sparkles className="w-4 h-4 text-amber-600 dark:text-amber-500" />
+                )}
               </div>
               <div className="text-left">
-                <h3 className="text-amber-900 dark:text-amber-100 font-bold uppercase tracking-tight text-xs">
-                  Next Brew Predicted
+                <h3
+                  className={cn(
+                    "font-bold uppercase tracking-tight text-xs",
+                    predictedNextBrew.isOverdue
+                      ? "text-rose-900 dark:text-rose-100"
+                      : "text-amber-900 dark:text-amber-100",
+                  )}
+                >
+                  {predictedNextBrew.isOverdue
+                    ? "Next Brew Overdue"
+                    : "Next Brew Predicted"}
                 </h3>
-                <p className="text-amber-700/60 dark:text-amber-500/60 text-[10px] font-bold uppercase tracking-wider">
-                  Historical Estimate
+                <p
+                  className={cn(
+                    "text-[10px] font-bold uppercase tracking-wider",
+                    predictedNextBrew.isOverdue
+                      ? "text-rose-700/60 dark:text-rose-500/60"
+                      : "text-amber-700/60 dark:text-amber-500/60",
+                  )}
+                >
+                  {predictedNextBrew.isOverdue
+                    ? `Should have been brewed ${predictedNextBrew.overdueMins}m ago`
+                    : "Historical Estimate"}
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-2xl font-black text-amber-600 dark:text-amber-500 tabular-nums tracking-tighter">
-                {predictedNextBrew}
+              <span
+                className={cn(
+                  "text-2xl font-black tabular-nums tracking-tighter",
+                  predictedNextBrew.isOverdue
+                    ? "text-rose-600 dark:text-rose-500"
+                    : "text-amber-600 dark:text-amber-500",
+                )}
+              >
+                {predictedNextBrew.time}
               </span>
             </div>
           </div>

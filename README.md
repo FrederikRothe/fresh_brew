@@ -46,6 +46,16 @@ npm run dev
 | `npm run db:populate` | Seed Redis with dummy history for analytics testing |
 | `npm run db:clear` | Wipe all brew data and history from Redis |
 
+### Running Database Scripts with Docker
+If you're running the app in Docker, use these commands to manage the database:
+```bash
+# Populate dummy data
+docker compose run --rm db-populate
+
+# Clear database
+docker compose run --rm db-clear
+```
+
 ## Architecture
 - **`/analyze`**: Public consumption analytics dashboard.
 - **`/src/lib/storage.ts`**: Redis abstraction layer.

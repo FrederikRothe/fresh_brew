@@ -91,6 +91,12 @@ export async function startBrew(password: string, durationMs: number = 7 * 60 * 
   }
 }
 
+export type PredictionData = {
+  time: string;
+  isOverdue: boolean;
+  overdueMins: number;
+};
+
 export type BrewAnalytics = {
   totalBrews: number;
   totalCoffeeGrams: number;
@@ -102,13 +108,13 @@ export type BrewAnalytics = {
   avgCoffeePerDay: number;
   durationBreakdown: Record<number, number>; // durationMs → count
   history: { timestamp: number; durationMs: number }[];
-  predictedNextBrew: string | null;
+  predictedNextBrew: PredictionData | null;
   totalLiters: number;
   espressoEquivalent: number;
   totalWaitingMins: number;
 };
 
-export async function getPredictedNextBrew(): Promise<string | null> {
+export async function getPredictedNextBrew(): Promise<PredictionData | null> {
   const history = await readBrewHistory();
   const sortedHistory = [...history].sort((a, b) => a.timestamp - b.timestamp);
 
@@ -150,12 +156,18 @@ export async function getPredictedNextBrew(): Promise<string | null> {
     const avgSeconds = typicalTimes.reduce((a, b) => a + b, 0) / typicalTimes.length;
     const h = Math.floor(avgSeconds / 3600);
     const m = Math.floor((avgSeconds % 3600) / 60);
+    const timeStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
     
     // Check if predicted time is in the past for today
     const nowSeconds = getCphSecondsSinceMidnight(today);
-    if (avgSeconds > nowSeconds) {
-      return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-    }
+    const isOverdue = avgSeconds <= nowSeconds;
+    const overdueMins = isOverdue ? Math.floor((nowSeconds - avgSeconds) / 60) : 0;
+
+    return {
+      time: timeStr,
+      isOverdue,
+      overdueMins
+    };
   }
 
   return null;

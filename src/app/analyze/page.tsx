@@ -91,7 +91,7 @@ export default function AnalyzePage() {
             </div>
             <div className="flex flex-col items-center md:items-end">
               <span className="text-6xl font-black text-amber-600 dark:text-amber-500 tabular-nums leading-none tracking-tighter">
-                {analytics.predictedNextBrew}
+                {analytics.predictedNextBrew.time}
               </span>
               <span className="text-[10px] font-black text-amber-500/60 dark:text-amber-600/60 uppercase tracking-[0.3em] mt-3">
                 Estimated Time
