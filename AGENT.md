@@ -59,14 +59,18 @@ This project provides a real-time dashboard to monitor when the last pot of coff
 - The storage model includes `BrewData` (current) and a list of `BrewRecord` objects for historical analytics.
 
 ### Timezone Handling
-- All server-side date/time formatting is pinned to **`Europe/Copenhagen`** via `Intl.DateTimeFormat` to avoid server timezone drift.
-- Three helpers in `src/lib/utils.ts` centralise this:
-  - `formatCphDate(ts)` → `yyyy-MM-dd` (used for daily brew count tracking and analytics day grouping)
-  - `formatCphTime(ts)` → `HH:mm` (used for Slack `estimated_time_of_completion`)
-  - `getCphHour(ts)` → `0–23` (used for the hourly consumption rhythm chart)
-  - `getCphDayOfWeek(ts)` → `0–6` (used for predictive analytics day grouping)
-  - `getCphSecondsSinceMidnight(ts)` → seconds (used for predictive analytics timing calculations)
-- Never use `date-fns` `format()` or `getHours()` for server-side time output — use the helpers above instead.
+- **Mandatory Timezone:** All date/time logic and formatting must be pinned to **`Europe/Copenhagen`** to ensure consistency across servers and clients.
+- **Centralized Helpers:** Use the following helpers in `src/lib/utils.ts` for **all** time-sensitive operations:
+  - `formatCphDate(ts)` → `yyyy-MM-dd` (Daily brew tracking and analytics grouping)
+  - `formatCphTime(ts)` → `HH:mm` (Slack alerts and UI display)
+  - `getCphHour(ts)` → `0–23` (Hourly distribution charts)
+  - `getCphDayOfWeek(ts)` → `0–6` (Predictive analytics day grouping)
+  - `getCphSecondsSinceMidnight(ts)` → seconds (Predictive timing calculations)
+  - `getCphISOWeek(ts)` → `{ week, year }` (Weekly analytics; **must** use ISO year to handle year-end boundaries correctly)
+- **CRITICAL PITFALLS:**
+  - **Server-Side:** Never use native `Date` methods (e.g., `getHours()`, `getDay()`) or `date-fns` formatting/extraction functions directly in Server Actions or components. They will use the server's system time.
+  - **Client-Side:** Be wary of browser-local time drift. Tooltips and banners (e.g., in `/analyze`) should use the CPH helpers to match the server's state, especially when displaying "Today" or specific timestamps.
+  - **ISO Weeks:** Always use the ISO week-year logic (via `getCphISOWeek`) instead of a simple calendar year to avoid miscategorizing brews during the first/last days of the year.
 
 ### Authentication
 - A simple "Brewer Mode" is used to prevent unauthorized resets.
