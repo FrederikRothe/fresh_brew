@@ -20,12 +20,15 @@ This project provides a real-time dashboard to monitor when the last pot of coff
 
 ### Architecture
 - **`src/app/page.tsx`**: Entry point (Server Component). Fetches initial brew status and renders the `Dashboard`.
+- **`src/app/analyze/page.tsx`**: Publicly accessible consumption analytics dashboard.
 - **`src/components/Dashboard.tsx`**: Main UI (Client Component). Orchestrates the dashboard using custom hooks.
 - **`src/hooks/`**: Specialized client hooks for timer logic (`useTimer`), brew status polling (`useBrewStatus`), admin authentication (`useAdminAuth`), and theme-aware body styling (`useBodyBackground`).
 - **`src/lib/`**: Shared logic including Redis storage (`storage.ts`), calculation helpers (`brew-utils.ts`), common thresholds (`constants.ts`), and styling utilities (`utils.ts`).
 - **`src/app/actions.ts`**: Server Actions for data fetching and mutation. Includes Slack notification logic, brew analytics calculation (grams, frequency, density), and admin password verification.
 - **`src/components/AggregateRhythm.tsx`**: Visualizes consumption density over weekly, monthly, and yearly intervals.
 - **`src/components/CoffeeBurnChart.tsx`**: Tracks daily coffee consumption in grams (Big: 340g, Small: 180g) with bar charts.
+- **`src/components/StatTile.tsx`**: Reusable component for displaying key metrics with icons.
+- **`src/components/CollapsibleSection.tsx`**: Layout wrapper for expandable analytics sections.
 - **`src/app/globals.css`**: Tailwind 4 configuration and global styles.
 
 ## Building and Running
@@ -61,6 +64,8 @@ This project provides a real-time dashboard to monitor when the last pot of coff
   - `formatCphDate(ts)` → `yyyy-MM-dd` (used for daily brew count tracking and analytics day grouping)
   - `formatCphTime(ts)` → `HH:mm` (used for Slack `estimated_time_of_completion`)
   - `getCphHour(ts)` → `0–23` (used for the hourly consumption rhythm chart)
+  - `getCphDayOfWeek(ts)` → `0–6` (used for predictive analytics day grouping)
+  - `getCphSecondsSinceMidnight(ts)` → seconds (used for predictive analytics timing calculations)
 - Never use `date-fns` `format()` or `getHours()` for server-side time output — use the helpers above instead.
 
 ### Authentication
@@ -73,16 +78,21 @@ This project provides a real-time dashboard to monitor when the last pot of coff
 - **Slack Notifications:** When a new brew is started via `startBrew` in `src/app/actions.ts`, a message is sent to the configured Slack Webhook URL. The POST payload includes `batch_size` (Big/small) and `estimated_time_of_completion` (HH:mm). A JSON debug log is emitted to the server console before sending.
 
 ### Visual States & Features
-- **Brewing:** Blue (`bg-blue-500`) - Countdown to ready. **BIG Brew: 7m**, **Small Brew: 4m**.
+- **Brewing:** Blue (`bg-blue-500`) - Countdown to ready. **BIG Brew: 7m**, **Small Brew: 4m**. The server uses a **5-minute threshold** (`SMALL_BATCH_THRESHOLD_MS`) to categorize historical records for analytics.
 - **Anti-Spam Cooldown:** 60-second lockout after starting a brew (server-side and UI) to prevent accidental double-brews.
 - **Fresh (0-25m since ready):** Green (`bg-emerald-500`)
 - **Getting Sour (25-40m since ready):** Orange (`bg-amber-500`)
 - **Stale (40-60m since ready):** Red (`bg-rose-500`)
 - **Empty/Old (120m+):** Gray (`bg-slate-500`)
 - **Daily Pot Count:** Automatically resets at midnight (calculated on-the-fly during data fetch).
+- **Predictive Next Brew:** Smart estimation of when the next pot will be brewed, based on the historical sequence for the current day of the week (e.g., "pot #3 on a Monday").
 - **Analyze Consumption:** Publicly accessible page (`/analyze`) with:
   - **Consumption Rhythm:** Density map of brews over time (7 AM — 6 PM).
   - **Coffee Burn Rate:** Bar chart tracking grams consumed (Big: 340g, Small: 180g).
+  - **Deep Dive Fun Facts:** 
+    - **Total Volume:** Liters brewed (calculated at 60g/L).
+    - **Caffeine Load:** Equivalent number of double espresso shots (18g).
+    - **Patience Metric:** Total hours spent waiting for the machine to finish brewing.
 - **Admin Brewer Mode:** Secure login for starting new brews; stores session in `localStorage`.
 - **Compact Landscape Mode:** Optimized layout for short viewports on mobile devices.
 

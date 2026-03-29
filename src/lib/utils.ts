@@ -54,6 +54,35 @@ export function getCphDayOfWeek(ts: number | Date): number {
   return days.indexOf(day);
 }
 
+/** Returns { week, year } for ISO week in Copenhagen time */
+export function getCphISOWeek(ts: number | Date): { week: number; year: number } {
+  // We use the 'en-GB' locale as it follows ISO week standards (Monday start)
+  const partFormatter = new Intl.DateTimeFormat('en-GB', {
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    timeZone: CPH_TZ,
+  });
+  
+  const parts = partFormatter.formatToParts(ts);
+  const year = parseInt(parts.find(p => p.type === 'year')?.value || '0', 10);
+  const month = parseInt(parts.find(p => p.type === 'month')?.value || '0', 10);
+  const day = parseInt(parts.find(p => p.type === 'day')?.value || '0', 10);
+  
+  // Create a UTC date at midnight in the CPH timezone to use with date-fns
+  // date-fns's getISOWeek and getISOWeekYear are timezone-agnostic (operate on the given Date object's UTC fields if they are standard)
+  // but standard JS Date doesn't let us easily set "CPH time".
+  // However, we can calculate ISO week manually or use a trick.
+  // The simplest reliable way for ISO week is actually calculating it.
+  
+  const d = new Date(Date.UTC(year, month - 1, day));
+  d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const week = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+  
+  return { week, year: d.getUTCFullYear() };
+}
+
 /** Returns seconds since midnight in Copenhagen time */
 export function getCphSecondsSinceMidnight(ts: number | Date): number {
   const parts = cphTimePartsFormatter.formatToParts(ts);

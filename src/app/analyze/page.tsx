@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getBrewAnalytics, BrewAnalytics } from "@/app/actions";
 import { Coffee, ArrowLeft, BarChart2, Calendar, Clock, Coffee as CoffeeIcon, LayoutGrid, Weight, Sparkles, Droplets, Zap, Hourglass, Info } from "lucide-react";
-import { format } from "date-fns";
+import { formatCphDate } from "@/lib/utils";
 import { StatTile } from "@/components/StatTile";
 import { AggregateRhythm } from "@/components/AggregateRhythm";
 import { CoffeeBurnChart } from "@/components/CoffeeBurnChart";
@@ -36,6 +36,13 @@ export default function AnalyzePage() {
   }
 
   if (!analytics) return null;
+
+  const now = new Date();
+  const todayStr = formatCphDate(now);
+  const brewsToday = analytics.history.filter(h => formatCphDate(h.timestamp) === todayStr).length;
+  
+  // Use Intl for weekday to stay consistent with other helpers
+  const dayName = new Intl.DateTimeFormat('en-US', { weekday: 'long', timeZone: 'Europe/Copenhagen' }).format(now);
 
   const peakHour =
     Object.keys(analytics.hourDistribution).length > 0
@@ -78,14 +85,14 @@ export default function AnalyzePage() {
                     <Info className="w-4 h-4 text-amber-500/40 cursor-help transition-colors group-hover:text-amber-500" />
                     <div className="invisible group-hover:visible absolute left-1/2 -translate-x-1/2 md:left-0 md:translate-x-0 bottom-full mb-3 w-56 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 text-[10px] p-3 rounded-xl font-bold normal-case tracking-tight shadow-2xl z-50">
                       <div className="relative">
-                        Averaged from historical brew times for today&apos;s sequence (pot #{analytics.history.filter(h => format(new Date(h.timestamp), 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd')).length + 1} on a {format(new Date(), "EEEE")}).
+                        Averaged from historical brew times for today&apos;s sequence (pot #{brewsToday + 1} on a {dayName}).
                         <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 md:left-2 md:translate-x-0 border-8 border-transparent border-t-slate-900 dark:border-t-slate-100" />
                       </div>
                     </div>
                   </div>
                 </h3>
                 <p className="text-amber-700/80 dark:text-amber-400/80 text-xs font-bold uppercase tracking-widest">
-                  Based on your typical {format(new Date(), "EEEE")} rhythm
+                  Based on your typical {dayName} rhythm
                 </p>
               </div>
             </div>

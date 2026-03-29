@@ -1,9 +1,7 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
-import { getISOWeek, getYear } from 'date-fns';
-import { readBrewData, writeBrewData, appendBrewRecord, readBrewHistory, type BrewData } from '@/lib/storage';
-import { formatCphDate, formatCphTime, getCphHour, getCphDayOfWeek, getCphSecondsSinceMidnight } from '@/lib/utils';
+import { readBrewData, writeBrewData, appendBrewRecord, readBrewHistory, type BrewData, type BrewRecord } from '@/lib/storage';
+import { formatCphDate, formatCphTime, getCphHour, getCphDayOfWeek, getCphSecondsSinceMidnight, getCphISOWeek } from '@/lib/utils';
 import { SMALL_BATCH_GRAMS, BIG_BATCH_GRAMS, SMALL_BATCH_THRESHOLD_MS } from '@/lib/constants';
 
 export type BrewStatus = BrewData;
@@ -107,16 +105,16 @@ export type BrewAnalytics = {
   avgBrewsPerDay: number;
   avgCoffeePerDay: number;
   durationBreakdown: Record<number, number>; // durationMs → count
-  history: { timestamp: number; durationMs: number }[];
+  history: BrewRecord[];
   predictedNextBrew: PredictionData | null;
   totalLiters: number;
   espressoEquivalent: number;
   totalWaitingMins: number;
 };
 
-export async function getPredictedNextBrew(): Promise<PredictionData | null> {
-  const history = await readBrewHistory();
-  const sortedHistory = [...history].sort((a, b) => a.timestamp - b.timestamp);
+export async function getPredictedNextBrew(history?: BrewRecord[]): Promise<PredictionData | null> {
+  const brewHistory = history || await readBrewHistory();
+  const sortedHistory = [...brewHistory].sort((a, b) => a.timestamp - b.timestamp);
 
   const today = new Date();
   const todayStr = formatCphDate(today);
@@ -191,7 +189,8 @@ export async function getBrewAnalytics(): Promise<BrewAnalytics> {
     const date = new Date(record.timestamp);
     const dateStr = formatCphDate(date);
 
-    const weekKey = `${getYear(date)}-W${String(getISOWeek(date)).padStart(2, '0')}`;
+    const { week, year } = getCphISOWeek(date);
+    const weekKey = `${year}-W${String(week).padStart(2, '0')}`;
     brewsPerWeek[weekKey] = (brewsPerWeek[weekKey] ?? 0) + 1;
 
     const hour = getCphHour(date);
@@ -220,7 +219,7 @@ export async function getBrewAnalytics(): Promise<BrewAnalytics> {
   const totalWaitingMins = history.reduce((acc, h) => acc + (h.durationMs / 60000), 0);
 
   // Calculate predicted next brew using the standalone function
-  const predictedNextBrew = await getPredictedNextBrew();
+  const predictedNextBrew = await getPredictedNextBrew(history);
 
   return {
     totalBrews: history.length,
@@ -232,7 +231,7 @@ export async function getBrewAnalytics(): Promise<BrewAnalytics> {
     avgBrewsPerDay,
     avgCoffeePerDay,
     durationBreakdown,
-    history,
+    history: sortedHistory,
     predictedNextBrew,
     totalLiters,
     espressoEquivalent,
