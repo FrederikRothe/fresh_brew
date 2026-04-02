@@ -15,7 +15,7 @@ import {
   Sparkles,
   AlertTriangle,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatMinsToDuration } from "@/lib/utils";
 import { DEFAULT_BREW_TIME_MS } from "@/lib/constants";
 import { computeBrewState } from "@/lib/brew-utils";
 import { useTimer } from "@/hooks/use-timer";
@@ -206,7 +206,7 @@ export default function Dashboard({
                   )}
                 >
                   {predictedNextBrew.isOverdue
-                    ? `Should have been brewed ${predictedNextBrew.overdueMins}m ago`
+                    ? `Should have been brewed ${formatMinsToDuration(predictedNextBrew.overdueMins)} ago`
                     : "Historical Estimate"}
                 </p>
               </div>

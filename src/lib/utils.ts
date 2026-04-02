@@ -91,3 +91,14 @@ export function getCphSecondsSinceMidnight(ts: number | Date): number {
   const s = parseInt(parts.find(p => p.type === 'second')?.value || '0', 10);
   return h * 3600 + m * 60 + s;
 }
+
+/** Formats a number of minutes into "Xh Ym" or just "Ym" */
+export function formatMinsToDuration(mins: number): string {
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  
+  if (h > 0) {
+    return `${h}h ${m}m`;
+  }
+  return `${m}m`;
+}

@@ -75,6 +75,35 @@ describe('Dashboard Prediction Banner', () => {
     expect(screen.getByText('Should have been brewed 30m ago')).toBeInTheDocument();
   });
 
+  it('renders prediction banner with hours when overdue > 59m', () => {
+    mockUseAdminAuth.mockReturnValue({
+      adminPassword: null,
+      setAdminPassword: vi.fn(),
+      handleLogin: vi.fn(),
+      handleLogout: vi.fn(),
+    });
+
+    const initialStatus = {
+      lastBrewTimestamp: Date.now() - 1000 * 60 * 60,
+      dailyBrewCount: 1,
+      lastBrewDate: '2024-01-01',
+      brewDurationMs: 420000,
+    };
+
+    render(
+      <Dashboard
+        initialStatus={initialStatus}
+        predictedNextBrew={{
+          time: '11:30',
+          isOverdue: true,
+          overdueMins: 362,
+        }}
+      />,
+    );
+
+    expect(screen.getByText('Should have been brewed 6h 2m ago')).toBeInTheDocument();
+  });
+
   it('does NOT render prediction banner when in admin mode', () => {
     mockUseAdminAuth.mockReturnValue({
       adminPassword: 'password123',
