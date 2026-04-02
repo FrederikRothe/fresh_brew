@@ -1,5 +1,6 @@
 'use server';
 
+import { revalidatePath } from 'next/cache';
 import { readBrewData, writeBrewData, appendBrewRecord, readBrewHistory, type BrewData, type BrewRecord } from '@/lib/storage';
 import { formatCphDate, formatCphTime, getCphHour, getCphDayOfWeek, getCphSecondsSinceMidnight, getCphISOWeek } from '@/lib/utils';
 import { SMALL_BATCH_GRAMS, BIG_BATCH_GRAMS, SMALL_BATCH_THRESHOLD_MS } from '@/lib/constants';
