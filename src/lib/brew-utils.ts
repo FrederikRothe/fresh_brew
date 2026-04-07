@@ -74,7 +74,7 @@ export function computeBrewState(
   return {
     ...base,
     statusText: "STALE",
-    statusColor: "bg-rose-500",
+    statusColor: "bg-orange-500",
     message: "Running low or getting cold.",
   };
 }
