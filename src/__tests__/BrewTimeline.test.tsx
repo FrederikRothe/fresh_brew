@@ -23,7 +23,7 @@ describe('BrewTimeline Component', () => {
     render(<BrewTimeline history={mockHistory} />);
     
     expect(screen.getByText('Daily Rhythm')).toBeInTheDocument();
-    expect(screen.getByText('Actual vs. Typical Sequence')).toBeInTheDocument();
+    expect(screen.getByText('Actual vs. Typical')).toBeInTheDocument();
     expect(screen.getByText('You Are Here')).toBeInTheDocument();
     
     // Check for actual pot markers
