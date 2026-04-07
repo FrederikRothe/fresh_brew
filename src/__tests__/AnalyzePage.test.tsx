@@ -137,13 +137,18 @@ describe('AnalyzePage Component', () => {
     render(<AnalyzePage />);
     
     await waitFor(() => {
-      const label7AM = screen.getByText('7 AM');
-      const label8AM = screen.getByText('8 AM');
-      const label10AM = screen.getByText('10 AM');
-      const label12PM = screen.getByText('12 PM');
-      const label2PM = screen.getByText('2 PM');
-      const label4PM = screen.getByText('4 PM');
-      const label6PM = screen.getByText('6 PM');
+      const getLabelByTop = (text: string) => {
+        const labels = screen.getAllByText(text);
+        return labels.find(el => (el as HTMLElement).style.top !== '') as HTMLElement;
+      };
+
+      const label7AM = getLabelByTop('7 AM');
+      const label8AM = getLabelByTop('8 AM');
+      const label10AM = getLabelByTop('10 AM');
+      const label12PM = getLabelByTop('12 PM');
+      const label2PM = getLabelByTop('2 PM');
+      const label4PM = getLabelByTop('4 PM');
+      const label6PM = getLabelByTop('6 PM');
 
       expect(label7AM.style.top).toBe('0%');
       expect(label8AM.style.top).toContain('9.09');

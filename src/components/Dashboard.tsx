@@ -165,7 +165,7 @@ export default function Dashboard({
             className={cn(
               "w-full border rounded-2xl py-3 px-4 flex items-center justify-between shadow-sm transition-colors",
               predictedNextBrew.isOverdue
-                ? "bg-rose-50/50 dark:bg-rose-950/10 border-rose-200/50 dark:border-rose-800/20"
+                ? "bg-amber-100/50 dark:bg-amber-950/20 border-amber-300/50 dark:border-amber-800/30"
                 : "bg-amber-50/50 dark:bg-amber-950/10 border-amber-200/50 dark:border-amber-800/20",
             )}
           >
@@ -174,12 +174,12 @@ export default function Dashboard({
                 className={cn(
                   "rounded-xl p-2",
                   predictedNextBrew.isOverdue
-                    ? "bg-rose-100 dark:bg-rose-900/30"
+                    ? "bg-amber-200 dark:bg-amber-900/40"
                     : "bg-amber-100 dark:bg-amber-900/30",
                 )}
               >
                 {predictedNextBrew.isOverdue ? (
-                  <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-500" />
+                  <AlertTriangle className="w-4 h-4 text-amber-700 dark:text-amber-400" />
                 ) : (
                   <Sparkles className="w-4 h-4 text-amber-600 dark:text-amber-500" />
                 )}
@@ -189,7 +189,7 @@ export default function Dashboard({
                   className={cn(
                     "font-bold uppercase tracking-tight text-xs",
                     predictedNextBrew.isOverdue
-                      ? "text-rose-900 dark:text-rose-100"
+                      ? "text-amber-900 dark:text-amber-100"
                       : "text-amber-900 dark:text-amber-100",
                   )}
                 >
@@ -201,7 +201,7 @@ export default function Dashboard({
                   className={cn(
                     "text-[10px] font-bold uppercase tracking-wider",
                     predictedNextBrew.isOverdue
-                      ? "text-rose-700/60 dark:text-rose-500/60"
+                      ? "text-amber-700/60 dark:text-amber-500/60"
                       : "text-amber-700/60 dark:text-amber-500/60",
                   )}
                 >
@@ -216,7 +216,7 @@ export default function Dashboard({
                 className={cn(
                   "text-2xl font-black tabular-nums tracking-tighter",
                   predictedNextBrew.isOverdue
-                    ? "text-rose-600 dark:text-rose-500"
+                    ? "text-amber-600 dark:text-amber-500"
                     : "text-amber-600 dark:text-amber-500",
                 )}
               >

@@ -9,6 +9,7 @@ import { StatTile } from "@/components/StatTile";
 import { AggregateRhythm } from "@/components/AggregateRhythm";
 import { CoffeeBurnChart } from "@/components/CoffeeBurnChart";
 import { CollapsibleSection } from "@/components/CollapsibleSection";
+import { BrewTimeline } from "@/components/BrewTimeline";
 
 export default function AnalyzePage() {
   const router = useRouter();
@@ -71,41 +72,15 @@ export default function AnalyzePage() {
           </div>
         </div>
 
-        {/* Predictive Insight Banner */}
-        {analytics.predictedNextBrew && (
-          <div className="bg-amber-50 dark:bg-amber-950/20 border-2 border-amber-200/50 dark:border-amber-800/30 rounded-3xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl shadow-amber-500/5">
-            <div className="flex items-center gap-4">
-              <div className="bg-amber-500 rounded-2xl p-3 shadow-lg shadow-amber-500/30">
-                <Sparkles className="w-6 h-6 text-white" />
-              </div>
-              <div className="space-y-1 text-center md:text-left">
-                <h3 className="text-amber-900 dark:text-amber-100 font-black uppercase tracking-tight text-xl flex items-center justify-center md:justify-start gap-2">
-                  Next Brew Predicted
-                  <div className="group relative flex items-center">
-                    <Info className="w-4 h-4 text-amber-500/40 cursor-help transition-colors group-hover:text-amber-500" />
-                    <div className="invisible group-hover:visible absolute left-1/2 -translate-x-1/2 md:left-0 md:translate-x-0 bottom-full mb-3 w-56 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 text-[10px] p-3 rounded-xl font-bold normal-case tracking-tight shadow-2xl z-50">
-                      <div className="relative">
-                        Averaged from historical brew times for today&apos;s sequence (pot #{brewsToday + 1} on a {dayName}).
-                        <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 md:left-2 md:translate-x-0 border-8 border-transparent border-t-slate-900 dark:border-t-slate-100" />
-                      </div>
-                    </div>
-                  </div>
-                </h3>
-                <p className="text-amber-700/80 dark:text-amber-400/80 text-xs font-bold uppercase tracking-widest">
-                  Based on your typical {dayName} rhythm
-                </p>
-              </div>
-            </div>
-            <div className="flex flex-col items-center md:items-end">
-              <span className="text-6xl font-black text-amber-600 dark:text-amber-500 tabular-nums leading-none tracking-tighter">
-                {analytics.predictedNextBrew.time}
-              </span>
-              <span className="text-[10px] font-black text-amber-500/60 dark:text-amber-600/60 uppercase tracking-[0.3em] mt-3">
-                Estimated Time
-              </span>
-            </div>
-          </div>
-        )}
+        {/* Visual Timeline & Predictions */}
+        <BrewTimeline 
+          history={analytics.history} 
+          predictedNextBrew={analytics.predictedNextBrew ? {
+            time: analytics.predictedNextBrew.time,
+            sequenceIndex: brewsToday + 1,
+            dayName: dayName
+          } : null}
+        />
 
         {/* Top Stats */}
         <CollapsibleSection title="Key Metrics" icon={LayoutGrid}>
