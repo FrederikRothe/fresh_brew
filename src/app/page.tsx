@@ -1,14 +1,17 @@
-import { getBrewStatus } from './actions';
+import { getBrewStatus, getPredictedNextBrew } from './actions';
 import Dashboard from '@/components/Dashboard';
 
 export const dynamic = 'force-dynamic';
 
 export default async function Home() {
-  const initialStatus = await getBrewStatus();
+  const [initialStatus, predictedNextBrew] = await Promise.all([
+    getBrewStatus(),
+    getPredictedNextBrew(),
+  ]);
 
   return (
     <main>
-      <Dashboard initialStatus={initialStatus} />
+      <Dashboard initialStatus={initialStatus} predictedNextBrew={predictedNextBrew} />
     </main>
   );
 }

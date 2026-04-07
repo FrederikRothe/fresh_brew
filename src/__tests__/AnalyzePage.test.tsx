@@ -31,7 +31,11 @@ describe('AnalyzePage Component', () => {
       { timestamp: new Date('2026-03-18T09:00:00Z').getTime(), durationMs: 7 * 60 * 1000 },
       { timestamp: new Date('2026-03-18T10:00:00Z').getTime(), durationMs: 4 * 60 * 1000 },
     ],
-    predictedNextBrew: '14:30',
+    predictedNextBrew: {
+      time: '14:30',
+      isOverdue: false,
+      overdueMins: 0,
+    },
     totalLiters: 51.3,
     espressoEquivalent: 171,
     totalWaitingMins: 70,
