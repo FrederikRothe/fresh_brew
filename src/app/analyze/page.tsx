@@ -9,6 +9,7 @@ import { StatTile } from "@/components/StatTile";
 import { AggregateRhythm } from "@/components/AggregateRhythm";
 import { CoffeeBurnChart } from "@/components/CoffeeBurnChart";
 import { CollapsibleSection } from "@/components/CollapsibleSection";
+import { BrewTimeline } from "@/components/BrewTimeline";
 
 export default function AnalyzePage() {
   const router = useRouter();
@@ -99,6 +100,9 @@ export default function AnalyzePage() {
             </div>
           </div>
         )}
+
+        {/* Visual Timeline */}
+        <BrewTimeline history={analytics.history} />
 
         {/* Top Stats */}
         <CollapsibleSection title="Key Metrics" icon={LayoutGrid}>
