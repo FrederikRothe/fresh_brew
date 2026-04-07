@@ -8,7 +8,7 @@ import {
   formatCphTime 
 } from "@/lib/utils";
 import { cn } from "@/lib/utils";
-import { Coffee, Info } from "lucide-react";
+import { Coffee, Info, Sparkles } from "lucide-react";
 
 interface BrewTimelineProps {
   history: { timestamp: number; durationMs: number }[];
@@ -79,36 +79,36 @@ export function BrewTimeline({ history }: BrewTimelineProps) {
   };
 
   return (
-    <div className="bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-3xl p-6 shadow-sm overflow-hidden">
+    <div className="bg-amber-50 dark:bg-amber-950/20 border-2 border-amber-200/50 dark:border-amber-800/30 rounded-3xl p-6 shadow-xl shadow-amber-500/5 overflow-hidden">
       <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-2">
-          <div className="bg-blue-100 dark:bg-blue-900/30 p-2 rounded-xl">
-            <Coffee className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+        <div className="flex items-center gap-4">
+          <div className="bg-amber-500 rounded-2xl p-2.5 shadow-lg shadow-amber-500/20">
+            <Sparkles className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h4 className="text-xs font-black uppercase tracking-widest text-slate-900 dark:text-slate-100">
+            <h4 className="text-amber-900 dark:text-amber-100 font-black uppercase tracking-tight text-lg">
               Daily Rhythm
             </h4>
-            <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">
+            <p className="text-amber-700/70 dark:text-amber-400/70 text-[10px] font-bold uppercase tracking-widest">
               Actual vs. Typical Sequence
             </p>
           </div>
         </div>
         <div className="flex items-center gap-4 text-[9px] font-black uppercase tracking-widest">
           <div className="flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full bg-blue-500" />
-            <span className="text-slate-500">Actual</span>
+            <div className="w-2.5 h-2.5 rounded-full bg-amber-600 dark:bg-amber-500" />
+            <span className="text-amber-800/60 dark:text-amber-200/60">Actual</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full bg-slate-200 dark:bg-slate-700" />
-            <span className="text-slate-500">Typical</span>
+            <div className="w-2.5 h-2.5 rounded-full bg-amber-200 dark:bg-amber-800/50" />
+            <span className="text-amber-800/60 dark:text-amber-200/60">Typical</span>
           </div>
         </div>
       </div>
 
-      <div className="relative h-12 flex items-center mb-6">
+      <div className="relative h-14 flex items-center mb-4">
         {/* Timeline Line */}
-        <div className="absolute w-full h-1 bg-slate-100 dark:bg-slate-800 rounded-full" />
+        <div className="absolute w-full h-1.5 bg-amber-200/30 dark:bg-amber-900/20 rounded-full" />
         
         {/* Typical Markers (Greyed out) */}
         {typicalBrews.map((b) => (
@@ -117,7 +117,7 @@ export function BrewTimeline({ history }: BrewTimelineProps) {
             className="absolute -translate-x-1/2 group"
             style={{ left: `${getX(b.avgSeconds)}%` }}
           >
-            <div className="w-4 h-4 rounded-full border-2 border-white dark:border-slate-900 bg-slate-200 dark:bg-slate-700 transition-transform group-hover:scale-125 shadow-sm" />
+            <div className="w-4 h-4 rounded-full border-2 border-amber-50 dark:border-slate-900 bg-amber-200 dark:bg-amber-800/50 transition-transform group-hover:scale-125 shadow-sm" />
             <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
               <div className="bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 text-[9px] font-black px-2 py-1 rounded-md whitespace-nowrap shadow-xl">
                 Typical Pot #{b.seqIndex + 1}
@@ -133,9 +133,9 @@ export function BrewTimeline({ history }: BrewTimelineProps) {
             className="absolute -translate-x-1/2 group z-20"
             style={{ left: `${getX(b.seconds)}%` }}
           >
-            <div className="w-5 h-5 rounded-full border-2 border-white dark:border-slate-900 bg-blue-500 shadow-lg shadow-blue-500/30 transition-transform group-hover:scale-110" />
+            <div className="w-5 h-5 rounded-full border-2 border-amber-50 dark:border-slate-900 bg-amber-600 dark:bg-amber-500 shadow-lg shadow-amber-500/30 transition-transform group-hover:scale-110" />
             <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-30">
-              <div className="bg-blue-600 text-white text-[10px] font-black px-2 py-1 rounded-md whitespace-nowrap shadow-xl">
+              <div className="bg-amber-600 text-white text-[10px] font-black px-2 py-1 rounded-md whitespace-nowrap shadow-xl">
                 Pot #{i + 1} @ {formatCphTime(b.timestamp)}
               </div>
             </div>
@@ -159,22 +159,26 @@ export function BrewTimeline({ history }: BrewTimelineProps) {
         )}
       </div>
 
-      {/* Time Labels */}
-      <div className="flex justify-between px-1">
+      {/* Time Labels - Positioned Absolutely to match the getX logic */}
+      <div className="relative h-6 mt-4">
         {[7, 9, 11, 13, 15, 17, 19].map((h) => (
-          <span key={h} className="text-[10px] font-bold text-slate-400 dark:text-slate-500 tabular-nums">
-            {h > 12 ? `${h - 12} PM` : `${h} AM`}
+          <span 
+            key={h} 
+            className="absolute -translate-x-1/2 text-[10px] font-bold text-amber-800/40 dark:text-amber-200/30 tabular-nums uppercase"
+            style={{ left: `${getX(h * 3600)}%` }}
+          >
+            {h > 12 ? `${h - 12} PM` : h === 12 ? "12 PM" : `${h} AM`}
           </span>
         ))}
       </div>
 
       {/* Track info */}
-      <div className="mt-8 pt-6 border-t border-slate-50 dark:border-slate-800/50">
+      <div className="mt-8 pt-6 border-t border-amber-200/30 dark:border-amber-800/20">
         <div className="flex items-center gap-3">
-          <div className="bg-amber-50 dark:bg-amber-950/20 p-2 rounded-xl">
+          <div className="bg-amber-100/50 dark:bg-amber-900/30 p-2 rounded-xl">
             <Info className="w-3.5 h-3.5 text-amber-600 dark:text-amber-500" />
           </div>
-          <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 leading-relaxed max-w-[80%]">
+          <p className="text-[10px] font-bold text-amber-800/60 dark:text-amber-200/60 leading-relaxed max-w-[80%]">
             {todayBrews.length > 0 ? (
               typicalBrews.length >= todayBrews.length ? (
                 <>
