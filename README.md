@@ -7,7 +7,8 @@ This project provides a real-time, high-visibility dashboard for shared office e
 
 - **Real-time Status:** Live countdowns and color-coded freshness states (Fresh → Sour → Stale → Empty).
 - **Daily Counter:** Automatic midnight reset to track today's caffeine output.
-- **Consumption Analytics:** A dedicated public `/analyze` page visualizing weekly rhythms and usage peaks.
+- **Consumption Analytics:** A dedicated public `/analyze` page visualizing weekly rhythms, usage peaks, and "Deep Dive" metrics (Liters, Caffeine load, Patience).
+- **Predictive Insight:** Smart estimation of the next brew time based on historical patterns for the current day of the week.
 - **Admin Control:** Secure "Brewer Mode" for starting Big (7m) or Small (4m) pots.
 - **Notifications:** Integrated Web Notifications and Slack Webhook alerts.
 
@@ -45,6 +46,16 @@ npm run dev
 | `npm run lint` | Run ESLint checks |
 | `npm run db:populate` | Seed Redis with dummy history for analytics testing |
 | `npm run db:clear` | Wipe all brew data and history from Redis |
+
+### Running Database Scripts with Docker
+If you're running the app in Docker, use these commands to manage the database:
+```bash
+# Populate dummy data
+docker compose run --rm db-populate
+
+# Clear database
+docker compose run --rm db-clear
+```
 
 ## Architecture
 - **`/analyze`**: Public consumption analytics dashboard.

@@ -20,12 +20,15 @@ This project provides a real-time dashboard to monitor when the last pot of coff
 
 ### Architecture
 - **`src/app/page.tsx`**: Entry point (Server Component). Fetches initial brew status and renders the `Dashboard`.
+- **`src/app/analyze/page.tsx`**: Publicly accessible consumption analytics dashboard.
 - **`src/components/Dashboard.tsx`**: Main UI (Client Component). Orchestrates the dashboard using custom hooks.
 - **`src/hooks/`**: Specialized client hooks for timer logic (`useTimer`), brew status polling (`useBrewStatus`), admin authentication (`useAdminAuth`), and theme-aware body styling (`useBodyBackground`).
 - **`src/lib/`**: Shared logic including Redis storage (`storage.ts`), calculation helpers (`brew-utils.ts`), common thresholds (`constants.ts`), and styling utilities (`utils.ts`).
 - **`src/app/actions.ts`**: Server Actions for data fetching and mutation. Includes Slack notification logic, brew analytics calculation (grams, frequency, density), and admin password verification.
 - **`src/components/AggregateRhythm.tsx`**: Visualizes consumption density over weekly, monthly, and yearly intervals.
 - **`src/components/CoffeeBurnChart.tsx`**: Tracks daily coffee consumption in grams (Big: 340g, Small: 180g) with bar charts.
+- **`src/components/StatTile.tsx`**: Reusable component for displaying key metrics with icons.
+- **`src/components/CollapsibleSection.tsx`**: Layout wrapper for expandable analytics sections.
 - **`src/app/globals.css`**: Tailwind 4 configuration and global styles.
 
 ## Building and Running
@@ -56,12 +59,18 @@ This project provides a real-time dashboard to monitor when the last pot of coff
 - The storage model includes `BrewData` (current) and a list of `BrewRecord` objects for historical analytics.
 
 ### Timezone Handling
-- All server-side date/time formatting is pinned to **`Europe/Copenhagen`** via `Intl.DateTimeFormat` to avoid server timezone drift.
-- Three helpers in `src/lib/utils.ts` centralise this:
-  - `formatCphDate(ts)` → `yyyy-MM-dd` (used for daily brew count tracking and analytics day grouping)
-  - `formatCphTime(ts)` → `HH:mm` (used for Slack `estimated_time_of_completion`)
-  - `getCphHour(ts)` → `0–23` (used for the hourly consumption rhythm chart)
-- Never use `date-fns` `format()` or `getHours()` for server-side time output — use the helpers above instead.
+- **Mandatory Timezone:** All date/time logic and formatting must be pinned to **`Europe/Copenhagen`** to ensure consistency across servers and clients.
+- **Centralized Helpers:** Use the following helpers in `src/lib/utils.ts` for **all** time-sensitive operations:
+  - `formatCphDate(ts)` → `yyyy-MM-dd` (Daily brew tracking and analytics grouping)
+  - `formatCphTime(ts)` → `HH:mm` (Slack alerts and UI display)
+  - `getCphHour(ts)` → `0–23` (Hourly distribution charts)
+  - `getCphDayOfWeek(ts)` → `0–6` (Predictive analytics day grouping)
+  - `getCphSecondsSinceMidnight(ts)` → seconds (Predictive timing calculations)
+  - `getCphISOWeek(ts)` → `{ week, year }` (Weekly analytics; **must** use ISO year to handle year-end boundaries correctly)
+- **CRITICAL PITFALLS:**
+  - **Server-Side:** Never use native `Date` methods (e.g., `getHours()`, `getDay()`) or `date-fns` formatting/extraction functions directly in Server Actions or components. They will use the server's system time.
+  - **Client-Side:** Be wary of browser-local time drift. Tooltips and banners (e.g., in `/analyze`) should use the CPH helpers to match the server's state, especially when displaying "Today" or specific timestamps.
+  - **ISO Weeks:** Always use the ISO week-year logic (via `getCphISOWeek`) instead of a simple calendar year to avoid miscategorizing brews during the first/last days of the year.
 
 ### Authentication
 - A simple "Brewer Mode" is used to prevent unauthorized resets.
@@ -73,16 +82,21 @@ This project provides a real-time dashboard to monitor when the last pot of coff
 - **Slack Notifications:** When a new brew is started via `startBrew` in `src/app/actions.ts`, a message is sent to the configured Slack Webhook URL. The POST payload includes `batch_size` (Big/small) and `estimated_time_of_completion` (HH:mm). A JSON debug log is emitted to the server console before sending.
 
 ### Visual States & Features
-- **Brewing:** Blue (`bg-blue-500`) - Countdown to ready. **BIG Brew: 7m**, **Small Brew: 4m**.
+- **Brewing:** Blue (`bg-blue-500`) - Countdown to ready. **BIG Brew: 7m**, **Small Brew: 4m**. The server uses a **5-minute threshold** (`SMALL_BATCH_THRESHOLD_MS`) to categorize historical records for analytics.
 - **Anti-Spam Cooldown:** 60-second lockout after starting a brew (server-side and UI) to prevent accidental double-brews.
 - **Fresh (0-25m since ready):** Green (`bg-emerald-500`)
 - **Getting Sour (25-40m since ready):** Orange (`bg-amber-500`)
 - **Stale (40-60m since ready):** Red (`bg-rose-500`)
 - **Empty/Old (120m+):** Gray (`bg-slate-500`)
 - **Daily Pot Count:** Automatically resets at midnight (calculated on-the-fly during data fetch).
+- **Predictive Next Brew:** Smart estimation of when the next pot will be brewed, based on the historical sequence for the current day of the week (e.g., "pot #3 on a Monday").
 - **Analyze Consumption:** Publicly accessible page (`/analyze`) with:
   - **Consumption Rhythm:** Density map of brews over time (7 AM — 6 PM).
   - **Coffee Burn Rate:** Bar chart tracking grams consumed (Big: 340g, Small: 180g).
+  - **Deep Dive Fun Facts:** 
+    - **Total Volume:** Liters brewed (calculated at 60g/L).
+    - **Caffeine Load:** Equivalent number of double espresso shots (18g).
+    - **Patience Metric:** Total hours spent waiting for the machine to finish brewing.
 - **Admin Brewer Mode:** Secure login for starting new brews; stores session in `localStorage`.
 - **Compact Landscape Mode:** Optimized layout for short viewports on mobile devices.
 

@@ -1,6 +1,8 @@
 services:
   app:
-    build: .
+    build:
+      context: .
+      target: runner
     ports:
       - "3000:3000"
     environment:
@@ -14,6 +16,26 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
+
+  db-populate:
+    build:
+      context: .
+      target: builder
+    environment:
+      - STORAGE_REDIS_URL=redis://redis:6379
+    depends_on:
+      - redis
+    command: npm run db:populate
+
+  db-clear:
+    build:
+      context: .
+      target: builder
+    environment:
+      - STORAGE_REDIS_URL=redis://redis:6379
+    depends_on:
+      - redis
+    command: npm run db:clear
 
 volumes:
   redis_data:
