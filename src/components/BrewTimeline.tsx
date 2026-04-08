@@ -85,38 +85,38 @@ export function BrewTimeline({ history, predictedNextBrew }: BrewTimelineProps) 
   };
 
   return (
-    <div className="bg-slate-900 dark:bg-slate-950/40 border-2 border-amber-900/30 rounded-[2.5rem] overflow-hidden shadow-2xl shadow-amber-950/20">
+    <div className="bg-white dark:bg-slate-950/40 border-2 border-slate-200 dark:border-amber-900/30 rounded-[2.5rem] overflow-hidden shadow-2xl shadow-slate-200/50 dark:shadow-amber-950/20">
       
       {/* 1. Prediction Banner Section */}
       {predictedNextBrew && (
-        <div className="p-8 pb-6 flex flex-col md:flex-row items-center justify-between gap-6 border-b border-amber-900/10">
+        <div className="p-8 pb-6 flex flex-col md:flex-row items-center justify-between gap-6 border-b border-slate-100 dark:border-amber-900/10">
           <div className="flex items-center gap-5">
             <div className="bg-amber-500 rounded-2xl p-3.5 shadow-lg shadow-amber-500/20">
               <Sparkles className="w-6 h-6 text-white" />
             </div>
             <div className="space-y-1 text-center md:text-left">
-              <h3 className="text-amber-100 font-black uppercase tracking-tight text-2xl flex items-center justify-center md:justify-start gap-2">
+              <h3 className="text-slate-900 dark:text-white font-black uppercase tracking-tight text-2xl flex items-center justify-center md:justify-start gap-2">
                 Next Brew Predicted
                 <div className="group relative flex items-center">
-                  <Info className="w-4 h-4 text-amber-500/40 cursor-help transition-colors group-hover:text-amber-500" />
-                  <div className="invisible group-hover:visible absolute left-1/2 -translate-x-1/2 md:left-0 md:translate-x-0 bottom-full mb-3 w-56 bg-slate-950 text-amber-50 text-[10px] p-4 rounded-2xl font-bold normal-case tracking-tight shadow-2xl z-50 border border-amber-900/30">
+                  <Info className="w-4 h-4 text-slate-300 dark:text-amber-500/40 cursor-help transition-colors group-hover:text-amber-500" />
+                  <div className="invisible group-hover:visible absolute left-1/2 -translate-x-1/2 md:left-0 md:translate-x-0 bottom-full mb-3 w-56 bg-white dark:bg-slate-950 text-slate-900 dark:text-amber-50 text-[10px] p-4 rounded-2xl font-bold normal-case tracking-tight shadow-2xl z-50 border border-slate-200 dark:border-amber-900/30">
                     <div className="relative">
                       Averaged from historical brew times for today&apos;s sequence (pot #{predictedNextBrew.sequenceIndex} on a {predictedNextBrew.dayName}).
-                      <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 md:left-2 md:translate-x-0 border-8 border-transparent border-t-slate-950" />
+                      <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 md:left-2 md:translate-x-0 border-8 border-transparent border-t-white dark:border-t-slate-950" />
                     </div>
                   </div>
                 </div>
               </h3>
-              <p className="text-amber-500/60 text-[10px] font-black uppercase tracking-[0.2em]">
+              <p className="text-amber-600/60 dark:text-amber-500/60 text-[10px] font-black uppercase tracking-[0.2em]">
                 Based on your typical {predictedNextBrew.dayName} rhythm
               </p>
             </div>
           </div>
           <div className="flex flex-col items-center md:items-end">
-            <span className="text-7xl font-black text-amber-500 tabular-nums leading-none tracking-tighter drop-shadow-[0_0_15px_rgba(245,158,11,0.3)]">
+            <span className="text-7xl font-black text-amber-600 dark:text-amber-500 tabular-nums leading-none tracking-tighter drop-shadow-[0_0_15px_rgba(245,158,11,0.2)] dark:drop-shadow-[0_0_15px_rgba(245,158,11,0.3)]">
               {predictedNextBrew.time}
             </span>
-            <span className="text-[10px] font-black text-amber-500/40 uppercase tracking-[0.4em] mt-3">
+            <span className="text-[10px] font-black text-amber-600/40 dark:text-amber-500/40 uppercase tracking-[0.4em] mt-3">
               Estimated Time
             </span>
           </div>
@@ -127,28 +127,28 @@ export function BrewTimeline({ history, predictedNextBrew }: BrewTimelineProps) 
       <div className="p-8 pt-10">
         <div className="flex items-end justify-between mb-10">
           <div className="space-y-1">
-            <h4 className="text-amber-100/90 font-black uppercase tracking-widest text-base">
+            <h4 className="text-slate-900/90 dark:text-white font-black uppercase tracking-widest text-base">
               Daily Rhythm
             </h4>
-            <p className="text-amber-500/30 text-[10px] font-black uppercase tracking-[0.2em]">
+            <p className="text-amber-600/30 dark:text-amber-500/30 text-[10px] font-black uppercase tracking-[0.2em]">
               Actual vs. Typical
             </p>
           </div>
           <div className="flex items-center gap-8 text-[10px] font-black uppercase tracking-[0.2em] pb-1">
             <div className="flex items-center gap-2.5">
               <div className="w-3 h-3 rounded-full bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]" />
-              <span className="text-amber-100/40">Actual</span>
+              <span className="text-slate-500 dark:text-white/40">Actual</span>
             </div>
             <div className="flex items-center gap-2.5">
-              <div className="w-3 h-3 rounded-full bg-amber-900/40 border border-amber-800/30" />
-              <span className="text-amber-100/40">Typical</span>
+              <div className="w-3 h-3 rounded-full bg-slate-200 dark:bg-amber-900/40 border border-slate-300 dark:border-amber-800/30" />
+              <span className="text-slate-500 dark:text-white/40">Typical</span>
             </div>
           </div>
         </div>
 
         <div className="relative h-16 flex items-center mb-6">
           {/* Timeline Line */}
-          <div className="absolute w-full h-1.5 bg-amber-950/40 rounded-full border border-amber-900/10" />
+          <div className="absolute w-full h-1.5 bg-slate-100 dark:bg-amber-950/40 rounded-full border border-slate-200 dark:border-amber-900/10" />
           
           {/* Typical Markers */}
           {typicalBrews.map((b) => (
@@ -157,9 +157,9 @@ export function BrewTimeline({ history, predictedNextBrew }: BrewTimelineProps) 
               className="absolute -translate-x-1/2 group"
               style={{ left: `${getX(b.avgSeconds)}%` }}
             >
-              <div className="w-4 h-4 rounded-full border-2 border-slate-900 bg-amber-900/40 transition-transform group-hover:scale-125 shadow-sm" />
+              <div className="w-4 h-4 rounded-full border-2 border-white dark:border-slate-900 bg-slate-300 dark:bg-amber-900/40 transition-transform group-hover:scale-125 shadow-sm" />
               <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                <div className="bg-amber-900 text-amber-100 text-[10px] font-black px-3 py-1.5 rounded-xl whitespace-nowrap shadow-2xl border border-amber-800/30">
+                <div className="bg-slate-900 dark:bg-amber-900 text-white dark:text-white text-[10px] font-black px-3 py-1.5 rounded-xl whitespace-nowrap shadow-2xl border border-slate-800 dark:border-amber-800/30">
                   Typical Pot #{b.seqIndex + 1}
                 </div>
               </div>
@@ -173,9 +173,9 @@ export function BrewTimeline({ history, predictedNextBrew }: BrewTimelineProps) 
               className="absolute -translate-x-1/2 group z-20"
               style={{ left: `${getX(b.seconds)}%` }}
             >
-              <div className="w-6 h-6 rounded-full border-4 border-slate-900 bg-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.4)] transition-transform group-hover:scale-110" />
+              <div className="w-6 h-6 rounded-full border-4 border-white dark:border-slate-900 bg-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.4)] transition-transform group-hover:scale-110" />
               <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-30">
-                <div className="bg-amber-500 text-slate-950 text-[10px] font-black px-3 py-1.5 rounded-xl whitespace-nowrap shadow-2xl">
+                <div className="bg-amber-500 text-white dark:text-slate-950 text-[10px] font-black px-3 py-1.5 rounded-xl whitespace-nowrap shadow-2xl">
                   Pot #{i + 1} @ {formatCphTime(b.timestamp)}
                 </div>
               </div>
@@ -202,7 +202,7 @@ export function BrewTimeline({ history, predictedNextBrew }: BrewTimelineProps) 
           {[7, 9, 11, 13, 15, 17, 19].map((h) => (
             <span 
               key={h} 
-              className="absolute -translate-x-1/2 text-[10px] font-black text-amber-500/20 tabular-nums uppercase tracking-widest"
+              className="absolute -translate-x-1/2 text-[10px] font-black text-slate-300 dark:text-amber-500/20 tabular-nums uppercase tracking-widest"
               style={{ left: `${getX(h * 3600)}%` }}
             >
               {h > 12 ? `${h - 12} PM` : h === 12 ? "12 PM" : `${h} AM`}
@@ -212,12 +212,12 @@ export function BrewTimeline({ history, predictedNextBrew }: BrewTimelineProps) 
       </div>
 
       {/* 3. Status Info Section */}
-      <div className="p-8 py-6 bg-amber-950/10 border-t border-amber-900/10">
+      <div className="p-8 py-6 bg-slate-50 dark:bg-amber-950/10 border-t border-slate-100 dark:border-amber-900/10">
         <div className="flex items-center gap-4">
-          <div className="bg-amber-900/30 p-2.5 rounded-xl border border-amber-800/20">
-            <Info className="w-4 h-4 text-amber-500" />
+          <div className="bg-slate-200 dark:bg-amber-900/30 p-2.5 rounded-xl border border-slate-300 dark:border-amber-800/20">
+            <Info className="w-4 h-4 text-slate-500 dark:text-amber-500" />
           </div>
-          <p className="text-[11px] font-bold text-amber-100/60 leading-relaxed uppercase tracking-wider">
+          <p className="text-[11px] font-bold text-slate-600 dark:text-white/60 leading-relaxed uppercase tracking-wider">
             {todayBrews.length > 0 ? (
               typicalBrews.length >= todayBrews.length ? (
                 <>
