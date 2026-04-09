@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { BrewTimeline } from '@/components/BrewTimeline';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 
@@ -26,14 +26,6 @@ describe('BrewTimeline Component', () => {
     expect(screen.getByText('Actual vs. Typical')).toBeInTheDocument();
     expect(screen.getByText('You Are Here')).toBeInTheDocument();
     
-    // Check for actual pot markers
-    // Note: formatCphTime depends on timezone. In CI it might be UTC or something else.
-    // The component uses Europe/Copenhagen via lib/utils.
-    // 08:30 UTC is 09:30 CPH (Winter time) or 10:30 CPH (Summer time).
-    // March 18 is Winter time in DK (changes last Sunday of March).
-    // So 08:30 UTC -> 09:30 CPH.
-    // 10:15 UTC -> 11:15 CPH.
-    
     expect(screen.getByText(/Pot #1 @ 09:30/)).toBeInTheDocument();
     expect(screen.getByText(/Pot #2 @ 11:15/)).toBeInTheDocument();
   });
@@ -41,30 +33,33 @@ describe('BrewTimeline Component', () => {
   it('calculates typical brews based on same day of week', () => {
     render(<BrewTimeline history={mockHistory} />);
     
-    // From mockHistory:
-    // Last Wednesday: 08:00 UTC (09:00 CPH), 10:00 UTC (11:00 CPH), 13:00 UTC (14:00 CPH)
-    // Today (so far): 08:30 UTC (09:30 CPH), 10:15 UTC (11:15 CPH)
-    // Typical should be average of (09:00, 09:30), (11:00, 11:15), (14:00)
-    // Typical #1: avg(09:00, 09:30) = 09:15
-    // Typical #2: avg(11:00, 11:15) = 11:07 or 11:08
-    // Typical #3: 14:00
-    
-    expect(screen.getByText('Typical Pot #1')).toBeInTheDocument();
-    expect(screen.getByText('Typical Pot #2')).toBeInTheDocument();
-    expect(screen.getByText('Typical Pot #3')).toBeInTheDocument();
+    expect(screen.getByText(/Typical Pot #1 - 09:15/)).toBeInTheDocument();
+    expect(screen.getByText(/Typical Pot #2 - 11:07/)).toBeInTheDocument();
+    expect(screen.getByText(/Typical Pot #3 - 14:00/)).toBeInTheDocument();
   });
 
   it('shows appropriate track info when ahead of schedule', () => {
     render(<BrewTimeline history={mockHistory} />);
     
-    // Pot #2 is at 11:15 CPH. Typical #2 is 11:07 CPH.
-    // So actually we are LATE.
-    // Wait, let's check my math.
-    // Typical #2 avgSeconds = (11*3600+0*60 + 11*3600+15*60) / 2 = 11*3600 + 7.5*60 = 11:07:30
-    // Actual #2 is 11:15:00. 11:15 > 11:07:30. 
-    // The code says: typicalBrews[todayBrews.length - 1].avgSeconds > todayBrews[todayBrews.length - 1].seconds ? "early" : "on schedule"
-    // 11:07:30 > 11:15:00 is FALSE. So "on schedule".
-    
     expect(screen.getByText(/You're right on schedule with your typical rhythm/)).toBeInTheDocument();
+  });
+
+  it('splits the timeline on hover', async () => {
+    render(<BrewTimeline history={mockHistory} />);
+    
+    // Check that track labels are NOT present initially
+    expect(screen.queryByTestId('track-label-actual')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('track-label-typical')).not.toBeInTheDocument();
+    
+    // Find the timeline container to hover
+    const timelineContainer = screen.getByTestId('timeline-container');
+    
+    fireEvent.mouseEnter(timelineContainer);
+    
+    // Labels should be present on hover
+    expect(await screen.findByTestId('track-label-actual')).toBeInTheDocument();
+    expect(await screen.findByTestId('track-label-typical')).toBeInTheDocument();
+    
+    fireEvent.mouseLeave(timelineContainer);
   });
 });
