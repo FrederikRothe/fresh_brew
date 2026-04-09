@@ -51,23 +51,15 @@ describe('BrewTimeline Component', () => {
     expect(screen.queryByTestId('track-label-actual')).not.toBeInTheDocument();
     expect(screen.queryByTestId('track-label-typical')).not.toBeInTheDocument();
     
-    // Find a pot marker to hover
-    // The actual markers are groups with z-20. 
-    // They have "Pot #1 @ 09:30" inside.
-    const potMarkerText = screen.getByText(/Pot #1 @ 09:30/);
-    const potMarker = potMarkerText.closest('.group');
-    if (!potMarker) throw new Error("Could not find pot marker element");
+    // Find the timeline container to hover
+    const timelineContainer = screen.getByTestId('timeline-container');
     
-    fireEvent.mouseEnter(potMarker);
+    fireEvent.mouseEnter(timelineContainer);
     
     // Labels should be present on hover
     expect(await screen.findByTestId('track-label-actual')).toBeInTheDocument();
     expect(await screen.findByTestId('track-label-typical')).toBeInTheDocument();
     
-    fireEvent.mouseLeave(potMarker);
-    
-    // Labels should disappear eventually (Framer motion exit)
-    // For testing purposes, we can just check if it's removed from the DOM after some time or mock the animation.
-    // In Vitest + RTL, sometimes you need to wait or use waitFor.
+    fireEvent.mouseLeave(timelineContainer);
   });
 });
