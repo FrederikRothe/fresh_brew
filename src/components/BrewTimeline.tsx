@@ -7,9 +7,9 @@ import {
   formatCphDate,
   formatCphTime 
 } from "@/lib/utils";
-import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Coffee, Info, Sparkles } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface BrewTimelineProps {
   history: { timestamp: number; durationMs: number }[];
@@ -22,6 +22,7 @@ interface BrewTimelineProps {
 
 export function BrewTimeline({ history, predictedNextBrew }: BrewTimelineProps) {
   const [now, setNow] = useState(new Date());
+  const [isHovered, setIsHovered] = useState(false);
 
   // Update "current time" every minute
   useEffect(() => {
@@ -146,16 +147,71 @@ export function BrewTimeline({ history, predictedNextBrew }: BrewTimelineProps) 
           </div>
         </div>
 
-        <div className="relative h-16 flex items-center mb-6">
-          {/* Timeline Line */}
-          <div className="absolute w-full h-1.5 bg-slate-100 dark:bg-amber-950/40 rounded-full border border-slate-200 dark:border-amber-900/10" />
+        <div className="relative h-24 flex items-center mb-6">
+          {/* Timeline Lines */}
+          <div className="absolute w-full h-full flex flex-col justify-center">
+            {/* Typical Line */}
+            <motion.div 
+              animate={{ 
+                y: isHovered ? 20 : 0,
+                opacity: isHovered ? 0.6 : 1,
+                scaleY: isHovered ? 0.5 : 1
+              }}
+              className="absolute w-full h-1.5 bg-slate-100 dark:bg-amber-950/40 rounded-full border border-slate-200 dark:border-amber-900/10" 
+            />
+            {/* Actual Line */}
+            <motion.div 
+              animate={{ 
+                y: isHovered ? -20 : 0,
+                backgroundColor: isHovered ? "var(--color-amber-500)" : "rgba(241, 245, 249, 1)"
+              }}
+              style={{
+                backgroundColor: isHovered ? undefined : "inherit"
+              }}
+              className={cn(
+                "absolute w-full h-1.5 rounded-full border transition-colors duration-300",
+                isHovered 
+                  ? "bg-amber-500/20 border-amber-500/30" 
+                  : "bg-slate-100 dark:bg-amber-950/40 border-slate-200 dark:border-amber-900/10"
+              )}
+            />
+          </div>
+
+          {/* Track Labels */}
+          <AnimatePresence>
+            {isHovered && (
+              <>
+                <motion.div
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -10 }}
+                  data-testid="track-label-actual"
+                  className="absolute -left-12 -translate-y-[20px] text-[8px] font-black uppercase text-amber-500 tracking-tighter"
+                >
+                  Actual
+                </motion.div>
+                <motion.div
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -10 }}
+                  data-testid="track-label-typical"
+                  className="absolute -left-12 translate-y-[20px] text-[8px] font-black uppercase text-slate-400 tracking-tighter"
+                >
+                  Typical
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
           
           {/* Typical Markers */}
           {typicalBrews.map((b) => (
-            <div
+            <motion.div
               key={`typical-${b.seqIndex}`}
-              className="absolute -translate-x-1/2 group"
+              className="absolute -translate-x-1/2 group cursor-pointer"
               style={{ left: `${getX(b.avgSeconds)}%` }}
+              animate={{ y: isHovered ? 20 : 0 }}
+              onMouseEnter={() => setIsHovered(true)}
+              onMouseLeave={() => setIsHovered(false)}
             >
               <div className="w-4 h-4 rounded-full border-2 border-white dark:border-slate-900 bg-slate-300 dark:bg-amber-900/40 transition-transform group-hover:scale-125 shadow-sm" />
               <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
@@ -163,15 +219,18 @@ export function BrewTimeline({ history, predictedNextBrew }: BrewTimelineProps) 
                   Typical Pot #{b.seqIndex + 1}
                 </div>
               </div>
-            </div>
+            </motion.div>
           ))}
 
           {/* Actual Markers */}
           {todayBrews.map((b, i) => (
-            <div
+            <motion.div
               key={`actual-${i}`}
-              className="absolute -translate-x-1/2 group z-20"
+              className="absolute -translate-x-1/2 group z-20 cursor-pointer"
               style={{ left: `${getX(b.seconds)}%` }}
+              animate={{ y: isHovered ? -20 : 0 }}
+              onMouseEnter={() => setIsHovered(true)}
+              onMouseLeave={() => setIsHovered(false)}
             >
               <div className="w-6 h-6 rounded-full border-4 border-white dark:border-slate-900 bg-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.4)] transition-transform group-hover:scale-110" />
               <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-30">
@@ -179,21 +238,22 @@ export function BrewTimeline({ history, predictedNextBrew }: BrewTimelineProps) 
                   Pot #{i + 1} @ {formatCphTime(b.timestamp)}
                 </div>
               </div>
-            </div>
+            </motion.div>
           ))}
 
           {/* You Are Here Indicator */}
           {currentSeconds >= MIN_SECONDS && currentSeconds <= MAX_SECONDS && (
-            <div
+            <motion.div
               className="absolute -translate-x-1/2 h-20 flex flex-col items-center justify-center z-40 pointer-events-none"
               style={{ left: `${getX(currentSeconds)}%` }}
+              animate={{ y: isHovered ? -20 : 0 }}
             >
               <div className="w-1 h-full bg-blue-500/40 rounded-full" />
               <div className="absolute top-0 w-3 h-3 rounded-full bg-blue-500 ring-4 ring-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.6)]" />
               <div className="absolute bottom-0 whitespace-nowrap bg-blue-500 text-white text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter shadow-lg translate-y-2">
                 You Are Here
               </div>
-            </div>
+            </motion.div>
           )}
         </div>
 
