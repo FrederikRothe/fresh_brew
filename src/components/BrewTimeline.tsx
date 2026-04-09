@@ -163,10 +163,6 @@ export function BrewTimeline({ history, predictedNextBrew }: BrewTimelineProps) 
             <motion.div 
               animate={{ 
                 y: isHovered ? -20 : 0,
-                backgroundColor: isHovered ? "var(--color-amber-500)" : "rgba(241, 245, 249, 1)"
-              }}
-              style={{
-                backgroundColor: isHovered ? undefined : "inherit"
               }}
               className={cn(
                 "absolute w-full h-1.5 rounded-full border transition-colors duration-300",
