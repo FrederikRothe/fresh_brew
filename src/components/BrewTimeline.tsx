@@ -214,7 +214,7 @@ export function BrewTimeline({ history, predictedNextBrew }: BrewTimelineProps) 
                 animate={{ y: isHovered ? 20 : 0 }}
               >
                 <div className="w-4 h-4 rounded-full border-2 border-white dark:border-slate-900 bg-slate-300 dark:bg-amber-900/40 transition-transform group-hover:scale-125 shadow-sm" />
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
                   <div className="bg-slate-900 dark:bg-amber-900 text-white dark:text-white text-[10px] font-black px-3 py-1.5 rounded-xl whitespace-nowrap shadow-2xl border border-slate-800 dark:border-amber-800/30">
                     Typical Pot #{b.seqIndex + 1}
                   </div>
