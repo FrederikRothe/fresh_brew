@@ -247,10 +247,10 @@ export function BrewTimeline({ history, predictedNextBrew }: BrewTimelineProps) 
                 animate={{ y: isHovered ? -20 : 0 }}
               >
                 <div className="w-1 h-full bg-blue-500/40 rounded-full" />
-                <div className="absolute top-0 w-3 h-3 rounded-full bg-blue-500 ring-4 ring-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.6)]" />
-                <div className="absolute bottom-0 whitespace-nowrap bg-blue-500 text-white text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter shadow-lg translate-y-2">
+                <div className="absolute top-0 whitespace-nowrap bg-blue-500 text-white text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter shadow-lg -translate-y-2">
                   You Are Here
                 </div>
+                <div className="absolute bottom-0 w-3 h-3 rounded-full bg-blue-500 ring-4 ring-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.6)]" />
               </motion.div>
             )}
           </div>
