@@ -67,11 +67,18 @@ export function BrewTimeline({ history, predictedNextBrew }: BrewTimelineProps) 
       }
     });
 
-    const typicalBrews = Object.entries(seqData).map(([idx, times]) => ({
-      seqIndex: parseInt(idx),
-      avgSeconds: times.reduce((a, b) => a + b, 0) / times.length,
-      count: times.length,
-    })).sort((a, b) => a.avgSeconds - b.avgSeconds);
+    const typicalBrews = Object.entries(seqData).map(([idx, times]) => {
+      const avgSeconds = times.reduce((a, b) => a + b, 0) / times.length;
+      const h = Math.floor(avgSeconds / 3600);
+      const m = Math.floor((avgSeconds % 3600) / 60);
+      const avgTime = `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
+      return {
+        seqIndex: parseInt(idx),
+        avgSeconds,
+        avgTime,
+        count: times.length,
+      };
+    }).sort((a, b) => a.avgSeconds - b.avgSeconds);
 
     return { todayBrews, typicalBrews, currentSeconds };
   }, [history, now]);
@@ -216,7 +223,7 @@ export function BrewTimeline({ history, predictedNextBrew }: BrewTimelineProps) 
                 <div className="w-4 h-4 rounded-full border-2 border-white dark:border-slate-900 bg-slate-300 dark:bg-amber-900/40 transition-transform group-hover:scale-125 shadow-sm" />
                 <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
                   <div className="bg-slate-900 dark:bg-amber-900 text-white dark:text-white text-[10px] font-black px-3 py-1.5 rounded-xl whitespace-nowrap shadow-2xl border border-slate-800 dark:border-amber-800/30">
-                    Typical Pot #{b.seqIndex + 1}
+                    Typical Pot #{b.seqIndex + 1} - {b.avgTime}
                   </div>
                 </div>
               </motion.div>

@@ -33,9 +33,9 @@ describe('BrewTimeline Component', () => {
   it('calculates typical brews based on same day of week', () => {
     render(<BrewTimeline history={mockHistory} />);
     
-    expect(screen.getByText('Typical Pot #1')).toBeInTheDocument();
-    expect(screen.getByText('Typical Pot #2')).toBeInTheDocument();
-    expect(screen.getByText('Typical Pot #3')).toBeInTheDocument();
+    expect(screen.getByText(/Typical Pot #1 - 09:15/)).toBeInTheDocument();
+    expect(screen.getByText(/Typical Pot #2 - 11:07/)).toBeInTheDocument();
+    expect(screen.getByText(/Typical Pot #3 - 14:00/)).toBeInTheDocument();
   });
 
   it('shows appropriate track info when ahead of schedule', () => {
