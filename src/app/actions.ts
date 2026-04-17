@@ -22,6 +22,15 @@ export async function logWaste(password: string) {
       lastBrewTimestamp: currentData.lastBrewTimestamp,
       lastBrewDurationMs: currentData.brewDurationMs
     });
+
+    // Reset current brew status because the pot is now empty
+    const newData: BrewData = {
+      ...currentData,
+      lastBrewTimestamp: null,
+      brewDurationMs: null,
+    };
+    await writeBrewData(newData);
+
     revalidatePath('/');
     return { success: true, timestamp: now };
   } catch (error) {

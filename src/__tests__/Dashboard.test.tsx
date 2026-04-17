@@ -103,6 +103,10 @@ describe('Dashboard Component', () => {
       expect(logWasteMock).toHaveBeenCalledWith('password123');
       expect(window.alert).toHaveBeenCalledWith("Waste logged successfully.");
     });
+
+    // Check if the timer reset to --:--
+    expect(screen.getByText('--:--')).toBeInTheDocument();
+    expect(screen.getByText(/STALE \/ EMPTY/i)).toBeInTheDocument();
   });
 
   it('disables the Start Brew buttons for 60 seconds after a brew starts', () => {

@@ -78,6 +78,11 @@ export default function Dashboard({
     try {
       const result = await logWaste(adminPassword);
       if (result.success) {
+        setStatus((prev) => ({
+          ...prev,
+          lastBrewTimestamp: null,
+          brewDurationMs: null,
+        }));
         alert("Waste logged successfully.");
       }
     } catch (error) {
