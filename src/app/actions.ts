@@ -1,11 +1,43 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { readBrewData, writeBrewData, appendBrewRecord, readBrewHistory, type BrewData, type BrewRecord } from '@/lib/storage';
+import { readBrewData, writeBrewData, appendBrewRecord, readBrewHistory, appendWasteRecord, readWasteHistory, type BrewData, type BrewRecord, type WasteRecord } from '@/lib/storage';
 import { formatCphDate, formatCphTime, getCphHour, getCphDayOfWeek, getCphSecondsSinceMidnight, getCphISOWeek } from '@/lib/utils';
 import { SMALL_BATCH_GRAMS, BIG_BATCH_GRAMS, SMALL_BATCH_THRESHOLD_MS } from '@/lib/constants';
 
 export type BrewStatus = BrewData;
+
+export async function logWaste(password: string) {
+  const ADMIN_PASSWORD = process.env.ADMIN_PSW;
+  
+  if (password !== ADMIN_PASSWORD) {
+    throw new Error('Unauthorized');
+  }
+
+  const now = Date.now();
+  try {
+    const currentData = await readBrewData();
+    await appendWasteRecord({ 
+      timestamp: now,
+      lastBrewTimestamp: currentData.lastBrewTimestamp,
+      lastBrewDurationMs: currentData.brewDurationMs
+    });
+
+    // Reset current brew status because the pot is now empty
+    const newData: BrewData = {
+      ...currentData,
+      lastBrewTimestamp: null,
+      brewDurationMs: null,
+    };
+    await writeBrewData(newData);
+
+    revalidatePath('/');
+    return { success: true, timestamp: now };
+  } catch (error) {
+    console.error('Failed to log waste in Redis:', error);
+    throw new Error('Could not log waste. Storage error.');
+  }
+}
 
 export async function getBrewStatus(): Promise<BrewStatus> {
   const data = await readBrewData();
@@ -107,10 +139,13 @@ export type BrewAnalytics = {
   avgCoffeePerDay: number;
   durationBreakdown: Record<number, number>; // durationMs → count
   history: BrewRecord[];
+  wasteHistory: WasteRecord[];
   predictedNextBrew: PredictionData | null;
   totalLiters: number;
   espressoEquivalent: number;
   totalWaitingMins: number;
+  totalWasteCount: number;
+  wasteByDuration: Record<number, number>; // durationMs → count of waste events
 };
 
 export async function getPredictedNextBrew(history?: BrewRecord[]): Promise<PredictionData | null> {
@@ -173,7 +208,10 @@ export async function getPredictedNextBrew(history?: BrewRecord[]): Promise<Pred
 }
 
 export async function getBrewAnalytics(): Promise<BrewAnalytics> {
-  const history = await readBrewHistory();
+  const [history, wasteHistory] = await Promise.all([
+    readBrewHistory(),
+    readWasteHistory(),
+  ]);
 
   const brewsPerWeek: Record<string, number> = {};
   const hourDistribution: Record<number, number> = {};
@@ -219,6 +257,14 @@ export async function getBrewAnalytics(): Promise<BrewAnalytics> {
   const espressoEquivalent = totalCoffeeGrams / 18; // 18g double
   const totalWaitingMins = history.reduce((acc, h) => acc + (h.durationMs / 60000), 0);
 
+  // Calculate waste correlation
+  const wasteByDuration: Record<number, number> = {};
+  for (const record of wasteHistory) {
+    if (record.lastBrewDurationMs) {
+      wasteByDuration[record.lastBrewDurationMs] = (wasteByDuration[record.lastBrewDurationMs] ?? 0) + 1;
+    }
+  }
+
   // Calculate predicted next brew using the standalone function
   const predictedNextBrew = await getPredictedNextBrew(history);
 
@@ -233,10 +279,13 @@ export async function getBrewAnalytics(): Promise<BrewAnalytics> {
     avgCoffeePerDay,
     durationBreakdown,
     history: sortedHistory,
+    wasteHistory,
     predictedNextBrew,
     totalLiters,
     espressoEquivalent,
     totalWaitingMins,
+    totalWasteCount: wasteHistory.length,
+    wasteByDuration,
   };
 }
 

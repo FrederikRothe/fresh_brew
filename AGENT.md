@@ -93,11 +93,14 @@ This project provides a real-time dashboard to monitor when the last pot of coff
 - **Analyze Consumption:** Publicly accessible page (`/analyze`) with:
   - **Consumption Rhythm:** Density map of brews over time (7 AM — 6 PM).
   - **Coffee Burn Rate:** Bar chart tracking grams consumed (Big: 340g, Small: 180g).
+  - **Waste Analytics:** Tracks "Total Waste" and "Waste Correlation" (distribution of waste events by pot size).
   - **Deep Dive Fun Facts:** 
     - **Total Volume:** Liters brewed (calculated at 60g/L).
     - **Caffeine Load:** Equivalent number of double espresso shots (18g).
     - **Patience Metric:** Total hours spent waiting for the machine to finish brewing.
-- **Admin Brewer Mode:** Secure login for starting new brews; stores session in `localStorage`.
+- **Admin Brewer Mode:** Secure login for starting new brews and **indicating waste** (poured in sink).
+  - **Indicate Waste:** Resets the freshness timer and logs the event (including last brew details) for correlation analysis.
+  - **Custom Confirmation:** Uses a stylized `ConfirmModal` instead of native browser dialogs.
 - **Compact Landscape Mode:** Optimized layout for short viewports on mobile devices.
 
 ### Coding Style

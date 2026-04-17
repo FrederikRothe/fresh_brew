@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getBrewAnalytics, BrewAnalytics } from "@/app/actions";
-import { Coffee, ArrowLeft, BarChart2, Calendar, Clock, Coffee as CoffeeIcon, LayoutGrid, Weight, Sparkles, Droplets, Zap, Hourglass, Info } from "lucide-react";
+import { Coffee, ArrowLeft, BarChart2, Calendar, Clock, Coffee as CoffeeIcon, LayoutGrid, Weight, Sparkles, Droplets, Zap, Hourglass, Info, AlertTriangle } from "lucide-react";
 import { formatCphDate } from "@/lib/utils";
+import { SMALL_BATCH_THRESHOLD_MS } from "@/lib/constants";
 import { StatTile } from "@/components/StatTile";
 import { AggregateRhythm } from "@/components/AggregateRhythm";
 import { CoffeeBurnChart } from "@/components/CoffeeBurnChart";
@@ -52,6 +53,17 @@ export default function AnalyzePage() {
         )[0][0]}h`
       : "--";
 
+  // Calculate waste correlation stats
+  let bigPotWaste = 0;
+  let smallPotWaste = 0;
+  Object.entries(analytics.wasteByDuration).forEach(([duration, count]) => {
+    if (Number(duration) > SMALL_BATCH_THRESHOLD_MS) {
+      bigPotWaste += count;
+    } else {
+      smallPotWaste += count;
+    }
+  });
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-4 md:p-8">
       <div className="max-w-4xl mx-auto space-y-8">
@@ -84,7 +96,7 @@ export default function AnalyzePage() {
 
         {/* Top Stats */}
         <CollapsibleSection title="Key Metrics" icon={LayoutGrid}>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             <StatTile
               label="Total Brews"
               value={String(analytics.totalBrews)}
@@ -101,6 +113,12 @@ export default function AnalyzePage() {
               value={`${analytics.bigBrews}/${analytics.smallBrews}`}
               icon={Coffee}
             />
+            <StatTile
+              label="Total Waste"
+              value={String(analytics.totalWasteCount)}
+              icon={Droplets}
+              valueClassName="text-red-500"
+            />
           </div>
         </CollapsibleSection>
 
@@ -115,7 +133,7 @@ export default function AnalyzePage() {
 
           {/* Deep Dive / Fun Facts */}
           <CollapsibleSection title="Deep Dive Fun Facts" icon={Info}>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 flex items-start gap-4">
                 <div className="bg-blue-100 dark:bg-blue-900/30 p-3 rounded-xl">
                   <Droplets className="w-5 h-5 text-blue-600 dark:text-blue-400" />
@@ -163,6 +181,23 @@ export default function AnalyzePage() {
                   </p>
                   <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-1">
                     Total time spent waiting for the pot to brew.
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 flex items-start gap-4">
+                <div className="bg-red-100 dark:bg-red-900/30 p-3 rounded-xl">
+                  <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-1">
+                    Waste Correlation
+                  </p>
+                  <p className="text-2xl font-black text-slate-900 dark:text-slate-100">
+                    {bigPotWaste} Big vs {smallPotWaste} Small
+                  </p>
+                  <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-1">
+                    Distribution of waste events by pot size.
                   </p>
                 </div>
               </div>

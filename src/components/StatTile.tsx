@@ -5,11 +5,13 @@ export function StatTile({
   value,
   icon: Icon,
   className,
+  valueClassName,
 }: {
   label: string;
   value: string;
   icon: React.ComponentType<{ className?: string }>;
   className?: string;
+  valueClassName?: string;
 }) {
   return (
     <div
@@ -22,7 +24,7 @@ export function StatTile({
       <span className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-1">
         {label}
       </span>
-      <span className="text-4xl font-black text-slate-900 dark:text-slate-100">
+      <span className={cn("text-4xl font-black text-slate-900 dark:text-slate-100", valueClassName)}>
         {value}
       </span>
     </div>
