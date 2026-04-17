@@ -26,6 +26,16 @@ vi.mock('@/hooks/use-admin-auth', () => ({
   }),
 }));
 
+// Mock the ConfirmModal to make testing easier
+vi.mock('../components/ConfirmModal', () => ({
+  default: ({ isOpen, onConfirm, title }: any) => isOpen ? (
+    <div data-testid="confirm-modal">
+      <span>{title}</span>
+      <button onClick={onConfirm}>Confirm</button>
+    </div>
+  ) : null
+}));
+
 import {
   DEFAULT_BREW_TIME_MS as BREW_TIME_MS,
   FRESH_THRESHOLD_MS,
@@ -72,16 +82,23 @@ describe('Dashboard Component', () => {
 
   it('logs waste when the Waste button is clicked and confirmed', async () => {
     vi.useRealTimers();
-    vi.stubGlobal('confirm', vi.fn(() => true));
     vi.stubGlobal('alert', vi.fn());
     const logWasteMock = vi.mocked(actions.logWaste).mockResolvedValue({ success: true, timestamp: Date.now() });
 
     render(<Dashboard initialStatus={initialStatus} />);
     
+    // Initial click to open modal
     const wasteButton = screen.getByText(/Indicate Waste/i).closest('button');
     fireEvent.click(wasteButton!);
 
-    expect(window.confirm).toHaveBeenCalledWith("Are you sure you want to log coffee waste?");
+    // Check if modal is visible
+    expect(screen.getByTestId('confirm-modal')).toBeInTheDocument();
+    expect(screen.getByText('Log Coffee Waste?')).toBeInTheDocument();
+
+    // Click confirm in the modal
+    const confirmButton = screen.getByText('Confirm');
+    fireEvent.click(confirmButton);
+
     await waitFor(() => {
       expect(logWasteMock).toHaveBeenCalledWith('password123');
       expect(window.alert).toHaveBeenCalledWith("Waste logged successfully.");

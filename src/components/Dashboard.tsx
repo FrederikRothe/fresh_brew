@@ -24,6 +24,7 @@ import { useBrewStatus } from "@/hooks/use-brew-status";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
 import { useBodyBackground } from "@/hooks/use-body-background";
 import type { PredictionData } from "@/app/actions";
+import ConfirmModal from "./ConfirmModal";
 
 export default function Dashboard({
   initialStatus,
@@ -36,6 +37,7 @@ export default function Dashboard({
   const now = useTimer();
   const [isPending, startTransition] = useTransition();
   const [isWastePending, setIsWastePending] = useState(false);
+  const [showWasteConfirm, setShowWasteConfirm] = useState(false);
   const { adminPassword, setAdminPassword, handleLogin, handleLogout } =
     useAdminAuth();
 
@@ -71,7 +73,6 @@ export default function Dashboard({
 
   const handleLogWaste = async () => {
     if (!adminPassword) return;
-    if (!confirm("Are you sure you want to log coffee waste?")) return;
 
     setIsWastePending(true);
     try {
@@ -296,7 +297,7 @@ export default function Dashboard({
         >
           {adminPassword ? (
             <button
-              onClick={handleLogWaste}
+              onClick={() => setShowWasteConfirm(true)}
               disabled={isWastePending}
               className="bg-red-50 dark:bg-red-950/20 p-5 md:p-6 landscape:p-3 landscape:md:p-6 rounded-2xl flex flex-col items-center justify-center border border-red-200 dark:border-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/40 active:scale-95 transition-all group"
             >
@@ -392,6 +393,14 @@ export default function Dashboard({
           &quot;{message}&quot;
         </p>
       </div>
+
+      <ConfirmModal
+        isOpen={showWasteConfirm}
+        onClose={() => setShowWasteConfirm(false)}
+        onConfirm={handleLogWaste}
+        title="Log Coffee Waste?"
+        message="Are you sure you want to indicate that coffee was poured in the sink? This will be logged for analytics."
+      />
     </div>
   );
 }
