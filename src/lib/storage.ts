@@ -9,6 +9,8 @@ export type BrewRecord = {
 
 export type WasteRecord = {
   timestamp: number; // Unix ms — when coffee was wasted
+  lastBrewTimestamp: number | null;
+  lastBrewDurationMs: number | null;
 };
 
 export type BrewData = {

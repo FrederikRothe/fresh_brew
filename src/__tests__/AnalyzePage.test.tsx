@@ -40,7 +40,8 @@ describe('AnalyzePage Component', () => {
     espressoEquivalent: 171,
     totalWaitingMins: 70,
     wasteHistory: [],
-    totalWasteCount: 0,
+    totalWasteCount: 5,
+    wasteByDuration: { [7 * 60 * 1000]: 3, [4 * 60 * 1000]: 2 },
   };
 
   beforeEach(() => {
@@ -118,6 +119,7 @@ describe('AnalyzePage Component', () => {
       totalWaitingMins: 0,
       wasteHistory: [],
       totalWasteCount: 0,
+      wasteByDuration: {},
     };
     vi.mocked(actions.getBrewAnalytics).mockResolvedValue(emptyAnalytics as actions.BrewAnalytics);
 
@@ -184,6 +186,8 @@ describe('AnalyzePage Component', () => {
       expect(screen.getByText('51L')).toBeInTheDocument();
       expect(screen.getByText('171 Shots')).toBeInTheDocument();
       expect(screen.getByText('1.2h')).toBeInTheDocument(); // 70 mins = 1.166...h -> 1.2h
+      expect(screen.getByText('Waste Correlation')).toBeInTheDocument();
+      expect(screen.getByText('3 Big vs 2 Small')).toBeInTheDocument();
     });
   });
 });

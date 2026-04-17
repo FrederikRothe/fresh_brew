@@ -16,7 +16,12 @@ export async function logWaste(password: string) {
 
   const now = Date.now();
   try {
-    await appendWasteRecord({ timestamp: now });
+    const currentData = await readBrewData();
+    await appendWasteRecord({ 
+      timestamp: now,
+      lastBrewTimestamp: currentData.lastBrewTimestamp,
+      lastBrewDurationMs: currentData.brewDurationMs
+    });
     revalidatePath('/');
     return { success: true, timestamp: now };
   } catch (error) {
@@ -131,6 +136,7 @@ export type BrewAnalytics = {
   espressoEquivalent: number;
   totalWaitingMins: number;
   totalWasteCount: number;
+  wasteByDuration: Record<number, number>; // durationMs → count of waste events
 };
 
 export async function getPredictedNextBrew(history?: BrewRecord[]): Promise<PredictionData | null> {
@@ -242,6 +248,14 @@ export async function getBrewAnalytics(): Promise<BrewAnalytics> {
   const espressoEquivalent = totalCoffeeGrams / 18; // 18g double
   const totalWaitingMins = history.reduce((acc, h) => acc + (h.durationMs / 60000), 0);
 
+  // Calculate waste correlation
+  const wasteByDuration: Record<number, number> = {};
+  for (const record of wasteHistory) {
+    if (record.lastBrewDurationMs) {
+      wasteByDuration[record.lastBrewDurationMs] = (wasteByDuration[record.lastBrewDurationMs] ?? 0) + 1;
+    }
+  }
+
   // Calculate predicted next brew using the standalone function
   const predictedNextBrew = await getPredictedNextBrew(history);
 
@@ -262,6 +276,7 @@ export async function getBrewAnalytics(): Promise<BrewAnalytics> {
     espressoEquivalent,
     totalWaitingMins,
     totalWasteCount: wasteHistory.length,
+    wasteByDuration,
   };
 }
 
