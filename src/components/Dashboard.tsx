@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useTransition } from "react";
-import { startBrew, type BrewStatus } from "@/app/actions";
+import { useEffect, useState, useTransition } from "react";
+import { startBrew, logWaste, type BrewStatus } from "@/app/actions";
 import {
   Coffee,
   RefreshCw,
@@ -14,6 +14,7 @@ import {
   ChevronRight,
   Sparkles,
   AlertTriangle,
+  Trash2,
 } from "lucide-react";
 import { cn, formatMinsToDuration } from "@/lib/utils";
 import { DEFAULT_BREW_TIME_MS } from "@/lib/constants";
@@ -34,6 +35,7 @@ export default function Dashboard({
   const { status, setStatus } = useBrewStatus(initialStatus);
   const now = useTimer();
   const [isPending, startTransition] = useTransition();
+  const [isWastePending, setIsWastePending] = useState(false);
   const { adminPassword, setAdminPassword, handleLogin, handleLogout } =
     useAdminAuth();
 
@@ -66,6 +68,29 @@ export default function Dashboard({
       Notification.requestPermission();
     }
   }, []);
+
+  const handleLogWaste = async () => {
+    if (!adminPassword) return;
+    if (!confirm("Are you sure you want to log coffee waste?")) return;
+
+    setIsWastePending(true);
+    try {
+      const result = await logWaste(adminPassword);
+      if (result.success) {
+        alert("Waste logged successfully.");
+      }
+    } catch (error) {
+      if (error instanceof Error && error.message === "Unauthorized") {
+        alert("Incorrect password. Access denied.");
+        setAdminPassword(null);
+        localStorage.removeItem("coffee_admin_password");
+      } else {
+        alert("Failed to log waste. Please try again.");
+      }
+    } finally {
+      setIsWastePending(false);
+    }
+  };
 
   const handleStartBrew = async (durationMs: number = DEFAULT_BREW_TIME_MS) => {
     const password =
@@ -260,7 +285,7 @@ export default function Dashboard({
           <div className="absolute top-0 right-0 -mr-16 -mt-16 w-48 h-48 md:w-64 md:h-64 landscape:w-32 landscape:h-32 landscape:md:w-64 landscape:md:h-64 bg-white/5 rounded-full blur-3xl" />
         </div>
 
-        {/* Daily Count + Brew Buttons */}
+        {/* Daily Count + Brew Buttons (or Waste Button in Brewer Mode) */}
         <div
           className={cn(
             "grid gap-4 md:gap-6 w-full",
@@ -269,21 +294,42 @@ export default function Dashboard({
               : "grid-cols-1",
           )}
         >
-          <div
-            className={cn(
-              "bg-slate-100 dark:bg-slate-800/50 p-5 md:p-6 landscape:p-3 landscape:md:p-6 rounded-2xl flex flex-col items-center justify-center border border-slate-200 dark:border-slate-800",
-              !adminPassword &&
+          {adminPassword ? (
+            <button
+              onClick={handleLogWaste}
+              disabled={isWastePending}
+              className="bg-red-50 dark:bg-red-950/20 p-5 md:p-6 landscape:p-3 landscape:md:p-6 rounded-2xl flex flex-col items-center justify-center border border-red-200 dark:border-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/40 active:scale-95 transition-all group"
+            >
+              {isWastePending ? (
+                <RefreshCw className="w-6 h-6 md:w-8 md:h-8 animate-spin text-red-600 dark:text-red-400" />
+              ) : (
+                <>
+                  <span className="text-red-600 dark:text-red-400 font-bold uppercase text-[10px] md:text-xs tracking-wider mb-1 md:mb-2 flex items-center group-hover:scale-110 transition-transform">
+                    <Trash2 className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1 md:mr-1.5" />
+                    Indicate Waste
+                  </span>
+                  <span className="text-xl md:text-2xl font-black text-red-700 dark:text-red-300 uppercase tracking-tight">
+                    Poured in sink
+                  </span>
+                </>
+              )}
+            </button>
+          ) : (
+            <div
+              className={cn(
+                "bg-slate-100 dark:bg-slate-800/50 p-5 md:p-6 landscape:p-3 landscape:md:p-6 rounded-2xl flex flex-col items-center justify-center border border-slate-200 dark:border-slate-800",
                 "py-8 md:py-12 landscape:py-4 landscape:md:py-12",
-            )}
-          >
-            <span className="text-slate-500 dark:text-slate-400 font-bold uppercase text-[10px] md:text-xs tracking-wider mb-1 md:mb-2 flex items-center">
-              <History className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1 md:mr-1.5" />
-              Daily Pot Count
-            </span>
-            <span className="text-4xl md:text-5xl landscape:text-2xl landscape:md:text-5xl font-black text-slate-900 dark:text-slate-100">
-              {status.dailyBrewCount}
-            </span>
-          </div>
+              )}
+            >
+              <span className="text-slate-500 dark:text-slate-400 font-bold uppercase text-[10px] md:text-xs tracking-wider mb-1 md:mb-2 flex items-center">
+                <History className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1 md:mr-1.5" />
+                Daily Pot Count
+              </span>
+              <span className="text-4xl md:text-5xl landscape:text-2xl landscape:md:text-5xl font-black text-slate-900 dark:text-slate-100">
+                {status.dailyBrewCount}
+              </span>
+            </div>
+          )}
 
           {adminPassword && (
             <div className="flex flex-col space-y-3 md:space-y-4">

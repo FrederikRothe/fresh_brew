@@ -7,6 +7,10 @@ export type BrewRecord = {
   durationMs: number; // brew duration in ms
 };
 
+export type WasteRecord = {
+  timestamp: number; // Unix ms — when coffee was wasted
+};
+
 export type BrewData = {
   lastBrewTimestamp: number | null;
   dailyBrewCount: number;
@@ -16,6 +20,7 @@ export type BrewData = {
 
 const BREW_KEY = 'coffee_brew_data';
 const BREW_HISTORY_KEY = 'coffee_brew_history';
+const WASTE_HISTORY_KEY = 'coffee_waste_history';
 
 async function getRedisClient() {
   const client = createClient({
@@ -76,6 +81,29 @@ export async function readBrewHistory(): Promise<BrewRecord[]> {
     return raw.map(r => JSON.parse(r));
   } catch (error) {
     console.error('Error reading brew history:', error);
+    return [];
+  }
+}
+
+export async function appendWasteRecord(record: WasteRecord): Promise<void> {
+  try {
+    const client = await getRedisClient();
+    await client.rPush(WASTE_HISTORY_KEY, JSON.stringify(record));
+    await client.quit();
+  } catch (error) {
+    console.error('Error appending waste record:', error);
+    throw new Error('Failed to append waste record.');
+  }
+}
+
+export async function readWasteHistory(): Promise<WasteRecord[]> {
+  try {
+    const client = await getRedisClient();
+    const raw = await client.lRange(WASTE_HISTORY_KEY, 0, -1);
+    await client.quit();
+    return raw.map(r => JSON.parse(r));
+  } catch (error) {
+    console.error('Error reading waste history:', error);
     return [];
   }
 }

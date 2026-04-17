@@ -1,20 +1,28 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import Dashboard from '@/components/Dashboard';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import type { BrewStatus } from '@/app/actions';
+import * as actions from '@/app/actions';
 
 // Mock the actions and hooks
 vi.mock('@/app/actions', () => ({
   getBrewStatus: vi.fn(),
   startBrew: vi.fn(),
+  logWaste: vi.fn(),
 }));
+
+const mockSetAdminPassword = vi.fn();
+const mockHandleLogin = vi.fn();
+const mockHandleLogout = vi.fn();
+
+let mockAdminPassword: string | null = 'password123';
 
 vi.mock('@/hooks/use-admin-auth', () => ({
   useAdminAuth: () => ({
-    adminPassword: 'password123',
-    setAdminPassword: vi.fn(),
-    handleLogin: vi.fn(),
-    handleLogout: vi.fn(),
+    adminPassword: mockAdminPassword,
+    setAdminPassword: mockSetAdminPassword,
+    handleLogin: mockHandleLogin,
+    handleLogout: mockHandleLogout,
   }),
 }));
 
@@ -37,6 +45,7 @@ describe('Dashboard Component', () => {
     vi.useFakeTimers();
     // Set a consistent starting time
     vi.setSystemTime(new Date('2026-03-18T12:00:00Z'));
+    mockAdminPassword = 'password123';
   });
 
   afterEach(() => {
@@ -44,11 +53,39 @@ describe('Dashboard Component', () => {
     vi.clearAllMocks();
   });
 
-  it('renders correctly with initial status', () => {
+  it('renders correctly in brewer mode (with admin password)', () => {
+    render(<Dashboard initialStatus={initialStatus} />);
+    expect(screen.getByText(/Coffee Tracker/i)).toBeInTheDocument();
+    expect(screen.getByText(/Indicate Waste/i)).toBeInTheDocument();
+    expect(screen.getByText(/Poured in sink/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Daily Pot Count/i)).not.toBeInTheDocument();
+  });
+
+  it('renders correctly in viewer mode (without admin password)', () => {
+    mockAdminPassword = null;
     render(<Dashboard initialStatus={initialStatus} />);
     expect(screen.getByText(/Coffee Tracker/i)).toBeInTheDocument();
     expect(screen.getByText(/Daily Pot Count/i)).toBeInTheDocument();
     expect(screen.getByText('1')).toBeInTheDocument();
+    expect(screen.queryByText(/Indicate Waste/i)).not.toBeInTheDocument();
+  });
+
+  it('logs waste when the Waste button is clicked and confirmed', async () => {
+    vi.useRealTimers();
+    vi.stubGlobal('confirm', vi.fn(() => true));
+    vi.stubGlobal('alert', vi.fn());
+    const logWasteMock = vi.mocked(actions.logWaste).mockResolvedValue({ success: true, timestamp: Date.now() });
+
+    render(<Dashboard initialStatus={initialStatus} />);
+    
+    const wasteButton = screen.getByText(/Indicate Waste/i).closest('button');
+    fireEvent.click(wasteButton!);
+
+    expect(window.confirm).toHaveBeenCalledWith("Are you sure you want to log coffee waste?");
+    await waitFor(() => {
+      expect(logWasteMock).toHaveBeenCalledWith('password123');
+      expect(window.alert).toHaveBeenCalledWith("Waste logged successfully.");
+    });
   });
 
   it('disables the Start Brew buttons for 60 seconds after a brew starts', () => {

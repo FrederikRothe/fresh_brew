@@ -84,7 +84,7 @@ export default function AnalyzePage() {
 
         {/* Top Stats */}
         <CollapsibleSection title="Key Metrics" icon={LayoutGrid}>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             <StatTile
               label="Total Brews"
               value={String(analytics.totalBrews)}
@@ -100,6 +100,12 @@ export default function AnalyzePage() {
               label="Big / Small"
               value={`${analytics.bigBrews}/${analytics.smallBrews}`}
               icon={Coffee}
+            />
+            <StatTile
+              label="Total Waste"
+              value={String(analytics.totalWasteCount)}
+              icon={Droplets}
+              valueClassName="text-red-500"
             />
           </div>
         </CollapsibleSection>

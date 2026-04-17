@@ -39,6 +39,8 @@ describe('AnalyzePage Component', () => {
     totalLiters: 51.3,
     espressoEquivalent: 171,
     totalWaitingMins: 70,
+    wasteHistory: [],
+    totalWasteCount: 0,
   };
 
   beforeEach(() => {
@@ -114,6 +116,8 @@ describe('AnalyzePage Component', () => {
       totalLiters: 0,
       espressoEquivalent: 0,
       totalWaitingMins: 0,
+      wasteHistory: [],
+      totalWasteCount: 0,
     };
     vi.mocked(actions.getBrewAnalytics).mockResolvedValue(emptyAnalytics as actions.BrewAnalytics);
 
@@ -124,8 +128,10 @@ describe('AnalyzePage Component', () => {
       expect(screen.getByText('Total Brews')).toBeInTheDocument();
       expect(screen.getByText('Coffee Burn Rate')).toBeInTheDocument();
       
-      // Should show "--" or "0" stats
-      expect(screen.getByText('0')).toBeInTheDocument(); // Total Brews
+      // Should show "0" stats for both Total Brews and Total Waste
+      const zeroStats = screen.getAllByText('0');
+      expect(zeroStats.length).toBeGreaterThanOrEqual(2);
+      
       expect(screen.getByText('0.0')).toBeInTheDocument(); // Avg / Day
       
       expect(screen.getByText('0/0')).toBeInTheDocument(); // Big / Small
