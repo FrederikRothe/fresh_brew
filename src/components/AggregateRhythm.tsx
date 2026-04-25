@@ -24,6 +24,7 @@ export function AggregateRhythm({
 }) {
   const [mode, setMode] = useState<RhythmMode>("weekly");
   const [isMobile, setIsMobile] = useState(false);
+  const [clickedIdx, setClickedIdx] = useState<number | null>(null);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -31,6 +32,11 @@ export function AggregateRhythm({
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  // Close tooltip on mode change
+  useEffect(() => {
+    setClickedIdx(null);
+  }, [mode]);
 
   const now = new Date();
   let currentIdx: number | null = null;
@@ -149,7 +155,7 @@ export function AggregateRhythm({
     });
 
   return (
-    <div className="w-full space-y-6 md:space-y-8">
+    <div className="w-full space-y-6 md:space-y-8" onClick={() => setClickedIdx(null)}>
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
           <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
@@ -263,12 +269,19 @@ export function AggregateRhythm({
               return (
                 <div
                   key={i}
-                  className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer pointer-events-auto group/dot z-10 hover:z-50 transition-transform"
+                  className={cn(
+                    "absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer pointer-events-auto group/dot z-10 transition-transform",
+                    clickedIdx === i ? "z-50 scale-125" : "hover:z-50"
+                  )}
                   style={{
                     top: `${yPos}%`,
                     left: `calc(${xPos}% + ${xOffset}px)`,
                     width: `${size * (isMobile ? 3 : 4)}px`,
                     height: `${size * (isMobile ? 3 : 4)}px`,
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setClickedIdx(clickedIdx === i ? null : i);
                   }}
                 >
                   {/* Visual Dot with specific opacity */}
@@ -279,6 +292,7 @@ export function AggregateRhythm({
                         ? "bg-amber-400 shadow-[0_0_12px_rgba(251,191,36,0.25)]"
                         : "bg-blue-500 dark:bg-blue-400 shadow-[0_0_12px_rgba(59,130,246,0.25)]",
                       "ring-2 ring-white dark:ring-slate-800",
+                      clickedIdx === i && "ring-blue-500 dark:ring-blue-400 scale-150"
                     )}
                     style={{ opacity }}
                   />
@@ -286,10 +300,13 @@ export function AggregateRhythm({
                   {/* Tooltip (Solid 100% opacity) */}
                   <div
                     className={cn(
-                      "absolute top-1/2 -translate-y-1/2 px-2.5 py-1.5 bg-slate-900 dark:bg-slate-950 text-white rounded-xl opacity-0 group-hover/dot:opacity-100 transition-all duration-200 whitespace-nowrap pointer-events-none z-50 shadow-2xl border border-white/10 flex items-center gap-2",
+                      "absolute top-1/2 -translate-y-1/2 px-2.5 py-1.5 bg-slate-900 dark:bg-slate-950 text-white rounded-xl transition-all duration-200 whitespace-nowrap pointer-events-none z-50 shadow-2xl border border-white/10 flex items-center gap-2",
                       isRightSide
                         ? "right-full mr-3 group-hover/dot:-translate-x-1"
                         : "left-full ml-3 group-hover/dot:translate-x-1",
+                      clickedIdx === i 
+                        ? (isRightSide ? "opacity-100 -translate-x-1" : "opacity-100 translate-x-1")
+                        : "opacity-0 group-hover/dot:opacity-100"
                     )}
                   >
                     <div
