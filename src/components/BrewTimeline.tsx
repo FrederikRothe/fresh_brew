@@ -41,12 +41,12 @@ export function BrewTimeline({ history, predictedNextBrew }: BrewTimelineProps) 
       .map((h) => ({
         seconds: getCphSecondsSinceMidnight(h.timestamp),
         timestamp: h.timestamp,
-        isSmall: h.durationMs < 5 * 60 * 1000,
+        isSmall: h.durationMs <= 5 * 60 * 1000,
       }))
       .sort((a, b) => a.seconds - b.seconds);
 
     // Typical brews for this day of the week
-    const seqData: Record<number, number[]> = {}; // seqIndex -> [secondsSinceMidnight]
+    const seqData: Record<number, { seconds: number[]; durations: number[] }> = {}; // seqIndex -> { seconds: [], durations: [] }
     
     // Group history by day of week and sequence index
     const historyByDay: Record<string, { timestamp: number; durationMs: number }[]> = {};
@@ -61,14 +61,16 @@ export function BrewTimeline({ history, predictedNextBrew }: BrewTimelineProps) 
       const d = new Date(sorted[0].timestamp);
       if (getCphDayOfWeek(d) === todayDayOfWeek) {
         sorted.forEach((h, idx) => {
-          if (!seqData[idx]) seqData[idx] = [];
-          seqData[idx].push(getCphSecondsSinceMidnight(h.timestamp));
+          if (!seqData[idx]) seqData[idx] = { seconds: [], durations: [] };
+          seqData[idx].seconds.push(getCphSecondsSinceMidnight(h.timestamp));
+          seqData[idx].durations.push(h.durationMs);
         });
       }
     });
 
-    const typicalBrews = Object.entries(seqData).map(([idx, times]) => {
-      const avgSeconds = times.reduce((a, b) => a + b, 0) / times.length;
+    const typicalBrews = Object.entries(seqData).map(([idx, data]) => {
+      const avgSeconds = data.seconds.reduce((a, b) => a + b, 0) / data.seconds.length;
+      const avgDuration = data.durations.reduce((a, b) => a + b, 0) / data.durations.length;
       const h = Math.floor(avgSeconds / 3600);
       const m = Math.floor((avgSeconds % 3600) / 60);
       const avgTime = `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
@@ -76,7 +78,8 @@ export function BrewTimeline({ history, predictedNextBrew }: BrewTimelineProps) 
         seqIndex: parseInt(idx),
         avgSeconds,
         avgTime,
-        count: times.length,
+        isSmall: avgDuration <= 5 * 60 * 1000,
+        count: data.seconds.length,
       };
     }).sort((a, b) => a.avgSeconds - b.avgSeconds);
 
@@ -226,10 +229,20 @@ export function BrewTimeline({ history, predictedNextBrew }: BrewTimelineProps) 
                 style={{ left: `${getX(b.avgSeconds)}%` }}
                 animate={{ y: isHovered ? 20 : 0 }}
               >
-                <div className="w-4 h-4 rounded-full border-2 border-white dark:border-slate-900 bg-slate-300 dark:bg-amber-900/40 transition-transform group-hover:scale-125 shadow-sm" />
+                <div className={cn(
+                  "w-4 h-4 rounded-full border-2 border-white dark:border-slate-900 transition-transform group-hover:scale-125 shadow-sm",
+                  b.isSmall 
+                    ? "bg-amber-400/60 dark:bg-amber-600/40" 
+                    : "bg-blue-500/60 dark:bg-blue-600/40"
+                )} />
                 <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                  <div className="bg-slate-900 dark:bg-amber-900 text-white dark:text-white text-[10px] font-black px-3 py-1.5 rounded-xl whitespace-nowrap shadow-2xl border border-slate-800 dark:border-amber-800/30">
-                    Typical Pot #{b.seqIndex + 1} - {b.avgTime}
+                  <div className={cn(
+                    "text-white text-[10px] font-black px-3 py-1.5 rounded-xl whitespace-nowrap shadow-2xl border",
+                    b.isSmall
+                      ? "bg-amber-600 dark:bg-amber-900 border-amber-500/30"
+                      : "bg-blue-600 dark:bg-blue-900 border-blue-500/30"
+                  )}>
+                    Typical Pot #{b.seqIndex + 1} - {b.avgTime} ({b.isSmall ? 'Small' : 'Big'})
                   </div>
                 </div>
               </motion.div>
@@ -243,10 +256,18 @@ export function BrewTimeline({ history, predictedNextBrew }: BrewTimelineProps) 
                 style={{ left: `${getX(b.seconds)}%` }}
                 animate={{ y: isHovered ? -20 : 0 }}
               >
-                <div className="w-6 h-6 rounded-full border-4 border-white dark:border-slate-900 bg-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.4)] transition-transform group-hover:scale-110" />
+                <div className={cn(
+                  "w-6 h-6 rounded-full border-4 border-white dark:border-slate-900 shadow-lg transition-transform group-hover:scale-110",
+                  b.isSmall 
+                    ? "bg-amber-400 shadow-amber-400/40" 
+                    : "bg-blue-500 shadow-blue-500/40"
+                )} />
                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-30">
-                  <div className="bg-amber-500 text-white dark:text-slate-950 text-[10px] font-black px-3 py-1.5 rounded-xl whitespace-nowrap shadow-2xl">
-                    Pot #{i + 1} @ {formatCphTime(b.timestamp)}
+                  <div className={cn(
+                    "text-white text-[10px] font-black px-3 py-1.5 rounded-xl whitespace-nowrap shadow-2xl",
+                    b.isSmall ? "bg-amber-500" : "bg-blue-500"
+                  )}>
+                    Pot #{i + 1} @ {formatCphTime(b.timestamp)} ({b.isSmall ? 'Small' : 'Big'})
                   </div>
                 </div>
               </motion.div>

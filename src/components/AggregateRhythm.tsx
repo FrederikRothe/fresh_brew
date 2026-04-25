@@ -13,8 +13,8 @@ interface ProcessedBrew {
   isSmall: boolean;
   dateStr: string;
   timeStr: string;
-  jitter: number;
-  count?: number;
+  count: number;
+  hasOther: boolean;
 }
 
 export function AggregateRhythm({
@@ -51,79 +51,52 @@ export function AggregateRhythm({
   const HOUR_RANGE = MAX_HOUR - MIN_HOUR;
 
   let units: string[] = [];
-  let processedData: ProcessedBrew[] = [];
 
   // Group into 20-minute slots (0.33 hours) for aggregation
   const slotSize = 1 / 3;
 
+  const aggregated = new Map<
+    string,
+    {
+      unitIdx: number;
+      hour: number;
+      smallCount: number;
+      bigCount: number;
+    }
+  >();
+
+  const processHistory = (unitIdxCalc: (d: Date) => number | null) => {
+    history.forEach((h) => {
+      const d = new Date(h.timestamp);
+      const unitIdx = unitIdxCalc(d);
+      if (unitIdx === null) return;
+
+      const hour = d.getHours() + Math.floor(d.getMinutes() / 20) * slotSize;
+      const isSmall = h.durationMs < 5 * 60 * 1000;
+      const key = `${unitIdx}-${hour.toFixed(2)}`;
+
+      const existing = aggregated.get(key) || {
+        unitIdx,
+        hour,
+        smallCount: 0,
+        bigCount: 0,
+      };
+      if (isSmall) existing.smallCount++;
+      else existing.bigCount++;
+      aggregated.set(key, existing);
+    });
+  };
+
   if (mode === "weekly") {
     units = ["Mon", "Tue", "Wed", "Thu", "Fri"];
-    const aggregated = new Map<
-      string,
-      { unitIdx: number; hour: number; isSmall: boolean; count: number }
-    >();
-
-    history.forEach((h) => {
-      const d = new Date(h.timestamp);
-      let dayIdx = getDay(d); // 0=Sun, 1=Mon...6=Sat
-      if (dayIdx === 0 || dayIdx === 6) return;
-      dayIdx = dayIdx - 1;
-      const hour = d.getHours() + Math.floor(d.getMinutes() / 20) * slotSize;
-      const isSmall = h.durationMs < 5 * 60 * 1000;
-      const key = `${dayIdx}-${hour}-${isSmall}`;
-
-      const existing = aggregated.get(key);
-      if (existing) {
-        existing.count++;
-      } else {
-        aggregated.set(key, { unitIdx: dayIdx, hour, isSmall, count: 1 });
-      }
+    processHistory((d) => {
+      const dayIdx = getDay(d);
+      if (dayIdx === 0 || dayIdx === 6) return null;
+      return dayIdx - 1;
     });
-
-    processedData = Array.from(aggregated.values()).map((a) => ({
-      unitIdx: a.unitIdx,
-      hour: a.hour,
-      isSmall: a.isSmall,
-      count: a.count,
-      dateStr: `${a.count} brew${a.count > 1 ? "s" : ""}`,
-      timeStr: `${Math.floor(a.hour)}:${String(
-        Math.round((a.hour % 1) * 60),
-      ).padStart(2, "0")}`,
-      jitter: 0,
-    }));
   } else if (mode === "monthly") {
     units = Array.from({ length: 31 }, (_, i) => String(i + 1));
-    const aggregated = new Map<
-      string,
-      { unitIdx: number; hour: number; isSmall: boolean; count: number }
-    >();
-
-    history.forEach((h) => {
-      const d = new Date(h.timestamp);
-      const unitIdx = getDate(d) - 1;
-      const hour = d.getHours() + Math.floor(d.getMinutes() / 20) * slotSize;
-      const isSmall = h.durationMs < 5 * 60 * 1000;
-      const key = `${unitIdx}-${hour}-${isSmall}`;
-
-      const existing = aggregated.get(key);
-      if (existing) {
-        existing.count++;
-      } else {
-        aggregated.set(key, { unitIdx, hour, isSmall, count: 1 });
-      }
-    });
-
-    processedData = Array.from(aggregated.values()).map((a) => ({
-      unitIdx: a.unitIdx,
-      hour: a.hour,
-      isSmall: a.isSmall,
-      count: a.count,
-      dateStr: `${a.count} brew${a.count > 1 ? "s" : ""}`,
-      timeStr: `${Math.floor(a.hour)}:${String(
-        Math.round((a.hour % 1) * 60),
-      ).padStart(2, "0")}`,
-      jitter: 0,
-    }));
+    processHistory((d) => getDate(d) - 1);
   } else if (mode === "yearly") {
     units = [
       "Jan",
@@ -139,44 +112,41 @@ export function AggregateRhythm({
       "Nov",
       "Dec",
     ];
-
-    const aggregated = new Map<
-      string,
-      { unitIdx: number; hour: number; isSmall: boolean; count: number }
-    >();
-
-    history.forEach((h) => {
-      const d = new Date(h.timestamp);
-      const unitIdx = getMonth(d);
-      const hour = d.getHours() + Math.floor(d.getMinutes() / 20) * slotSize;
-      const isSmall = h.durationMs < 5 * 60 * 1000;
-      const key = `${unitIdx}-${hour}-${isSmall}`;
-
-      const existing = aggregated.get(key);
-      if (existing) {
-        existing.count++;
-      } else {
-        aggregated.set(key, { unitIdx, hour, isSmall, count: 1 });
-      }
-    });
-
-    processedData = Array.from(aggregated.values()).map((a) => ({
-      unitIdx: a.unitIdx,
-      hour: a.hour,
-      isSmall: a.isSmall,
-      count: a.count,
-      dateStr: `${a.count} brew${a.count > 1 ? "s" : ""}`,
-      timeStr: `${Math.floor(a.hour)}:${String(
-        Math.round((a.hour % 1) * 60),
-      ).padStart(2, "0")}`,
-      jitter: 0,
-    }));
+    processHistory((d) => getMonth(d));
   }
 
-  // Filter out points out of hour range
-  const validPoints = processedData.filter(
-    (d) => d.hour >= MIN_HOUR && d.hour <= MAX_HOUR,
-  );
+  const validPoints = Array.from(aggregated.values())
+    .filter((d) => d.hour >= MIN_HOUR && d.hour <= MAX_HOUR)
+    .flatMap((a) => {
+      const points = [];
+      const timeStr = `${Math.floor(a.hour)}:${String(
+        Math.round((a.hour % 1) * 60),
+      ).padStart(2, "0")}`;
+
+      if (a.bigCount > 0) {
+        points.push({
+          unitIdx: a.unitIdx,
+          hour: a.hour,
+          isSmall: false,
+          count: a.bigCount,
+          hasOther: a.smallCount > 0,
+          dateStr: `${a.bigCount} big brew${a.bigCount > 1 ? "s" : ""}`,
+          timeStr,
+        });
+      }
+      if (a.smallCount > 0) {
+        points.push({
+          unitIdx: a.unitIdx,
+          hour: a.hour,
+          isSmall: true,
+          count: a.smallCount,
+          hasOther: a.bigCount > 0,
+          dateStr: `${a.smallCount} small brew${a.smallCount > 1 ? "s" : ""}`,
+          timeStr,
+        });
+      }
+      return points;
+    });
 
   return (
     <div className="w-full space-y-6 md:space-y-8">
@@ -209,13 +179,13 @@ export function AggregateRhythm({
 
           <div className="flex items-center gap-3 md:gap-4 text-[8px] md:text-[9px] font-bold uppercase tracking-wider">
             <div className="flex items-center gap-1.5">
-              <div className="w-2 md:w-2.5 h-2 md:h-2.5 rounded-full bg-blue-500/60" />
+              <div className="w-2 md:w-2.5 h-2 md:h-2.5 rounded-full bg-blue-500 dark:bg-blue-400 shadow-[0_0_8px_rgba(59,130,246,0.4)]" />
               <span className="text-slate-500 dark:text-slate-400 whitespace-nowrap">
                 {mode === "yearly" ? "Big Intensity" : "Big"}
               </span>
             </div>
             <div className="flex items-center gap-1.5">
-              <div className="w-2 md:w-2.5 h-2 md:h-2.5 rounded-full bg-amber-400/60" />
+              <div className="w-2 md:w-2.5 h-2 md:h-2.5 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.4)]" />
               <span className="text-slate-500 dark:text-slate-400 whitespace-nowrap">
                 {mode === "yearly" ? "Small Intensity" : "Small"}
               </span>
@@ -278,34 +248,64 @@ export function AggregateRhythm({
               const xPos = (brew.unitIdx + 0.5) * unitWidth;
               const yPos = ((brew.hour - MIN_HOUR) / HOUR_RANGE) * 100;
 
-              // Calculate size and opacity for aggregated views (all now aggregate)
+              // Calculate size and opacity
               const count = brew.count || 1;
-              // Smaller base size on mobile (2 instead of 3)
-              const baseSize = isMobile ? 2 : 3;
-              const size = Math.min(6, baseSize + Math.log2(count) * 1.5); // Grow with count
-              const opacity = Math.min(1, 0.4 + (count - 1) * 0.15);
+              const baseSize = isMobile ? 3 : 4;
+              const size = Math.min(8, baseSize + Math.log2(count) * 2);
+              const opacity = Math.min(1, 0.6 + (count - 1) * 0.1);
+
+              // Offset if both big and small brews exist in the same slot
+              const xOffset = brew.hasOther ? (brew.isSmall ? 4 : -4) : 0;
+
+              // Determine tooltip position based on which side of the chart we're on
+              const isRightSide = brew.unitIdx > units.length / 2;
 
               return (
                 <div
                   key={i}
-                  className={cn(
-                    "absolute rounded-full -translate-x-1/2 -translate-y-1/2 transition-all hover:scale-150 cursor-pointer pointer-events-auto z-10",
-                    brew.isSmall
-                      ? "bg-amber-400 hover:bg-amber-500"
-                      : "bg-blue-500 hover:bg-blue-600",
-                    "ring-1 ring-white dark:ring-slate-900 shadow-sm",
-                  )}
+                  className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer pointer-events-auto group/dot z-10 hover:z-50 transition-transform"
                   style={{
                     top: `${yPos}%`,
-                    left: `${xPos}%`,
+                    left: `calc(${xPos}% + ${xOffset}px)`,
                     width: `${size * (isMobile ? 3 : 4)}px`,
                     height: `${size * (isMobile ? 3 : 4)}px`,
-                    opacity: opacity,
                   }}
-                  title={`${brew.dateStr} @ ${brew.timeStr}`}
                 >
-                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 text-[10px] font-bold py-1 px-2 rounded opacity-0 hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
-                    {brew.dateStr} @ {brew.timeStr}
+                  {/* Visual Dot with specific opacity */}
+                  <div
+                    className={cn(
+                      "w-full h-full rounded-full transition-all group-hover/dot:scale-150",
+                      brew.isSmall
+                        ? "bg-amber-400 shadow-[0_0_12px_rgba(251,191,36,0.25)]"
+                        : "bg-blue-500 dark:bg-blue-400 shadow-[0_0_12px_rgba(59,130,246,0.25)]",
+                      "ring-2 ring-white dark:ring-slate-800",
+                    )}
+                    style={{ opacity }}
+                  />
+
+                  {/* Tooltip (Solid 100% opacity) */}
+                  <div
+                    className={cn(
+                      "absolute top-1/2 -translate-y-1/2 px-2.5 py-1.5 bg-slate-900 dark:bg-slate-950 text-white rounded-xl opacity-0 group-hover/dot:opacity-100 transition-all duration-200 whitespace-nowrap pointer-events-none z-50 shadow-2xl border border-white/10 flex items-center gap-2",
+                      isRightSide
+                        ? "right-full mr-3 group-hover/dot:-translate-x-1"
+                        : "left-full ml-3 group-hover/dot:translate-x-1",
+                    )}
+                  >
+                    <div
+                      className={cn(
+                        "w-2 h-2 rounded-full",
+                        brew.isSmall ? "bg-amber-400" : "bg-blue-400",
+                      )}
+                    />
+                    <div className="flex flex-col pr-1">
+                      <span className="text-[10px] font-black leading-none uppercase tracking-tighter">
+                        {brew.dateStr}
+                      </span>
+                      <span className="text-[8px] text-slate-400 dark:text-slate-500 font-bold mt-0.5">
+                        {brew.timeStr}
+                      </span>
+                    </div>
                   </div>
                 </div>
               );
