@@ -17,7 +17,6 @@ interface BrewTimelineProps {
     time: string;
     sequenceIndex: number;
     dayName: string;
-    isSmall: boolean;
   } | null;
 }
 
@@ -42,12 +41,12 @@ export function BrewTimeline({ history, predictedNextBrew }: BrewTimelineProps) 
       .map((h) => ({
         seconds: getCphSecondsSinceMidnight(h.timestamp),
         timestamp: h.timestamp,
-        isSmall: h.durationMs < 5 * 60 * 1000,
+        isSmall: h.durationMs <= 5 * 60 * 1000,
       }))
       .sort((a, b) => a.seconds - b.seconds);
 
     // Typical brews for this day of the week
-    const seqData: Record<number, number[]> = {}; // seqIndex -> [secondsSinceMidnight]
+    const seqData: Record<number, { seconds: number[]; durations: number[] }> = {}; // seqIndex -> { seconds: [], durations: [] }
     
     // Group history by day of week and sequence index
     const historyByDay: Record<string, { timestamp: number; durationMs: number }[]> = {};
@@ -62,14 +61,16 @@ export function BrewTimeline({ history, predictedNextBrew }: BrewTimelineProps) 
       const d = new Date(sorted[0].timestamp);
       if (getCphDayOfWeek(d) === todayDayOfWeek) {
         sorted.forEach((h, idx) => {
-          if (!seqData[idx]) seqData[idx] = [];
-          seqData[idx].push(getCphSecondsSinceMidnight(h.timestamp));
+          if (!seqData[idx]) seqData[idx] = { seconds: [], durations: [] };
+          seqData[idx].seconds.push(getCphSecondsSinceMidnight(h.timestamp));
+          seqData[idx].durations.push(h.durationMs);
         });
       }
     });
 
-    const typicalBrews = Object.entries(seqData).map(([idx, times]) => {
-      const avgSeconds = times.reduce((a, b) => a + b, 0) / times.length;
+    const typicalBrews = Object.entries(seqData).map(([idx, data]) => {
+      const avgSeconds = data.seconds.reduce((a, b) => a + b, 0) / data.seconds.length;
+      const avgDuration = data.durations.reduce((a, b) => a + b, 0) / data.durations.length;
       const h = Math.floor(avgSeconds / 3600);
       const m = Math.floor((avgSeconds % 3600) / 60);
       const avgTime = `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
@@ -77,7 +78,8 @@ export function BrewTimeline({ history, predictedNextBrew }: BrewTimelineProps) 
         seqIndex: parseInt(idx),
         avgSeconds,
         avgTime,
-        count: times.length,
+        isSmall: avgDuration <= 5 * 60 * 1000,
+        count: data.seconds.length,
       };
     }).sort((a, b) => a.avgSeconds - b.avgSeconds);
 
@@ -98,31 +100,16 @@ export function BrewTimeline({ history, predictedNextBrew }: BrewTimelineProps) 
       
       {/* 1. Prediction Banner Section */}
       {predictedNextBrew && (
-        <div className={cn(
-          "p-8 pb-6 flex flex-col md:flex-row items-center justify-between gap-6 border-b",
-          predictedNextBrew.isSmall 
-            ? "border-amber-100 dark:border-amber-900/10" 
-            : "border-blue-100 dark:border-blue-900/10"
-        )}>
+        <div className="p-8 pb-6 flex flex-col md:flex-row items-center justify-between gap-6 border-b border-slate-100 dark:border-amber-900/10">
           <div className="flex items-center gap-5">
-            <div className={cn(
-              "rounded-2xl p-3.5 shadow-lg",
-              predictedNextBrew.isSmall 
-                ? "bg-amber-500 shadow-amber-500/20" 
-                : "bg-blue-500 shadow-blue-500/20"
-            )}>
+            <div className="bg-amber-500 rounded-2xl p-3.5 shadow-lg shadow-amber-500/20">
               <Sparkles className="w-6 h-6 text-white" />
             </div>
             <div className="space-y-1 text-center md:text-left">
               <h3 className="text-slate-900 dark:text-white font-black uppercase tracking-tight text-2xl flex items-center justify-center md:justify-start gap-2">
                 Next Brew Predicted
                 <div className="group relative flex items-center">
-                  <Info className={cn(
-                    "w-4 h-4 cursor-help transition-colors",
-                    predictedNextBrew.isSmall
-                      ? "text-slate-300 dark:text-amber-500/40 group-hover:text-amber-500"
-                      : "text-slate-300 dark:text-blue-500/40 group-hover:text-blue-500"
-                  )} />
+                  <Info className="w-4 h-4 text-slate-300 dark:text-amber-500/40 cursor-help transition-colors group-hover:text-amber-500" />
                   <div className="invisible group-hover:visible absolute left-1/2 -translate-x-1/2 md:left-0 md:translate-x-0 bottom-full mb-3 w-56 bg-white dark:bg-slate-950 text-slate-900 dark:text-amber-50 text-[10px] p-4 rounded-2xl font-bold normal-case tracking-tight shadow-2xl z-50 border border-slate-200 dark:border-amber-900/30">
                     <div className="relative">
                       Averaged from historical brew times for today&apos;s sequence (pot #{predictedNextBrew.sequenceIndex} on a {predictedNextBrew.dayName}).
@@ -131,31 +118,16 @@ export function BrewTimeline({ history, predictedNextBrew }: BrewTimelineProps) 
                   </div>
                 </div>
               </h3>
-              <p className={cn(
-                "text-[10px] font-black uppercase tracking-[0.2em]",
-                predictedNextBrew.isSmall
-                  ? "text-amber-600/60 dark:text-amber-500/60"
-                  : "text-blue-600/60 dark:text-blue-500/60"
-              )}>
+              <p className="text-amber-600/60 dark:text-amber-500/60 text-[10px] font-black uppercase tracking-[0.2em]">
                 Based on your typical {predictedNextBrew.dayName} rhythm
               </p>
             </div>
           </div>
           <div className="flex flex-col items-center md:items-end">
-            <span className={cn(
-              "text-7xl font-black tabular-nums leading-none tracking-tighter",
-              predictedNextBrew.isSmall
-                ? "text-amber-600 dark:text-amber-500 drop-shadow-[0_0_15px_rgba(245,158,11,0.2)] dark:drop-shadow-[0_0_15px_rgba(245,158,11,0.3)]"
-                : "text-blue-600 dark:text-blue-500 drop-shadow-[0_0_15px_rgba(59,130,246,0.2)] dark:drop-shadow-[0_0_15px_rgba(59,130,246,0.3)]"
-            )}>
+            <span className="text-7xl font-black text-amber-600 dark:text-amber-500 tabular-nums leading-none tracking-tighter drop-shadow-[0_0_15px_rgba(245,158,11,0.2)] dark:drop-shadow-[0_0_15px_rgba(245,158,11,0.3)]">
               {predictedNextBrew.time}
             </span>
-            <span className={cn(
-              "text-[10px] font-black uppercase tracking-[0.4em] mt-3",
-              predictedNextBrew.isSmall
-                ? "text-amber-600/40 dark:text-amber-500/40"
-                : "text-blue-600/40 dark:text-blue-500/40"
-            )}>
+            <span className="text-[10px] font-black text-amber-600/40 dark:text-amber-500/40 uppercase tracking-[0.4em] mt-3">
               Estimated Time
             </span>
           </div>
@@ -251,10 +223,20 @@ export function BrewTimeline({ history, predictedNextBrew }: BrewTimelineProps) 
                 style={{ left: `${getX(b.avgSeconds)}%` }}
                 animate={{ y: isHovered ? 20 : 0 }}
               >
-                <div className="w-4 h-4 rounded-full border-2 border-white dark:border-slate-900 bg-slate-300 dark:bg-amber-900/40 transition-transform group-hover:scale-125 shadow-sm" />
+                <div className={cn(
+                  "w-4 h-4 rounded-full border-2 border-white dark:border-slate-900 transition-transform group-hover:scale-125 shadow-sm",
+                  b.isSmall 
+                    ? "bg-amber-400/60 dark:bg-amber-600/40" 
+                    : "bg-blue-500/60 dark:bg-blue-600/40"
+                )} />
                 <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                  <div className="bg-slate-900 dark:bg-amber-900 text-white dark:text-white text-[10px] font-black px-3 py-1.5 rounded-xl whitespace-nowrap shadow-2xl border border-slate-800 dark:border-amber-800/30">
-                    Typical Pot #{b.seqIndex + 1} - {b.avgTime}
+                  <div className={cn(
+                    "text-white text-[10px] font-black px-3 py-1.5 rounded-xl whitespace-nowrap shadow-2xl border",
+                    b.isSmall
+                      ? "bg-amber-600 dark:bg-amber-900 border-amber-500/30"
+                      : "bg-blue-600 dark:bg-blue-900 border-blue-500/30"
+                  )}>
+                    Typical Pot #{b.seqIndex + 1} - {b.avgTime} ({b.isSmall ? 'Small' : 'Big'})
                   </div>
                 </div>
               </motion.div>
@@ -268,10 +250,18 @@ export function BrewTimeline({ history, predictedNextBrew }: BrewTimelineProps) 
                 style={{ left: `${getX(b.seconds)}%` }}
                 animate={{ y: isHovered ? -20 : 0 }}
               >
-                <div className="w-6 h-6 rounded-full border-4 border-white dark:border-slate-900 bg-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.4)] transition-transform group-hover:scale-110" />
+                <div className={cn(
+                  "w-6 h-6 rounded-full border-4 border-white dark:border-slate-900 shadow-lg transition-transform group-hover:scale-110",
+                  b.isSmall 
+                    ? "bg-amber-400 shadow-amber-400/40" 
+                    : "bg-blue-500 shadow-blue-500/40"
+                )} />
                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-30">
-                  <div className="bg-amber-500 text-white dark:text-slate-950 text-[10px] font-black px-3 py-1.5 rounded-xl whitespace-nowrap shadow-2xl">
-                    Pot #{i + 1} @ {formatCphTime(b.timestamp)}
+                  <div className={cn(
+                    "text-white text-[10px] font-black px-3 py-1.5 rounded-xl whitespace-nowrap shadow-2xl",
+                    b.isSmall ? "bg-amber-500" : "bg-blue-500"
+                  )}>
+                    Pot #{i + 1} @ {formatCphTime(b.timestamp)} ({b.isSmall ? 'Small' : 'Big'})
                   </div>
                 </div>
               </motion.div>

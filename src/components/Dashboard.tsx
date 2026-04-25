@@ -197,9 +197,7 @@ export default function Dashboard({
               "w-full border rounded-2xl py-3 px-4 flex items-center justify-between shadow-sm transition-colors",
               predictedNextBrew.isOverdue
                 ? "bg-amber-100/50 dark:bg-amber-950/20 border-amber-300/50 dark:border-amber-800/30"
-                : predictedNextBrew.isSmall
-                  ? "bg-amber-50/50 dark:bg-amber-950/10 border-amber-200/50 dark:border-amber-800/20"
-                  : "bg-blue-50/50 dark:bg-blue-950/10 border-blue-200/50 dark:border-blue-800/20",
+                : "bg-amber-50/50 dark:bg-amber-950/10 border-amber-200/50 dark:border-amber-800/20",
             )}
           >
             <div className="flex items-center gap-3">
@@ -208,18 +206,13 @@ export default function Dashboard({
                   "rounded-xl p-2",
                   predictedNextBrew.isOverdue
                     ? "bg-amber-200 dark:bg-amber-900/40"
-                    : predictedNextBrew.isSmall
-                      ? "bg-amber-100 dark:bg-amber-900/30"
-                      : "bg-blue-100 dark:bg-blue-900/30",
+                    : "bg-amber-100 dark:bg-amber-900/30",
                 )}
               >
                 {predictedNextBrew.isOverdue ? (
                   <AlertTriangle className="w-4 h-4 text-amber-700 dark:text-amber-400" />
                 ) : (
-                  <Sparkles className={cn(
-                    "w-4 h-4",
-                    predictedNextBrew.isSmall ? "text-amber-600 dark:text-amber-500" : "text-blue-600 dark:text-blue-500"
-                  )} />
+                  <Sparkles className="w-4 h-4 text-amber-600 dark:text-amber-500" />
                 )}
               </div>
               <div className="text-left">
@@ -228,9 +221,7 @@ export default function Dashboard({
                     "font-bold uppercase tracking-tight text-xs",
                     predictedNextBrew.isOverdue
                       ? "text-amber-900 dark:text-amber-100"
-                      : predictedNextBrew.isSmall
-                        ? "text-amber-900 dark:text-amber-100"
-                        : "text-blue-900 dark:text-blue-100",
+                      : "text-amber-900 dark:text-amber-100",
                   )}
                 >
                   {predictedNextBrew.isOverdue
@@ -242,9 +233,7 @@ export default function Dashboard({
                     "text-[10px] font-bold uppercase tracking-wider",
                     predictedNextBrew.isOverdue
                       ? "text-amber-700/60 dark:text-amber-500/60"
-                      : predictedNextBrew.isSmall
-                        ? "text-amber-700/60 dark:text-amber-500/60"
-                        : "text-blue-700/60 dark:text-blue-500/60",
+                      : "text-amber-700/60 dark:text-amber-500/60",
                   )}
                 >
                   {predictedNextBrew.isOverdue
@@ -259,9 +248,7 @@ export default function Dashboard({
                   "text-2xl font-black tabular-nums tracking-tighter",
                   predictedNextBrew.isOverdue
                     ? "text-amber-600 dark:text-amber-500"
-                    : predictedNextBrew.isSmall
-                      ? "text-amber-600 dark:text-amber-500"
-                      : "text-blue-600 dark:text-blue-500",
+                    : "text-amber-600 dark:text-amber-500",
                 )}
               >
                 {predictedNextBrew.time}

@@ -42,7 +42,6 @@ describe('Dashboard Prediction Banner', () => {
           time: '14:30',
           isOverdue: false,
           overdueMins: 0,
-          isSmall: true,
         }}
       />,
     );
@@ -67,7 +66,6 @@ describe('Dashboard Prediction Banner', () => {
           time: '11:30',
           isOverdue: true,
           overdueMins: 30,
-          isSmall: true,
         }}
       />,
     );
@@ -99,7 +97,6 @@ describe('Dashboard Prediction Banner', () => {
           time: '11:30',
           isOverdue: true,
           overdueMins: 362,
-          isSmall: true,
         }}
       />,
     );
@@ -122,7 +119,6 @@ describe('Dashboard Prediction Banner', () => {
           time: '14:30',
           isOverdue: false,
           overdueMins: 0,
-          isSmall: true,
         }}
       />,
     );
