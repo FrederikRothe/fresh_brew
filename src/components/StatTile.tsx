@@ -24,7 +24,7 @@ export function StatTile({
       <span className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-1">
         {label}
       </span>
-      <span className={cn("text-4xl font-black text-slate-900 dark:text-slate-100", valueClassName)}>
+      <span className={cn("text-2xl md:text-4xl font-black text-slate-900 dark:text-slate-100", valueClassName)}>
         {value}
       </span>
     </div>

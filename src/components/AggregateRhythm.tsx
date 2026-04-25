@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
  // Clock removed
 import { format, getDay, getDate, getMonth } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -23,6 +23,14 @@ export function AggregateRhythm({
   history: { timestamp: number; durationMs: number }[];
 }) {
   const [mode, setMode] = useState<RhythmMode>("weekly");
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const now = new Date();
   let currentIdx: number | null = null;
@@ -171,7 +179,7 @@ export function AggregateRhythm({
   );
 
   return (
-    <div className="w-full space-y-8">
+    <div className="w-full space-y-6 md:space-y-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
           <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
@@ -181,49 +189,51 @@ export function AggregateRhythm({
           </p>
         </div>
 
-        <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl self-start">
-          {(["weekly", "monthly", "yearly"] as RhythmMode[]).map((m) => (
-            <button
-              key={m}
-              onClick={() => setMode(m)}
-              className={cn(
-                "px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all",
-                mode === m
-                  ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm"
-                  : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200",
-              )}
-            >
-              {m}
-            </button>
-          ))}
-        </div>
-
-        <div className="flex items-center gap-4 text-[9px] font-bold uppercase tracking-wider">
-          <div className="flex items-center gap-1.5">
-            <div className="w-2.5 h-2.5 rounded-full bg-blue-500/60" />
-            <span className="text-slate-500 dark:text-slate-400">
-              {mode === "yearly" ? "Big Brew Intensity" : "Big Brew"}
-            </span>
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+          <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+            {(["weekly", "monthly", "yearly"] as RhythmMode[]).map((m) => (
+              <button
+                key={m}
+                onClick={() => setMode(m)}
+                className={cn(
+                  "px-3 md:px-4 py-1.5 rounded-lg text-[9px] md:text-[10px] font-black uppercase tracking-wider transition-all",
+                  mode === m
+                    ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm"
+                    : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200",
+                )}
+              >
+                {m}
+              </button>
+            ))}
           </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-2.5 h-2.5 rounded-full bg-amber-400/60" />
-            <span className="text-slate-500 dark:text-slate-400">
-              {mode === "yearly" ? "Small Brew Intensity" : "Small Brew"}
-            </span>
+
+          <div className="flex items-center gap-3 md:gap-4 text-[8px] md:text-[9px] font-bold uppercase tracking-wider">
+            <div className="flex items-center gap-1.5">
+              <div className="w-2 md:w-2.5 h-2 md:h-2.5 rounded-full bg-blue-500/60" />
+              <span className="text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                {mode === "yearly" ? "Big Intensity" : "Big"}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-2 md:w-2.5 h-2 md:h-2.5 rounded-full bg-amber-400/60" />
+              <span className="text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                {mode === "yearly" ? "Small Intensity" : "Small"}
+              </span>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="relative h-[500px] flex group pt-8">
+      <div className="relative h-[400px] md:h-[500px] flex group pt-8">
         {/* Y-Axis Labels (Time) */}
-        <div className="relative w-12 border-r border-slate-100 dark:border-slate-800">
+        <div className="relative w-10 md:w-12 border-r border-slate-100 dark:border-slate-800">
           {[7, 8, 10, 12, 14, 16, 18].map((h) => (
             <span
               key={h}
-              className="absolute right-3 -translate-y-1/2 text-[10px] font-bold text-slate-400 dark:text-slate-500 whitespace-nowrap"
+              className="absolute right-2 md:right-3 -translate-y-1/2 text-[9px] md:text-[10px] font-bold text-slate-400 dark:text-slate-500 whitespace-nowrap"
               style={{ top: `${((h - MIN_HOUR) / HOUR_RANGE) * 100}%` }}
             >
-              {h === 12 ? "12 PM" : h > 12 ? `${h - 12} PM` : `${h} AM`}
+              {h === 12 ? "12PM" : h > 12 ? `${h - 12}PM` : `${h}AM`}
             </span>
           ))}
         </div>
@@ -270,7 +280,9 @@ export function AggregateRhythm({
 
               // Calculate size and opacity for aggregated views (all now aggregate)
               const count = brew.count || 1;
-              const size = Math.min(6, 3 + Math.log2(count) * 1.5); // Grow with count
+              // Smaller base size on mobile (2 instead of 3)
+              const baseSize = isMobile ? 2 : 3;
+              const size = Math.min(6, baseSize + Math.log2(count) * 1.5); // Grow with count
               const opacity = Math.min(1, 0.4 + (count - 1) * 0.15);
 
               return (
@@ -286,8 +298,8 @@ export function AggregateRhythm({
                   style={{
                     top: `${yPos}%`,
                     left: `${xPos}%`,
-                    width: `${size * 4}px`,
-                    height: `${size * 4}px`,
+                    width: `${size * (isMobile ? 3 : 4)}px`,
+                    height: `${size * (isMobile ? 3 : 4)}px`,
                     opacity: opacity,
                   }}
                   title={`${brew.dateStr} @ ${brew.timeStr}`}

@@ -150,13 +150,13 @@ describe('AnalyzePage Component', () => {
         return labels.find(el => (el as HTMLElement).style.top !== '') as HTMLElement;
       };
 
-      const label7AM = getLabelByTop('7 AM');
-      const label8AM = getLabelByTop('8 AM');
-      const label10AM = getLabelByTop('10 AM');
-      const label12PM = getLabelByTop('12 PM');
-      const label2PM = getLabelByTop('2 PM');
-      const label4PM = getLabelByTop('4 PM');
-      const label6PM = getLabelByTop('6 PM');
+      const label7AM = getLabelByTop('7AM');
+      const label8AM = getLabelByTop('8AM');
+      const label10AM = getLabelByTop('10AM');
+      const label12PM = getLabelByTop('12PM');
+      const label2PM = getLabelByTop('2PM');
+      const label4PM = getLabelByTop('4PM');
+      const label6PM = getLabelByTop('6PM');
 
       expect(label7AM.style.top).toBe('0%');
       expect(label8AM.style.top).toContain('9.09');

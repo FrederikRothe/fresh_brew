@@ -97,13 +97,13 @@ export function BrewTimeline({ history, predictedNextBrew }: BrewTimelineProps) 
       
       {/* 1. Prediction Banner Section */}
       {predictedNextBrew && (
-        <div className="p-8 pb-6 flex flex-col md:flex-row items-center justify-between gap-6 border-b border-slate-100 dark:border-amber-900/10">
+        <div className="p-6 md:p-8 pb-6 flex flex-col md:flex-row items-center justify-between gap-6 border-b border-slate-100 dark:border-amber-900/10">
           <div className="flex items-center gap-5">
-            <div className="bg-amber-500 rounded-2xl p-3.5 shadow-lg shadow-amber-500/20">
-              <Sparkles className="w-6 h-6 text-white" />
+            <div className="bg-amber-500 rounded-2xl p-3 md:p-3.5 shadow-lg shadow-amber-500/20">
+              <Sparkles className="w-5 h-5 md:w-6 md:h-6 text-white" />
             </div>
             <div className="space-y-1 text-center md:text-left">
-              <h3 className="text-slate-900 dark:text-white font-black uppercase tracking-tight text-2xl flex items-center justify-center md:justify-start gap-2">
+              <h3 className="text-slate-900 dark:text-white font-black uppercase tracking-tight text-xl md:text-2xl flex items-center justify-center md:justify-start gap-2">
                 Next Brew Predicted
                 <div className="group relative flex items-center">
                   <Info className="w-4 h-4 text-slate-300 dark:text-amber-500/40 cursor-help transition-colors group-hover:text-amber-500" />
@@ -120,29 +120,35 @@ export function BrewTimeline({ history, predictedNextBrew }: BrewTimelineProps) 
               </p>
             </div>
           </div>
-          <div className="flex flex-col items-center md:items-end">
-            <span className="text-7xl font-black text-amber-600 dark:text-amber-500 tabular-nums leading-none tracking-tighter drop-shadow-[0_0_15px_rgba(245,158,11,0.2)] dark:drop-shadow-[0_0_15px_rgba(245,158,11,0.3)]">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9, y: 10 }}
+            whileInView={{ opacity: 1, scale: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="flex flex-col items-center md:items-end"
+          >
+            <span className="text-5xl md:text-7xl font-black text-amber-600 dark:text-amber-500 tabular-nums leading-none tracking-tighter drop-shadow-[0_0_15px_rgba(245,158,11,0.2)] dark:drop-shadow-[0_0_15px_rgba(245,158,11,0.3)]">
               {predictedNextBrew.time}
             </span>
             <span className="text-[10px] font-black text-amber-600/40 dark:text-amber-500/40 uppercase tracking-[0.4em] mt-3">
               Estimated Time
             </span>
-          </div>
+          </motion.div>
         </div>
       )}
 
       {/* 2. Timeline Section */}
-      <div className="p-8 pt-10">
-        <div className="flex items-end justify-between mb-10">
-          <div className="space-y-1">
+      <div className="p-6 md:p-8 pt-10">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 md:gap-0 mb-10 px-1 md:px-0">
+          <div className="space-y-1 text-center md:text-left">
             <h4 className="text-slate-900/90 dark:text-white font-black uppercase tracking-widest text-base">
               Daily Rhythm
             </h4>
-            <p className="text-amber-600/30 dark:text-amber-500/30 text-[10px] font-black uppercase tracking-[0.2em]">
+            <p className="text-amber-600/40 dark:text-amber-500/40 text-[10px] font-black uppercase tracking-[0.2em]">
               Actual vs. Typical
             </p>
           </div>
-          <div className="flex items-center gap-8 text-[10px] font-black uppercase tracking-[0.2em] pb-1">
+          <div className="flex items-center justify-center md:justify-end gap-6 md:gap-8 text-[10px] font-black uppercase tracking-[0.2em] pb-1">
             <div className="flex items-center gap-2.5">
               <div className="w-3 h-3 rounded-full bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]" />
               <span className="text-slate-500 dark:text-white/40">Actual</span>
@@ -155,13 +161,13 @@ export function BrewTimeline({ history, predictedNextBrew }: BrewTimelineProps) 
         </div>
 
         <div 
-          className="relative h-24 flex items-center mb-6 px-12"
+          className="relative h-24 flex items-center mb-6 px-4 md:px-12"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
           data-testid="timeline-container"
         >
           {/* Timeline Lines */}
-          <div className="absolute left-12 right-12 h-full flex flex-col justify-center">
+          <div className="absolute left-4 md:left-12 right-4 md:right-12 h-full flex flex-col justify-center">
             {/* Typical Line */}
             <motion.div 
               animate={{ 
@@ -268,15 +274,15 @@ export function BrewTimeline({ history, predictedNextBrew }: BrewTimelineProps) 
         </div>
 
         {/* Time Labels */}
-        <div className="relative h-6 mt-10 px-12">
+        <div className="relative h-6 mt-10 px-4 md:px-12">
           <div className="relative w-full">
             {[7, 9, 11, 13, 15, 17, 19].map((h) => (
               <span 
                 key={h} 
-                className="absolute -translate-x-1/2 text-[10px] font-black text-slate-300 dark:text-amber-500/20 tabular-nums uppercase tracking-widest"
+                className="absolute -translate-x-1/2 text-[10px] font-black text-slate-300 dark:text-amber-500/20 tabular-nums uppercase tracking-widest whitespace-nowrap"
                 style={{ left: `${getX(h * 3600)}%` }}
               >
-                {h > 12 ? `${h - 12} PM` : h === 12 ? "12 PM" : `${h} AM`}
+                {h > 12 ? `${h - 12}PM` : h === 12 ? "12PM" : `${h}AM`}
               </span>
             ))}
           </div>

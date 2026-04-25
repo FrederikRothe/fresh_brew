@@ -89,7 +89,7 @@ export function CoffeeBurnChart({ history }: CoffeeBurnChartProps) {
         </div>
       </div>
 
-      <div className="relative h-48 flex items-end gap-1 md:gap-2 px-2">
+      <div className="relative h-48 flex items-end gap-px md:gap-2 px-1 md:px-2">
         {data.map((val, i) => {
           const height = (val / maxVal) * 100;
           const isToday = mode === "weekly" && i === 6;
@@ -97,7 +97,7 @@ export function CoffeeBurnChart({ history }: CoffeeBurnChartProps) {
           return (
             <div key={i} className="flex-1 min-w-0 flex flex-col items-center gap-1 group">
               <span className={cn(
-                "text-[10px] font-black min-h-[16px]",
+                "text-[8px] md:text-[10px] font-black min-h-[16px] whitespace-nowrap",
                 isToday ? "text-amber-600 dark:text-amber-500" : "text-slate-500 dark:text-slate-400"
               )}>
                 {mode !== "monthly" && val > 0 ? `${val}g` : ""}
@@ -105,17 +105,19 @@ export function CoffeeBurnChart({ history }: CoffeeBurnChartProps) {
               <div className="relative w-full flex flex-col justify-end h-32">
                 <div
                   className={cn(
-                    "w-full rounded-t-lg transition-all duration-500 ease-out min-h-[4px]",
+                    "w-full rounded-t-[2px] md:rounded-t-lg transition-all duration-500 ease-out min-h-[2px] md:min-h-[4px]",
                     isToday ? "bg-amber-500" : "bg-slate-200 dark:bg-slate-800 group-hover:bg-slate-300 dark:group-hover:bg-slate-700"
                   )}
                   style={{ height: `${height}%` }}
                 />
               </div>
               <span className={cn(
-                "text-[9px] font-bold uppercase tracking-tighter",
+                "text-[8px] md:text-[9px] font-bold uppercase tracking-tighter",
                 isToday ? "text-amber-600 dark:text-amber-500" : "text-slate-400 dark:text-slate-600"
               )}>
-                {labels[i]}
+                {mode === "monthly" 
+                  ? (parseInt(labels[i]) % 5 === 0 || i === 0 || i === data.length - 1 ? labels[i] : "") 
+                  : labels[i]}
               </span>
             </div>
           );
