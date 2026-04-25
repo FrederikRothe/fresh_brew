@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
- // Clock removed
 import { format, getDay, getDate, getMonth } from "date-fns";
 import { cn } from "@/lib/utils";
+import { SMALL_BATCH_THRESHOLD_MS } from "@/lib/constants";
 
 type RhythmMode = "weekly" | "monthly" | "yearly";
 
@@ -78,7 +78,7 @@ export function AggregateRhythm({
       if (unitIdx === null) return;
 
       const hour = d.getHours() + Math.floor(d.getMinutes() / 20) * slotSize;
-      const isSmall = h.durationMs < 5 * 60 * 1000;
+      const isSmall = h.durationMs <= SMALL_BATCH_THRESHOLD_MS;
       const key = `${unitIdx}-${hour.toFixed(2)}`;
 
       const existing = aggregated.get(key) || {

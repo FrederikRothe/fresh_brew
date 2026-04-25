@@ -10,6 +10,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Coffee, Info, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { SMALL_BATCH_THRESHOLD_MS } from "@/lib/constants";
 
 interface BrewTimelineProps {
   history: { timestamp: number; durationMs: number }[];
@@ -41,7 +42,7 @@ export function BrewTimeline({ history, predictedNextBrew }: BrewTimelineProps) 
       .map((h) => ({
         seconds: getCphSecondsSinceMidnight(h.timestamp),
         timestamp: h.timestamp,
-        isSmall: h.durationMs <= 5 * 60 * 1000,
+        isSmall: h.durationMs <= SMALL_BATCH_THRESHOLD_MS,
       }))
       .sort((a, b) => a.seconds - b.seconds);
 
@@ -78,7 +79,7 @@ export function BrewTimeline({ history, predictedNextBrew }: BrewTimelineProps) 
         seqIndex: parseInt(idx),
         avgSeconds,
         avgTime,
-        isSmall: avgDuration <= 5 * 60 * 1000,
+        isSmall: avgDuration <= SMALL_BATCH_THRESHOLD_MS,
         count: data.seconds.length,
       };
     }).sort((a, b) => a.avgSeconds - b.avgSeconds);
