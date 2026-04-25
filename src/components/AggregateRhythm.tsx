@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
- // Clock removed
+import { useState, useEffect } from "react";
 import { format, getDay, getDate, getMonth } from "date-fns";
 import { cn } from "@/lib/utils";
+import { SMALL_BATCH_THRESHOLD_MS } from "@/lib/constants";
 
 type RhythmMode = "weekly" | "monthly" | "yearly";
 
@@ -23,6 +23,20 @@ export function AggregateRhythm({
   history: { timestamp: number; durationMs: number }[];
 }) {
   const [mode, setMode] = useState<RhythmMode>("weekly");
+  const [isMobile, setIsMobile] = useState(false);
+  const [clickedIdx, setClickedIdx] = useState<number | null>(null);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Close tooltip on mode change
+  useEffect(() => {
+    setClickedIdx(null);
+  }, [mode]);
 
   const now = new Date();
   let currentIdx: number | null = null;
@@ -43,7 +57,6 @@ export function AggregateRhythm({
   const HOUR_RANGE = MAX_HOUR - MIN_HOUR;
 
   let units: string[] = [];
-  let processedData: ProcessedBrew[] = [];
 
   // Group into 20-minute slots (0.33 hours) for aggregation
   const slotSize = 1 / 3;
@@ -65,7 +78,7 @@ export function AggregateRhythm({
       if (unitIdx === null) return;
 
       const hour = d.getHours() + Math.floor(d.getMinutes() / 20) * slotSize;
-      const isSmall = h.durationMs < 5 * 60 * 1000;
+      const isSmall = h.durationMs <= SMALL_BATCH_THRESHOLD_MS;
       const key = `${unitIdx}-${hour.toFixed(2)}`;
 
       const existing = aggregated.get(key) || {
@@ -142,7 +155,7 @@ export function AggregateRhythm({
     });
 
   return (
-    <div className="w-full space-y-8">
+    <div className="w-full space-y-6 md:space-y-8" onClick={() => setClickedIdx(null)}>
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
           <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
@@ -152,49 +165,51 @@ export function AggregateRhythm({
           </p>
         </div>
 
-        <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl self-start">
-          {(["weekly", "monthly", "yearly"] as RhythmMode[]).map((m) => (
-            <button
-              key={m}
-              onClick={() => setMode(m)}
-              className={cn(
-                "px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all",
-                mode === m
-                  ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm"
-                  : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200",
-              )}
-            >
-              {m}
-            </button>
-          ))}
-        </div>
-
-        <div className="flex items-center gap-4 text-[9px] font-bold uppercase tracking-wider">
-          <div className="flex items-center gap-1.5">
-            <div className="w-2.5 h-2.5 rounded-full bg-blue-500 dark:bg-blue-400 shadow-[0_0_8px_rgba(59,130,246,0.4)]" />
-            <span className="text-slate-500 dark:text-slate-400">
-              {mode === "yearly" ? "Big Brew Intensity" : "Big Brew"}
-            </span>
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+          <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+            {(["weekly", "monthly", "yearly"] as RhythmMode[]).map((m) => (
+              <button
+                key={m}
+                onClick={() => setMode(m)}
+                className={cn(
+                  "px-3 md:px-4 py-1.5 rounded-lg text-[9px] md:text-[10px] font-black uppercase tracking-wider transition-all",
+                  mode === m
+                    ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm"
+                    : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200",
+                )}
+              >
+                {m}
+              </button>
+            ))}
           </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.4)]" />
-            <span className="text-slate-500 dark:text-slate-400">
-              {mode === "yearly" ? "Small Brew Intensity" : "Small Brew"}
-            </span>
+
+          <div className="flex items-center gap-3 md:gap-4 text-[8px] md:text-[9px] font-bold uppercase tracking-wider">
+            <div className="flex items-center gap-1.5">
+              <div className="w-2 md:w-2.5 h-2 md:h-2.5 rounded-full bg-blue-500 dark:bg-blue-400 shadow-[0_0_8px_rgba(59,130,246,0.4)]" />
+              <span className="text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                {mode === "yearly" ? "Big Intensity" : "Big"}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-2 md:w-2.5 h-2 md:h-2.5 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.4)]" />
+              <span className="text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                {mode === "yearly" ? "Small Intensity" : "Small"}
+              </span>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="relative h-[500px] flex group pt-8">
+      <div className="relative h-[400px] md:h-[500px] flex group pt-8">
         {/* Y-Axis Labels (Time) */}
-        <div className="relative w-12 border-r border-slate-100 dark:border-slate-800">
+        <div className="relative w-10 md:w-12 border-r border-slate-100 dark:border-slate-800">
           {[7, 8, 10, 12, 14, 16, 18].map((h) => (
             <span
               key={h}
-              className="absolute right-3 -translate-y-1/2 text-[10px] font-bold text-slate-400 dark:text-slate-500 whitespace-nowrap"
+              className="absolute right-2 md:right-3 -translate-y-1/2 text-[9px] md:text-[10px] font-bold text-slate-400 dark:text-slate-500 whitespace-nowrap"
               style={{ top: `${((h - MIN_HOUR) / HOUR_RANGE) * 100}%` }}
             >
-              {h === 12 ? "12 PM" : h > 12 ? `${h - 12} PM` : `${h} AM`}
+              {h === 12 ? "12PM" : h > 12 ? `${h - 12}PM` : `${h}AM`}
             </span>
           ))}
         </div>
@@ -241,8 +256,9 @@ export function AggregateRhythm({
 
               // Calculate size and opacity
               const count = brew.count || 1;
-              const size = Math.min(8, 4 + Math.log2(count) * 2); // Slightly larger
-              const opacity = Math.min(1, 0.6 + (count - 1) * 0.1); // Higher base opacity
+              const baseSize = isMobile ? 3 : 4;
+              const size = Math.min(8, baseSize + Math.log2(count) * 2);
+              const opacity = Math.min(1, 0.6 + (count - 1) * 0.1);
 
               // Offset if both big and small brews exist in the same slot
               const xOffset = brew.hasOther ? (brew.isSmall ? 4 : -4) : 0;
@@ -253,12 +269,19 @@ export function AggregateRhythm({
               return (
                 <div
                   key={i}
-                  className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer pointer-events-auto group/dot z-10 hover:z-50 transition-transform"
+                  className={cn(
+                    "absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer pointer-events-auto group/dot z-10 transition-transform",
+                    clickedIdx === i ? "z-50 scale-125" : "hover:z-50"
+                  )}
                   style={{
                     top: `${yPos}%`,
                     left: `calc(${xPos}% + ${xOffset}px)`,
-                    width: `${size * 4}px`,
-                    height: `${size * 4}px`,
+                    width: `${size * (isMobile ? 3 : 4)}px`,
+                    height: `${size * (isMobile ? 3 : 4)}px`,
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setClickedIdx(clickedIdx === i ? null : i);
                   }}
                 >
                   {/* Visual Dot with specific opacity */}
@@ -269,6 +292,7 @@ export function AggregateRhythm({
                         ? "bg-amber-400 shadow-[0_0_12px_rgba(251,191,36,0.25)]"
                         : "bg-blue-500 dark:bg-blue-400 shadow-[0_0_12px_rgba(59,130,246,0.25)]",
                       "ring-2 ring-white dark:ring-slate-800",
+                      clickedIdx === i && "ring-blue-500 dark:ring-blue-400 scale-150"
                     )}
                     style={{ opacity }}
                   />
@@ -276,10 +300,13 @@ export function AggregateRhythm({
                   {/* Tooltip (Solid 100% opacity) */}
                   <div
                     className={cn(
-                      "absolute top-1/2 -translate-y-1/2 px-2.5 py-1.5 bg-slate-900 dark:bg-slate-950 text-white rounded-xl opacity-0 group-hover/dot:opacity-100 transition-all duration-200 whitespace-nowrap pointer-events-none z-50 shadow-2xl border border-white/10 flex items-center gap-2",
+                      "absolute top-1/2 -translate-y-1/2 px-2.5 py-1.5 bg-slate-900 dark:bg-slate-950 text-white rounded-xl transition-all duration-200 whitespace-nowrap pointer-events-none z-50 shadow-2xl border border-white/10 flex items-center gap-2",
                       isRightSide
                         ? "right-full mr-3 group-hover/dot:-translate-x-1"
                         : "left-full ml-3 group-hover/dot:translate-x-1",
+                      clickedIdx === i 
+                        ? (isRightSide ? "opacity-100 -translate-x-1" : "opacity-100 translate-x-1")
+                        : "opacity-0 group-hover/dot:opacity-100"
                     )}
                   >
                     <div
