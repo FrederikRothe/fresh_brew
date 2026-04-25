@@ -247,6 +247,9 @@ export function AggregateRhythm({
               // Offset if both big and small brews exist in the same slot
               const xOffset = brew.hasOther ? (brew.isSmall ? 4 : -4) : 0;
 
+              // Determine tooltip position based on which side of the chart we're on
+              const isRightSide = brew.unitIdx > units.length / 2;
+
               return (
                 <div
                   key={i}
@@ -265,7 +268,14 @@ export function AggregateRhythm({
                     opacity: opacity,
                   }}
                 >
-                  <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2.5 px-2.5 py-1.5 bg-slate-900 dark:bg-slate-800 text-white rounded-xl opacity-0 group-hover/dot:opacity-100 group-hover/dot:translate-x-1 transition-all duration-200 whitespace-nowrap pointer-events-none z-50 shadow-2xl border border-white/10 flex items-center gap-2">
+                  <div
+                    className={cn(
+                      "absolute top-1/2 -translate-y-1/2 px-2.5 py-1.5 bg-slate-900 dark:bg-slate-800 text-white rounded-xl opacity-0 group-hover/dot:opacity-100 transition-all duration-200 whitespace-nowrap pointer-events-none z-50 shadow-2xl border border-white/10 flex items-center gap-2",
+                      isRightSide
+                        ? "right-full mr-2.5 group-hover/dot:-translate-x-1"
+                        : "left-full ml-2.5 group-hover/dot:translate-x-1",
+                    )}
+                  >
                     <div
                       className={cn(
                         "w-2 h-2 rounded-full",
