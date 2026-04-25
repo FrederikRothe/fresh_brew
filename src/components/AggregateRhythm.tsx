@@ -258,7 +258,7 @@ export function AggregateRhythm({
                     brew.isSmall
                       ? "bg-amber-400 hover:bg-amber-500 shadow-[0_0_12px_rgba(251,191,36,0.25)]"
                       : "bg-blue-500 dark:bg-blue-400 hover:bg-blue-600 shadow-[0_0_12px_rgba(59,130,246,0.25)]",
-                    "ring-2 ring-white dark:ring-slate-800 z-10",
+                    "ring-2 ring-white dark:ring-slate-800 z-10 hover:z-50",
                   )}
                   style={{
                     top: `${yPos}%`,
