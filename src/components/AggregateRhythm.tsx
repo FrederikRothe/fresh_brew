@@ -265,7 +265,7 @@ export function AggregateRhythm({
                     opacity: opacity,
                   }}
                 >
-                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2.5 px-2.5 py-1.5 bg-slate-900 dark:bg-slate-800 text-white rounded-xl opacity-0 group-hover/dot:opacity-100 group-hover/dot:-translate-y-1.5 transition-all duration-200 whitespace-nowrap pointer-events-none z-50 shadow-2xl border border-white/10 flex items-center gap-2">
+                  <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2.5 px-2.5 py-1.5 bg-slate-900 dark:bg-slate-800 text-white rounded-xl opacity-0 group-hover/dot:opacity-100 group-hover/dot:translate-x-1 transition-all duration-200 whitespace-nowrap pointer-events-none z-50 shadow-2xl border border-white/10 flex items-center gap-2">
                     <div
                       className={cn(
                         "w-2 h-2 rounded-full",
