@@ -19,6 +19,7 @@ export default function ThemeToggle() {
     setTheme(initialTheme);
     document.documentElement.classList.add(initialTheme);
     document.documentElement.classList.remove(initialTheme === "dark" ? "light" : "dark");
+    document.documentElement.classList.add("transition-colors", "duration-300");
   }, []);
 
   const toggleTheme = () => {

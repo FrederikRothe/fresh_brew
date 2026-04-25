@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useId } from "react";
+import { useState, useId, useEffect } from "react";
 import { ChevronDown, ChevronUp, LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -21,6 +21,20 @@ export function CollapsibleSection({
 }: CollapsibleSectionProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   const contentId = useId();
+  const storageKey = `collapsible_section_${title.toLowerCase().replace(/\s+/g, "_")}`;
+
+  useEffect(() => {
+    const savedState = localStorage.getItem(storageKey);
+    if (savedState !== null) {
+      setIsOpen(savedState === "open");
+    }
+  }, [storageKey]);
+
+  const toggleOpen = () => {
+    const newState = !isOpen;
+    setIsOpen(newState);
+    localStorage.setItem(storageKey, newState ? "open" : "collapsed");
+  };
 
   return (
     <div
@@ -30,7 +44,7 @@ export function CollapsibleSection({
       )}
     >
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={toggleOpen}
         aria-expanded={isOpen}
         aria-controls={contentId}
         className="w-full flex items-center justify-between p-6 md:p-8 transition-colors group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-inset"
