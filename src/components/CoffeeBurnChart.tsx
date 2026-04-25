@@ -97,10 +97,13 @@ export function CoffeeBurnChart({ history }: CoffeeBurnChartProps) {
           return (
             <div key={i} className="flex-1 min-w-0 flex flex-col items-center gap-1 group">
               <span className={cn(
-                "text-[8px] md:text-[10px] font-black min-h-[16px] whitespace-nowrap",
-                isToday ? "text-amber-600 dark:text-amber-500" : "text-slate-500 dark:text-slate-400"
+                "text-[8px] md:text-[10px] font-black min-h-[16px] whitespace-nowrap transition-opacity",
+                isToday ? "text-amber-600 dark:text-amber-500" : "text-slate-500 dark:text-slate-400",
+                // Hide labels if they would overlap (Monthly and Yearly on mobile)
+                // Show them on hover
+                mode !== "weekly" && "opacity-0 group-hover:opacity-100 md:opacity-100"
               )}>
-                {mode !== "monthly" && val > 0 ? `${val}g` : ""}
+                {val > 0 ? `${val}g` : ""}
               </span>
               <div className="relative w-full flex flex-col justify-end h-32">
                 <div
