@@ -17,6 +17,7 @@ interface BrewTimelineProps {
     time: string;
     sequenceIndex: number;
     dayName: string;
+    isSmall: boolean;
   } | null;
 }
 
@@ -97,16 +98,31 @@ export function BrewTimeline({ history, predictedNextBrew }: BrewTimelineProps) 
       
       {/* 1. Prediction Banner Section */}
       {predictedNextBrew && (
-        <div className="p-8 pb-6 flex flex-col md:flex-row items-center justify-between gap-6 border-b border-slate-100 dark:border-amber-900/10">
+        <div className={cn(
+          "p-8 pb-6 flex flex-col md:flex-row items-center justify-between gap-6 border-b",
+          predictedNextBrew.isSmall 
+            ? "border-amber-100 dark:border-amber-900/10" 
+            : "border-blue-100 dark:border-blue-900/10"
+        )}>
           <div className="flex items-center gap-5">
-            <div className="bg-amber-500 rounded-2xl p-3.5 shadow-lg shadow-amber-500/20">
+            <div className={cn(
+              "rounded-2xl p-3.5 shadow-lg",
+              predictedNextBrew.isSmall 
+                ? "bg-amber-500 shadow-amber-500/20" 
+                : "bg-blue-500 shadow-blue-500/20"
+            )}>
               <Sparkles className="w-6 h-6 text-white" />
             </div>
             <div className="space-y-1 text-center md:text-left">
               <h3 className="text-slate-900 dark:text-white font-black uppercase tracking-tight text-2xl flex items-center justify-center md:justify-start gap-2">
                 Next Brew Predicted
                 <div className="group relative flex items-center">
-                  <Info className="w-4 h-4 text-slate-300 dark:text-amber-500/40 cursor-help transition-colors group-hover:text-amber-500" />
+                  <Info className={cn(
+                    "w-4 h-4 cursor-help transition-colors",
+                    predictedNextBrew.isSmall
+                      ? "text-slate-300 dark:text-amber-500/40 group-hover:text-amber-500"
+                      : "text-slate-300 dark:text-blue-500/40 group-hover:text-blue-500"
+                  )} />
                   <div className="invisible group-hover:visible absolute left-1/2 -translate-x-1/2 md:left-0 md:translate-x-0 bottom-full mb-3 w-56 bg-white dark:bg-slate-950 text-slate-900 dark:text-amber-50 text-[10px] p-4 rounded-2xl font-bold normal-case tracking-tight shadow-2xl z-50 border border-slate-200 dark:border-amber-900/30">
                     <div className="relative">
                       Averaged from historical brew times for today&apos;s sequence (pot #{predictedNextBrew.sequenceIndex} on a {predictedNextBrew.dayName}).
@@ -115,16 +131,31 @@ export function BrewTimeline({ history, predictedNextBrew }: BrewTimelineProps) 
                   </div>
                 </div>
               </h3>
-              <p className="text-amber-600/60 dark:text-amber-500/60 text-[10px] font-black uppercase tracking-[0.2em]">
+              <p className={cn(
+                "text-[10px] font-black uppercase tracking-[0.2em]",
+                predictedNextBrew.isSmall
+                  ? "text-amber-600/60 dark:text-amber-500/60"
+                  : "text-blue-600/60 dark:text-blue-500/60"
+              )}>
                 Based on your typical {predictedNextBrew.dayName} rhythm
               </p>
             </div>
           </div>
           <div className="flex flex-col items-center md:items-end">
-            <span className="text-7xl font-black text-amber-600 dark:text-amber-500 tabular-nums leading-none tracking-tighter drop-shadow-[0_0_15px_rgba(245,158,11,0.2)] dark:drop-shadow-[0_0_15px_rgba(245,158,11,0.3)]">
+            <span className={cn(
+              "text-7xl font-black tabular-nums leading-none tracking-tighter",
+              predictedNextBrew.isSmall
+                ? "text-amber-600 dark:text-amber-500 drop-shadow-[0_0_15px_rgba(245,158,11,0.2)] dark:drop-shadow-[0_0_15px_rgba(245,158,11,0.3)]"
+                : "text-blue-600 dark:text-blue-500 drop-shadow-[0_0_15px_rgba(59,130,246,0.2)] dark:drop-shadow-[0_0_15px_rgba(59,130,246,0.3)]"
+            )}>
               {predictedNextBrew.time}
             </span>
-            <span className="text-[10px] font-black text-amber-600/40 dark:text-amber-500/40 uppercase tracking-[0.4em] mt-3">
+            <span className={cn(
+              "text-[10px] font-black uppercase tracking-[0.4em] mt-3",
+              predictedNextBrew.isSmall
+                ? "text-amber-600/40 dark:text-amber-500/40"
+                : "text-blue-600/40 dark:text-blue-500/40"
+            )}>
               Estimated Time
             </span>
           </div>

@@ -126,6 +126,7 @@ export type PredictionData = {
   time: string;
   isOverdue: boolean;
   overdueMins: number;
+  isSmall: boolean;
 };
 
 export type BrewAnalytics = {
@@ -158,6 +159,7 @@ export async function getPredictedNextBrew(history?: BrewRecord[]): Promise<Pred
 
   // For predictive analytics
   const seqData: Record<number, Record<number, number[]>> = {}; // dayOfWeek -> seqIndex -> [secondsSinceMidnight]
+  const seqDurations: Record<number, Record<number, number[]>> = {}; // dayOfWeek -> seqIndex -> [durationMs]
   let lastDateStr = '';
   let currentSeq = 0;
 
@@ -177,6 +179,10 @@ export async function getPredictedNextBrew(history?: BrewRecord[]): Promise<Pred
     if (!seqData[dayOfWeek]) seqData[dayOfWeek] = {};
     if (!seqData[dayOfWeek][currentSeq]) seqData[dayOfWeek][currentSeq] = [];
     seqData[dayOfWeek][currentSeq].push(secondsSinceMidnight);
+
+    if (!seqDurations[dayOfWeek]) seqDurations[dayOfWeek] = {};
+    if (!seqDurations[dayOfWeek][currentSeq]) seqDurations[dayOfWeek][currentSeq] = [];
+    seqDurations[dayOfWeek][currentSeq].push(record.durationMs);
   }
 
   // Count how many brewed today so far
@@ -185,6 +191,7 @@ export async function getPredictedNextBrew(history?: BrewRecord[]): Promise<Pred
   // Next brew sequence for today
   const nextSeq = brewedTodayCount;
   const typicalTimes = seqData[todayDayOfWeek]?.[nextSeq];
+  const typicalDurations = seqDurations[todayDayOfWeek]?.[nextSeq];
 
   if (typicalTimes && typicalTimes.length > 0) {
     const avgSeconds = typicalTimes.reduce((a, b) => a + b, 0) / typicalTimes.length;
@@ -197,10 +204,15 @@ export async function getPredictedNextBrew(history?: BrewRecord[]): Promise<Pred
     const isOverdue = avgSeconds <= nowSeconds;
     const overdueMins = isOverdue ? Math.floor((nowSeconds - avgSeconds) / 60) : 0;
 
+    // Determine if it's typically a small brew
+    const avgDuration = typicalDurations!.reduce((a, b) => a + b, 0) / typicalDurations!.length;
+    const isSmall = avgDuration <= SMALL_BATCH_THRESHOLD_MS;
+
     return {
       time: timeStr,
       isOverdue,
-      overdueMins
+      overdueMins,
+      isSmall
     };
   }
 

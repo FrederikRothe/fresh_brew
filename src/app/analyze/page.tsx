@@ -90,7 +90,8 @@ export default function AnalyzePage() {
           predictedNextBrew={analytics.predictedNextBrew ? {
             time: analytics.predictedNextBrew.time,
             sequenceIndex: brewsToday + 1,
-            dayName: dayName
+            dayName: dayName,
+            isSmall: analytics.predictedNextBrew.isSmall
           } : null}
         />
 

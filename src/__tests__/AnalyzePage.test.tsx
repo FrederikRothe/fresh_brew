@@ -35,6 +35,7 @@ describe('AnalyzePage Component', () => {
       time: '14:30',
       isOverdue: false,
       overdueMins: 0,
+      isSmall: true,
     },
     totalLiters: 51.3,
     espressoEquivalent: 171,
