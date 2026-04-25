@@ -253,27 +253,33 @@ export function AggregateRhythm({
               return (
                 <div
                   key={i}
-                  className={cn(
-                    "absolute rounded-full -translate-x-1/2 -translate-y-1/2 transition-all hover:scale-150 cursor-pointer pointer-events-auto group/dot",
-                    brew.isSmall
-                      ? "bg-amber-400 hover:bg-amber-500 shadow-[0_0_12px_rgba(251,191,36,0.25)]"
-                      : "bg-blue-500 dark:bg-blue-400 hover:bg-blue-600 shadow-[0_0_12px_rgba(59,130,246,0.25)]",
-                    "ring-2 ring-white dark:ring-slate-800 z-10 hover:z-50",
-                  )}
+                  className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer pointer-events-auto group/dot z-10 hover:z-50 transition-transform"
                   style={{
                     top: `${yPos}%`,
                     left: `calc(${xPos}% + ${xOffset}px)`,
                     width: `${size * 4}px`,
                     height: `${size * 4}px`,
-                    opacity: opacity,
                   }}
                 >
+                  {/* Visual Dot with specific opacity */}
+                  <div
+                    className={cn(
+                      "w-full h-full rounded-full transition-all group-hover/dot:scale-150",
+                      brew.isSmall
+                        ? "bg-amber-400 shadow-[0_0_12px_rgba(251,191,36,0.25)]"
+                        : "bg-blue-500 dark:bg-blue-400 shadow-[0_0_12px_rgba(59,130,246,0.25)]",
+                      "ring-2 ring-white dark:ring-slate-800",
+                    )}
+                    style={{ opacity }}
+                  />
+
+                  {/* Tooltip (Solid 100% opacity) */}
                   <div
                     className={cn(
                       "absolute top-1/2 -translate-y-1/2 px-2.5 py-1.5 bg-slate-900 dark:bg-slate-950 text-white rounded-xl opacity-0 group-hover/dot:opacity-100 transition-all duration-200 whitespace-nowrap pointer-events-none z-50 shadow-2xl border border-white/10 flex items-center gap-2",
                       isRightSide
-                        ? "right-full mr-2.5 group-hover/dot:-translate-x-1"
-                        : "left-full ml-2.5 group-hover/dot:translate-x-1",
+                        ? "right-full mr-3 group-hover/dot:-translate-x-1"
+                        : "left-full ml-3 group-hover/dot:translate-x-1",
                     )}
                   >
                     <div
