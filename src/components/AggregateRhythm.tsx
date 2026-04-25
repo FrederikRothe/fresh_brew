@@ -251,7 +251,7 @@ export function AggregateRhythm({
                 <div
                   key={i}
                   className={cn(
-                    "absolute rounded-full -translate-x-1/2 -translate-y-1/2 transition-all hover:scale-150 cursor-pointer pointer-events-auto",
+                    "absolute rounded-full -translate-x-1/2 -translate-y-1/2 transition-all hover:scale-150 cursor-pointer pointer-events-auto group/dot",
                     brew.isSmall
                       ? "bg-amber-400 hover:bg-amber-500 shadow-[0_0_12px_rgba(251,191,36,0.25)]"
                       : "bg-blue-500 dark:bg-blue-400 hover:bg-blue-600 shadow-[0_0_12px_rgba(59,130,246,0.25)]",
@@ -264,10 +264,22 @@ export function AggregateRhythm({
                     height: `${size * 4}px`,
                     opacity: opacity,
                   }}
-                  title={`${brew.dateStr} @ ${brew.timeStr}`}
                 >
-                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 text-[10px] font-bold py-1 px-2 rounded opacity-0 hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
-                    {brew.dateStr} @ {brew.timeStr}
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2.5 px-2.5 py-1.5 bg-slate-900 dark:bg-slate-800 text-white rounded-xl opacity-0 group-hover/dot:opacity-100 group-hover/dot:-translate-y-1.5 transition-all duration-200 whitespace-nowrap pointer-events-none z-50 shadow-2xl border border-white/10 flex items-center gap-2">
+                    <div
+                      className={cn(
+                        "w-2 h-2 rounded-full",
+                        brew.isSmall ? "bg-amber-400" : "bg-blue-400",
+                      )}
+                    />
+                    <div className="flex flex-col pr-1">
+                      <span className="text-[10px] font-black leading-none uppercase tracking-tighter">
+                        {brew.dateStr}
+                      </span>
+                      <span className="text-[8px] text-slate-400 dark:text-slate-500 font-bold mt-0.5">
+                        {brew.timeStr}
+                      </span>
+                    </div>
                   </div>
                 </div>
               );
