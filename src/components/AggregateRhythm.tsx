@@ -270,7 +270,7 @@ export function AggregateRhythm({
                 >
                   <div
                     className={cn(
-                      "absolute top-1/2 -translate-y-1/2 px-2.5 py-1.5 bg-slate-900 dark:bg-slate-800 text-white rounded-xl opacity-0 group-hover/dot:opacity-100 transition-all duration-200 whitespace-nowrap pointer-events-none z-50 shadow-2xl border border-white/10 flex items-center gap-2",
+                      "absolute top-1/2 -translate-y-1/2 px-2.5 py-1.5 bg-slate-900 dark:bg-slate-950 text-white rounded-xl opacity-0 group-hover/dot:opacity-100 transition-all duration-200 whitespace-nowrap pointer-events-none z-50 shadow-2xl border border-white/10 flex items-center gap-2",
                       isRightSide
                         ? "right-full mr-2.5 group-hover/dot:-translate-x-1"
                         : "left-full ml-2.5 group-hover/dot:translate-x-1",
