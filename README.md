@@ -1,28 +1,28 @@
-# Coffee Tracker (isitfresh) ☕
+# Coffee Tracker (isitfresh) ☕✨
 
-A high-performance Next.js 16 dashboard for tracking office coffee freshness and consumption patterns.
+A high-performance Next.js 16 dashboard for tracking office coffee freshness and consumption patterns. Keeping your team caffeinated and happy! 🚀
 
-## The Essence
+## The Essence ⚡️
 This project provides a real-time, high-visibility dashboard for shared office environments. It solves the "is there fresh coffee?" problem by tracking brew timestamps, managing freshness countdowns, and visualizing historical consumption habits.
 
-- **Real-time Status:** Live countdowns and color-coded freshness states (Fresh → Sour → Stale → Empty).
-- **Daily Counter:** Automatic midnight reset to track today's caffeine output.
-- **Consumption Analytics:** A dedicated public `/analyze` page visualizing weekly rhythms, usage peaks, and "Deep Dive" metrics (Liters, Caffeine load, Patience).
-- **Predictive Insight:** Smart estimation of the next brew time based on historical patterns for the current day of the week.
-- **Admin Control:** Secure "Brewer Mode" for starting Big (7m) or Small (4m) pots and **Waste Tracking** (logging coffee poured into the sink).
-- **Timezone Aware:** Hardcoded to **Copenhagen Time (CET/CEST)** for consistent office-wide analytics and midnight resets.
-- **Notifications:** Integrated Web Notifications and Slack Webhook alerts.
+- **Real-time Status:** Live countdowns and color-coded freshness states (Fresh 🟢 → Sour 🟡 → Stale 🟠 → Empty 🔴).
+- **Daily Counter:** Automatic midnight reset to track today's caffeine output. 📊
+- **Consumption Analytics:** A dedicated public `/analyze` page visualizing weekly rhythms, usage peaks, and "Deep Dive" metrics (Liters, Caffeine load, Patience). 📈
+- **Predictive Insight:** Smart estimation of the next brew time based on historical patterns for the current day of the week. 🔮
+- **Admin Control:** Secure "Brewer Mode" for starting Big (7m) or Small (4m) pots and **Waste Tracking** ♻️ (logging coffee poured into the sink).
+- **Timezone Aware:** Hardcoded to **Copenhagen Time (CET/CEST)** for consistent office-wide analytics and midnight resets. 🇩🇰
+- **Notifications:** Integrated Web Notifications and Slack Webhook alerts. 🔔
 
-## Tech Stack
+## Tech Stack 🛠️
 - **Framework:** Next.js 16 (App Router + Server Actions)
-- **Styling:** Tailwind CSS 4 (with optimized landscape mobile support)
-- **Storage:** Redis 7 (Persistent status and historical logs)
+- **Styling:** Tailwind CSS 4 (with optimized landscape mobile support) 🎨
+- **Storage:** Redis 7 (Persistent status and historical logs) 🗄️
 - **Icons:** Lucide React
-- **Testing:** Vitest + React Testing Library
+- **Testing:** Vitest + React Testing Library 🧪
 
-## Quick Start
+## Quick Start 🏁
 
-### 1. Environment Setup
+### 1. Environment Setup 🔑
 Create a `.env` file with the following:
 ```bash
 STORAGE_REDIS_URL=redis://localhost:6379
@@ -30,14 +30,14 @@ ADMIN_PSW=your_secret_password
 SLACK_WEBHOOK_URL=your_slack_webhook (optional)
 ```
 
-### 2. Run with Docker (Redis)
+### 2. Run with Docker (Redis) 🐳
 ```bash
 docker-compose up -d
 npm install
 npm run dev
 ```
 
-## Essential Commands
+## Essential Commands ⌨️
 
 | Command | Description |
 | :--- | :--- |
@@ -60,8 +60,11 @@ docker compose run --rm db-populate
 docker compose run --rm db-clear
 ```
 
-## Architecture
-- **`/analyze`**: Public consumption analytics dashboard.
-- **`/src/lib/storage.ts`**: Redis abstraction layer.
-- **`/src/app/actions.ts`**: Server-side logic for brews and analytics.
-- **`/src/components/Dashboard.tsx`**: Main interactive dashboard.
+## Architecture 🏗️
+- **`/analyze`**: Public consumption analytics dashboard. 📊
+- **`/src/lib/storage.ts`**: Redis abstraction layer. 💾
+- **`/src/app/actions.ts`**: Server-side logic for brews and analytics. ⚙️
+- **`/src/components/Dashboard.tsx`**: Main interactive dashboard. 🖥️
+
+---
+Made with ❤️ and plenty of ☕ in Copenhagen.
