@@ -127,7 +127,7 @@ export function CoffeeBurnChart({ history }: CoffeeBurnChartProps) {
                 />
               </div>
               <span className={cn(
-                "text-[8px] md:text-[9px] font-bold uppercase tracking-tighter",
+                "text-[8px] md:text-[9px] font-bold uppercase tracking-tighter min-h-[16px] flex items-center justify-center",
                 isToday ? "text-amber-600 dark:text-amber-500" : "text-slate-400 dark:text-slate-600"
               )}>
                 {mode === "monthly" 
