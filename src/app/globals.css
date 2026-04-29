@@ -39,8 +39,8 @@
 }
 
 .netlight {
-  --background: var(--color-nl-beige);
-  --foreground: var(--color-nl-black);
+  --background: #050510;
+  --foreground: var(--color-nl-white);
   font-family: var(--font-nl);
 }
 

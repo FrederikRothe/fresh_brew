@@ -176,16 +176,16 @@ export default function Dashboard({
         )}
       </div>
 
-      <div className="max-w-3xl w-full bg-white/90 dark:bg-slate-900/90 netlight:bg-white/95 backdrop-blur-md rounded-3xl md:rounded-[2.5rem] shadow-2xl p-5 md:p-12 landscape:p-4 landscape:md:p-12 flex flex-col items-center text-center space-y-8 md:space-y-10 landscape:space-y-4 landscape:md:space-y-10 border-4 border-white/20 dark:border-slate-800/50 netlight:border-nl-purple-d/20">
+      <div className="max-w-3xl w-full bg-white/90 dark:bg-slate-900/90 netlight:bg-black/60 backdrop-blur-md rounded-3xl md:rounded-[2.5rem] shadow-2xl p-5 md:p-12 landscape:p-4 landscape:md:p-12 flex flex-col items-center text-center space-y-8 md:space-y-10 landscape:space-y-4 landscape:md:space-y-10 border-4 border-white/20 dark:border-slate-800/50 netlight:border-nl-purple-d/30">
         {/* Header */}
         <div className="space-y-1 md:space-y-2 landscape:space-y-0 landscape:md:space-y-2">
           <div className="flex items-center justify-center space-x-2 md:space-x-3 mb-2 md:mb-4 landscape:mb-1 landscape:md:mb-4">
-            <Coffee className="w-8 h-8 md:w-10 md:h-10 landscape:w-6 landscape:h-6 landscape:md:w-10 landscape:md:h-10 text-slate-800 dark:text-slate-200 netlight:text-nl-purple-d" />
-            <h1 className="text-3xl md:text-5xl landscape:text-2xl landscape:md:text-5xl font-black tracking-tight text-slate-900 dark:text-slate-100 netlight:text-nl-purple-d uppercase">
+            <Coffee className="w-8 h-8 md:w-10 md:h-10 landscape:w-6 landscape:h-6 landscape:md:w-10 landscape:md:h-10 text-slate-800 dark:text-slate-200 netlight:text-nl-purple" />
+            <h1 className="text-3xl md:text-5xl landscape:text-2xl landscape:md:text-5xl font-black tracking-tight text-slate-900 dark:text-slate-100 netlight:text-white uppercase">
               Coffee Tracker
             </h1>
           </div>
-          <p className="text-slate-600 dark:text-slate-400 netlight:text-nl-purple font-medium text-[11px] md:text-lg landscape:text-[10px] landscape:md:text-lg uppercase tracking-widest px-2">
+          <p className="text-slate-600 dark:text-slate-400 netlight:text-nl-purple-l font-medium text-[11px] md:text-lg landscape:text-[10px] landscape:md:text-lg uppercase tracking-widest px-2">
             Office Refreshment Dashboard
           </p>
         </div>
@@ -196,8 +196,8 @@ export default function Dashboard({
             className={cn(
               "w-full border rounded-2xl py-3 px-4 flex items-center justify-between shadow-sm transition-colors",
               predictedNextBrew.isOverdue
-                ? "bg-amber-100/50 dark:bg-amber-950/20 border-amber-300/50 dark:border-amber-800/30 netlight:bg-nl-yellow/20 netlight:border-nl-yellow/50"
-                : "bg-amber-50/50 dark:bg-amber-950/10 border-amber-200/50 dark:border-amber-800/20 netlight:bg-nl-beige netlight:border-nl-purple-d/10",
+                ? "bg-amber-100/50 dark:bg-amber-950/20 border-amber-300/50 dark:border-amber-800/30 netlight:bg-nl-yellow/10 netlight:border-nl-yellow/30"
+                : "bg-amber-50/50 dark:bg-amber-950/10 border-amber-200/50 dark:border-amber-800/20 netlight:bg-nl-purple-d/10 netlight:border-nl-purple/20",
             )}
           >
             <div className="flex items-center gap-3">
@@ -206,13 +206,13 @@ export default function Dashboard({
                   "rounded-xl p-2",
                   predictedNextBrew.isOverdue
                     ? "bg-amber-200 dark:bg-amber-900/40 netlight:bg-nl-yellow"
-                    : "bg-amber-100 dark:bg-amber-900/30 netlight:bg-nl-purple-l",
+                    : "bg-amber-100 dark:bg-amber-900/30 netlight:bg-nl-purple",
                 )}
               >
                 {predictedNextBrew.isOverdue ? (
                   <AlertTriangle className="w-4 h-4 text-amber-700 dark:text-amber-400 netlight:text-nl-purple-d" />
                 ) : (
-                  <Sparkles className="w-4 h-4 text-amber-600 dark:text-amber-500 netlight:text-nl-purple-d" />
+                  <Sparkles className="w-4 h-4 text-amber-600 dark:text-amber-500 netlight:text-nl-white" />
                 )}
               </div>
               <div className="text-left">
@@ -220,8 +220,8 @@ export default function Dashboard({
                   className={cn(
                     "font-bold uppercase tracking-tight text-xs",
                     predictedNextBrew.isOverdue
-                      ? "text-amber-900 dark:text-amber-100 netlight:text-nl-purple-d"
-                      : "text-amber-900 dark:text-amber-100 netlight:text-nl-purple-d",
+                      ? "text-amber-900 dark:text-amber-100 netlight:text-nl-yellow"
+                      : "text-amber-900 dark:text-amber-100 netlight:text-nl-purple-l",
                   )}
                 >
                   {predictedNextBrew.isOverdue
@@ -232,7 +232,7 @@ export default function Dashboard({
                   className={cn(
                     "text-[10px] font-bold uppercase tracking-wider",
                     predictedNextBrew.isOverdue
-                      ? "text-amber-700/60 dark:text-amber-500/60 netlight:text-nl-purple/60"
+                      ? "text-amber-700/60 dark:text-amber-500/60 netlight:text-nl-yellow/60"
                       : "text-amber-700/60 dark:text-amber-500/60 netlight:text-nl-purple/60",
                   )}
                 >
@@ -247,8 +247,8 @@ export default function Dashboard({
                 className={cn(
                   "text-2xl font-black tabular-nums tracking-tighter",
                   predictedNextBrew.isOverdue
-                    ? "text-amber-600 dark:text-amber-500 netlight:text-nl-orange"
-                    : "text-amber-600 dark:text-amber-500 netlight:text-nl-purple-d",
+                    ? "text-amber-600 dark:text-amber-500 netlight:text-nl-yellow"
+                    : "text-amber-600 dark:text-amber-500 netlight:text-white",
                 )}
               >
                 {predictedNextBrew.time}
@@ -266,11 +266,11 @@ export default function Dashboard({
             </span>
 
             {isReset || lastBrew === null ? (
-              <div className="text-6xl md:text-9xl landscape:text-5xl landscape:md:text-9xl font-black tabular-nums tracking-tighter text-slate-300 dark:text-slate-800 netlight:text-nl-purple/30">
+              <div className="text-6xl md:text-9xl landscape:text-5xl landscape:md:text-9xl font-black tabular-nums tracking-tighter text-slate-300 dark:text-slate-800 netlight:text-nl-purple/20">
                 --:--
               </div>
             ) : (
-              <div className="text-6xl md:text-9xl landscape:text-5xl landscape:md:text-9xl font-black tabular-nums tracking-tighter netlight:text-white">
+              <div className="text-6xl md:text-9xl landscape:text-5xl landscape:md:text-9xl font-black tabular-nums tracking-tighter netlight:text-nl-yellow">
                 {displayHours > 0 &&
                   `${String(displayHours).padStart(2, "0")}:`}
                 {String(displayMins).padStart(2, "0")}:
@@ -282,7 +282,7 @@ export default function Dashboard({
               className={cn(
                 "mt-5 md:mt-6 landscape:mt-2 landscape:md:mt-6 px-5 md:px-6 py-1.5 md:py-2 rounded-full text-base md:text-xl landscape:text-sm landscape:md:text-xl font-bold uppercase tracking-wider",
                 statusColor,
-                "text-white shadow-lg animate-pulse netlight:bg-nl-yellow netlight:text-nl-purple-d netlight:shadow-nl-yellow/20",
+                "text-white shadow-lg animate-pulse netlight:bg-nl-purple netlight:text-white netlight:shadow-nl-purple/20",
               )}
             >
               {statusText}
@@ -304,7 +304,7 @@ export default function Dashboard({
             <button
               onClick={() => setShowWasteConfirm(true)}
               disabled={isWastePending}
-              className="bg-red-50 dark:bg-red-950/20 netlight:bg-nl-orange/10 p-5 md:p-6 landscape:p-3 landscape:md:p-6 rounded-2xl flex flex-col items-center justify-center border border-red-200 dark:border-red-900/30 netlight:border-nl-orange/30 hover:bg-red-100 dark:hover:bg-red-900/40 netlight:hover:bg-nl-orange/20 active:scale-95 transition-all group"
+              className="bg-red-50 dark:bg-red-950/20 netlight:bg-nl-orange/5 p-5 md:p-6 landscape:p-3 landscape:md:p-6 rounded-2xl flex flex-col items-center justify-center border border-red-200 dark:border-red-900/30 netlight:border-nl-orange/20 hover:bg-red-100 dark:hover:bg-red-900/40 netlight:hover:bg-nl-orange/10 active:scale-95 transition-all group"
             >
               {isWastePending ? (
                 <RefreshCw className="w-6 h-6 md:w-8 md:h-8 animate-spin text-red-600 dark:text-red-400 netlight:text-nl-orange" />
@@ -314,7 +314,7 @@ export default function Dashboard({
                     <Trash2 className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1 md:mr-1.5" />
                     Indicate Waste
                   </span>
-                  <span className="text-xl md:text-2xl font-black text-red-700 dark:text-red-300 netlight:text-nl-orange/80 uppercase tracking-tight">
+                  <span className="text-xl md:text-2xl font-black text-red-700 dark:text-red-300 netlight:text-nl-orange/60 uppercase tracking-tight">
                     Poured in sink
                   </span>
                 </>
@@ -323,15 +323,15 @@ export default function Dashboard({
           ) : (
             <div
               className={cn(
-                "bg-slate-100 dark:bg-slate-800/50 netlight:bg-nl-beige p-5 md:p-6 landscape:p-3 landscape:md:p-6 rounded-2xl flex flex-col items-center justify-center border border-slate-200 dark:border-slate-800 netlight:border-nl-purple-d/10",
+                "bg-slate-100 dark:bg-slate-800/50 netlight:bg-white/5 p-5 md:p-6 landscape:p-3 landscape:md:p-6 rounded-2xl flex flex-col items-center justify-center border border-slate-200 dark:border-slate-800 netlight:border-nl-purple/10",
                 "py-8 md:py-12 landscape:py-4 landscape:md:py-12",
               )}
             >
-              <span className="text-slate-500 dark:text-slate-400 netlight:text-nl-purple font-bold uppercase text-[10px] md:text-xs tracking-wider mb-1 md:mb-2 flex items-center">
+              <span className="text-slate-500 dark:text-slate-400 netlight:text-nl-purple-l/60 font-bold uppercase text-[10px] md:text-xs tracking-wider mb-1 md:mb-2 flex items-center">
                 <History className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1 md:mr-1.5" />
                 Daily Pot Count
               </span>
-              <span className="text-4xl md:text-5xl landscape:text-2xl landscape:md:text-5xl font-black text-slate-900 dark:text-slate-100 netlight:text-nl-purple-d">
+              <span className="text-4xl md:text-5xl landscape:text-2xl landscape:md:text-5xl font-black text-slate-900 dark:text-slate-100 netlight:text-nl-yellow">
                 {status.dailyBrewCount}
               </span>
             </div>
@@ -383,18 +383,18 @@ export default function Dashboard({
         <div className="w-full">
           <Link
             href="/analyze"
-            className="w-full flex items-center justify-between px-4 py-3 md:py-4 rounded-2xl bg-slate-100 dark:bg-slate-800 netlight:bg-nl-beige hover:bg-slate-200 dark:hover:bg-slate-700 netlight:hover:bg-nl-purple-l/50 border border-slate-200 dark:border-slate-700 netlight:border-nl-purple-d/10 text-slate-600 dark:text-slate-400 netlight:text-nl-purple-d hover:text-slate-900 dark:hover:text-slate-100 group"
+            className="w-full flex items-center justify-between px-4 py-3 md:py-4 rounded-2xl bg-slate-100 dark:bg-slate-800 netlight:bg-white/5 hover:bg-slate-200 dark:hover:bg-slate-700 netlight:hover:bg-white/10 border border-slate-200 dark:border-slate-700 netlight:border-nl-purple-d/20 text-slate-600 dark:text-slate-400 netlight:text-nl-purple-l hover:text-slate-900 dark:hover:text-slate-100 netlight:hover:text-white group"
           >
             <span className="flex items-center gap-2 font-black uppercase text-[11px] md:text-sm tracking-widest">
-              <BarChart2 className="w-4 h-4 md:w-5 md:h-5 text-slate-500 dark:text-slate-400 netlight:text-nl-purple group-hover:text-blue-500 dark:group-hover:text-blue-400 netlight:group-hover:text-nl-purple-d" />
+              <BarChart2 className="w-4 h-4 md:w-5 md:h-5 text-slate-500 dark:text-slate-400 netlight:text-nl-purple group-hover:text-blue-500 dark:group-hover:text-blue-400 netlight:group-hover:text-nl-yellow" />
               Analyze Consumption
             </span>
-            <ChevronRight className="w-4 h-4 md:w-5 md:h-5 text-slate-400 dark:text-slate-500 netlight:text-nl-purple group-hover:translate-x-1 transition-transform" />
+            <ChevronRight className="w-4 h-4 md:w-5 md:h-5 text-slate-400 dark:text-slate-500 netlight:text-nl-purple-l group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
 
         {/* Footer Hint */}
-        <p className="text-slate-400 dark:text-slate-500 font-semibold italic text-xs md:text-base landscape:text-[10px] landscape:md:text-base px-2">
+        <p className="text-slate-400 dark:text-slate-500 netlight:text-nl-purple/60 font-semibold italic text-xs md:text-base landscape:text-[10px] landscape:md:text-base px-2">
           &quot;{message}&quot;
         </p>
       </div>

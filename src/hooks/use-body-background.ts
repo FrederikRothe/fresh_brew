@@ -27,7 +27,7 @@ export function useBodyBackground(statusColor: string) {
         (window.matchMedia("(prefers-color-scheme: dark)").matches &&
           !document.documentElement.classList.contains("light"));
       
-      const fallback = isNetlight ? "#FFF0E6" : (isDark ? "#0a0a0a" : "#ffffff");
+      const fallback = isNetlight ? "#050510" : (isDark ? "#0a0a0a" : "#ffffff");
 
       const mapToUse = isNetlight ? netlightColorMap : colorMap;
       document.body.style.backgroundColor = mapToUse[statusColor] || fallback;
