@@ -66,13 +66,13 @@ export function CoffeeBurnChart({ history }: CoffeeBurnChartProps) {
     <div className="w-full space-y-8" onClick={() => setClickedIdx(null)}>
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
-          <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+          <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 netlight:text-nl-purple uppercase tracking-wider">
             Grams consumed {mode === "weekly" ? "last 7 days" : mode === "monthly" ? "this month" : "this year"}
           </p>
         </div>
 
         <div className="flex flex-col items-start md:items-end gap-2">
-          <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+          <div className="flex bg-slate-100 dark:bg-slate-800 netlight:bg-nl-beige p-1 rounded-xl">
             {(["weekly", "monthly", "yearly"] as ChartMode[]).map((m) => (
               <button
                 key={m}
@@ -80,15 +80,15 @@ export function CoffeeBurnChart({ history }: CoffeeBurnChartProps) {
                 className={cn(
                   "px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all",
                   mode === m
-                    ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm"
-                    : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200",
+                    ? "bg-white dark:bg-slate-700 netlight:bg-white text-slate-900 dark:text-slate-100 netlight:text-nl-purple-d shadow-sm"
+                    : "text-slate-500 dark:text-slate-400 netlight:text-nl-purple/60 hover:text-slate-700 dark:hover:text-slate-200 netlight:hover:text-nl-purple-d",
                 )}
               >
                 {m}
               </button>
             ))}
           </div>
-          <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">
+          <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 netlight:text-nl-purple-l uppercase tracking-widest px-1">
             {mode === "weekly" ? `Week ${format(now, "w")}` : mode === "monthly" ? format(now, "MMMM") : format(now, "yyyy")}
           </span>
         </div>
@@ -110,7 +110,7 @@ export function CoffeeBurnChart({ history }: CoffeeBurnChartProps) {
             >
               <span className={cn(
                 "text-[8px] md:text-[10px] font-black min-h-[16px] whitespace-nowrap transition-opacity",
-                isToday ? "text-amber-600 dark:text-amber-500" : "text-slate-500 dark:text-slate-400",
+                isToday ? "text-amber-600 dark:text-amber-500 netlight:text-nl-purple-d" : "text-slate-500 dark:text-slate-400 netlight:text-nl-purple/60",
                 // Always show for weekly mode as there is plenty of space.
                 // For Monthly/Yearly, hide by default to prevent overlap and show only on hover or if clicked.
                 mode !== "weekly" && (clickedIdx === i ? "opacity-100" : "opacity-0 group-hover:opacity-100")
@@ -121,14 +121,14 @@ export function CoffeeBurnChart({ history }: CoffeeBurnChartProps) {
                 <div
                   className={cn(
                     "w-full rounded-t-[2px] md:rounded-t-lg transition-all duration-500 ease-out min-h-[2px] md:min-h-[4px]",
-                    isToday ? "bg-amber-500" : (clickedIdx === i ? "bg-slate-400 dark:bg-slate-600" : "bg-slate-200 dark:bg-slate-800 group-hover:bg-slate-300 dark:group-hover:bg-slate-700")
+                    isToday ? "bg-amber-500 netlight:bg-nl-yellow" : (clickedIdx === i ? "bg-slate-400 dark:bg-slate-600 netlight:bg-nl-purple-d" : "bg-slate-200 dark:bg-slate-800 netlight:bg-nl-purple-l group-hover:bg-slate-300 dark:group-hover:bg-slate-700 netlight:group-hover:bg-nl-purple/40")
                   )}
                   style={{ height: `${height}%` }}
                 />
               </div>
               <span className={cn(
                 "text-[8px] md:text-[9px] font-bold uppercase tracking-tighter min-h-[16px] flex items-center justify-center",
-                isToday ? "text-amber-600 dark:text-amber-500" : "text-slate-400 dark:text-slate-600"
+                isToday ? "text-amber-600 dark:text-amber-500 netlight:text-nl-purple-d" : "text-slate-400 dark:text-slate-600 netlight:text-nl-purple-l"
               )}>
                 {mode === "monthly" 
                   ? (parseInt(labels[i]) % 5 === 0 || i === 0 || i === data.length - 1 ? labels[i] : "") 
@@ -139,11 +139,11 @@ export function CoffeeBurnChart({ history }: CoffeeBurnChartProps) {
         })}
       </div>
 
-      <div className="flex items-center justify-between pt-4 border-t border-slate-50 dark:border-slate-800/50">
+      <div className="flex items-center justify-between pt-4 border-t border-slate-50 dark:border-slate-800/50 netlight:border-nl-purple-d/10">
         <div className="flex gap-4">
           <div className="flex flex-col">
-            <span className="text-[8px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Total</span>
-            <span className="text-sm font-black text-slate-900 dark:text-slate-100 uppercase tracking-tight">
+            <span className="text-[8px] font-bold text-slate-400 dark:text-slate-500 netlight:text-nl-purple/40 uppercase tracking-widest">Total</span>
+            <span className="text-sm font-black text-slate-900 dark:text-slate-100 netlight:text-nl-purple-d uppercase tracking-tight">
               {data.reduce((a, b) => a + b, 0).toLocaleString()}g
             </span>
           </div>

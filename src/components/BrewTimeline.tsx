@@ -97,29 +97,29 @@ export function BrewTimeline({ history, predictedNextBrew }: BrewTimelineProps) 
   };
 
   return (
-    <div className="bg-white dark:bg-slate-950/40 border-2 border-slate-200 dark:border-amber-900/30 rounded-[2.5rem] overflow-hidden shadow-2xl shadow-slate-200/50 dark:shadow-amber-950/20">
+    <div className="bg-white dark:bg-slate-950/40 netlight:bg-white border-2 border-slate-200 dark:border-amber-900/30 netlight:border-nl-purple-d/10 rounded-[2.5rem] overflow-hidden shadow-2xl shadow-slate-200/50 dark:shadow-amber-950/20 netlight:shadow-nl-purple-d/5">
       
       {/* 1. Prediction Banner Section */}
       {predictedNextBrew && (
-        <div className="p-6 md:p-8 pb-6 flex flex-col md:flex-row items-center justify-between gap-6 border-b border-slate-100 dark:border-amber-900/10">
+        <div className="p-6 md:p-8 pb-6 flex flex-col md:flex-row items-center justify-between gap-6 border-b border-slate-100 dark:border-amber-900/10 netlight:border-nl-purple-d/5">
           <div className="flex items-center gap-5">
-            <div className="bg-amber-500 rounded-2xl p-3 md:p-3.5 shadow-lg shadow-amber-500/20">
-              <Sparkles className="w-5 h-5 md:w-6 md:h-6 text-white" />
+            <div className="bg-amber-500 netlight:bg-nl-yellow rounded-2xl p-3 md:p-3.5 shadow-lg shadow-amber-500/20 netlight:shadow-nl-yellow/20">
+              <Sparkles className="w-5 h-5 md:w-6 md:h-6 text-white netlight:text-nl-purple-d" />
             </div>
             <div className="space-y-1 text-center md:text-left">
-              <h3 className="text-slate-900 dark:text-white font-black uppercase tracking-tight text-xl md:text-2xl flex items-center justify-center md:justify-start gap-2">
+              <h3 className="text-slate-900 dark:text-white netlight:text-nl-purple-d font-black uppercase tracking-tight text-xl md:text-2xl flex items-center justify-center md:justify-start gap-2">
                 Next Brew Predicted
                 <div className="group relative flex items-center">
-                  <Info className="w-4 h-4 text-slate-300 dark:text-amber-500/40 cursor-help transition-colors group-hover:text-amber-500" />
-                  <div className="invisible group-hover:visible absolute left-1/2 -translate-x-1/2 md:left-0 md:translate-x-0 bottom-full mb-3 w-56 bg-white dark:bg-slate-950 text-slate-900 dark:text-amber-50 text-[10px] p-4 rounded-2xl font-bold normal-case tracking-tight shadow-2xl z-50 border border-slate-200 dark:border-amber-900/30">
+                  <Info className="w-4 h-4 text-slate-300 dark:text-amber-500/40 netlight:text-nl-purple cursor-help transition-colors group-hover:text-amber-500 netlight:group-hover:text-nl-purple-d" />
+                  <div className="invisible group-hover:visible absolute left-1/2 -translate-x-1/2 md:left-0 md:translate-x-0 bottom-full mb-3 w-56 bg-white dark:bg-slate-950 text-slate-900 dark:text-amber-50 netlight:text-nl-purple-d text-[10px] p-4 rounded-2xl font-bold normal-case tracking-tight shadow-2xl z-50 border border-slate-200 dark:border-amber-900/30 netlight:border-nl-purple-d/10">
                     <div className="relative">
                       Averaged from historical brew times for today&apos;s sequence (pot #{predictedNextBrew.sequenceIndex} on a {predictedNextBrew.dayName}).
-                      <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 md:left-2 md:translate-x-0 border-8 border-transparent border-t-white dark:border-t-slate-950" />
+                      <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 md:left-2 md:translate-x-0 border-8 border-transparent border-t-white dark:border-t-slate-950 netlight:border-t-white" />
                     </div>
                   </div>
                 </div>
               </h3>
-              <p className="text-amber-600/60 dark:text-amber-500/60 text-[10px] font-black uppercase tracking-[0.2em]">
+              <p className="text-amber-600/60 dark:text-amber-500/60 netlight:text-nl-purple/60 text-[10px] font-black uppercase tracking-[0.2em]">
                 Based on your typical {predictedNextBrew.dayName} rhythm
               </p>
             </div>
@@ -131,10 +131,10 @@ export function BrewTimeline({ history, predictedNextBrew }: BrewTimelineProps) 
             transition={{ duration: 0.5, delay: 0.2 }}
             className="flex flex-col items-center md:items-end"
           >
-            <span className="text-5xl md:text-7xl font-black text-amber-600 dark:text-amber-500 tabular-nums leading-none tracking-tighter drop-shadow-[0_0_15px_rgba(245,158,11,0.2)] dark:drop-shadow-[0_0_15px_rgba(245,158,11,0.3)]">
+            <span className="text-5xl md:text-7xl font-black text-amber-600 dark:text-amber-500 netlight:text-nl-purple-d tabular-nums leading-none tracking-tighter drop-shadow-[0_0_15px_rgba(245,158,11,0.2)] dark:drop-shadow-[0_0_15px_rgba(245,158,11,0.3)] netlight:drop-shadow-none">
               {predictedNextBrew.time}
             </span>
-            <span className="text-[10px] font-black text-amber-600/40 dark:text-amber-500/40 uppercase tracking-[0.4em] mt-3">
+            <span className="text-[10px] font-black text-amber-600/40 dark:text-amber-500/40 netlight:text-nl-purple/40 uppercase tracking-[0.4em] mt-3">
               Estimated Time
             </span>
           </motion.div>
@@ -145,21 +145,21 @@ export function BrewTimeline({ history, predictedNextBrew }: BrewTimelineProps) 
       <div className="p-6 md:p-8 pt-10">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 md:gap-0 mb-10 px-1 md:px-0">
           <div className="space-y-1 text-center md:text-left">
-            <h4 className="text-slate-900/90 dark:text-white font-black uppercase tracking-widest text-base">
+            <h4 className="text-slate-900/90 dark:text-white netlight:text-nl-purple-d font-black uppercase tracking-widest text-base">
               Daily Rhythm
             </h4>
-            <p className="text-amber-600/40 dark:text-amber-500/40 text-[10px] font-black uppercase tracking-[0.2em]">
+            <p className="text-amber-600/40 dark:text-amber-500/40 netlight:text-nl-purple/40 text-[10px] font-black uppercase tracking-[0.2em]">
               Actual vs. Typical
             </p>
           </div>
           <div className="flex items-center justify-center md:justify-end gap-6 md:gap-8 text-[10px] font-black uppercase tracking-[0.2em] pb-1">
             <div className="flex items-center gap-2.5">
-              <div className="w-3 h-3 rounded-full bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]" />
-              <span className="text-slate-500 dark:text-white/40">Actual</span>
+              <div className="w-3 h-3 rounded-full bg-amber-500 netlight:bg-nl-yellow shadow-[0_0_10px_rgba(245,158,11,0.5)] netlight:shadow-none" />
+              <span className="text-slate-500 dark:text-white/40 netlight:text-nl-purple-d/60">Actual</span>
             </div>
             <div className="flex items-center gap-2.5">
-              <div className="w-3 h-3 rounded-full bg-slate-200 dark:bg-amber-900/40 border border-slate-300 dark:border-amber-800/30" />
-              <span className="text-slate-500 dark:text-white/40">Typical</span>
+              <div className="w-3 h-3 rounded-full bg-slate-200 dark:bg-amber-900/40 netlight:bg-nl-purple-l border border-slate-300 dark:border-amber-800/30 netlight:border-nl-purple/20" />
+              <span className="text-slate-500 dark:text-white/40 netlight:text-nl-purple-d/60">Typical</span>
             </div>
           </div>
         </div>
@@ -179,7 +179,7 @@ export function BrewTimeline({ history, predictedNextBrew }: BrewTimelineProps) 
                 opacity: isHovered ? 0.6 : 1,
                 scaleY: isHovered ? 0.5 : 1
               }}
-              className="absolute w-full h-1.5 bg-slate-100 dark:bg-amber-950/40 rounded-full border border-slate-200 dark:border-amber-900/10" 
+              className="absolute w-full h-1.5 bg-slate-100 dark:bg-amber-950/40 netlight:bg-nl-purple-l rounded-full border border-slate-200 dark:border-amber-900/10 netlight:border-nl-purple/10" 
             />
             {/* Actual Line */}
             <motion.div 
@@ -189,8 +189,8 @@ export function BrewTimeline({ history, predictedNextBrew }: BrewTimelineProps) 
               className={cn(
                 "absolute w-full h-1.5 rounded-full border transition-colors duration-300",
                 isHovered 
-                  ? "bg-amber-500/20 border-amber-500/30" 
-                  : "bg-slate-100 dark:bg-amber-950/40 border-slate-200 dark:border-amber-900/10"
+                  ? "bg-amber-500/20 border-amber-500/30 netlight:bg-nl-yellow/20 netlight:border-nl-yellow/30" 
+                  : "bg-slate-100 dark:bg-amber-950/40 netlight:bg-nl-beige border-slate-200 dark:border-amber-900/10 netlight:border-nl-purple/10"
               )}
             />
           </div>
@@ -231,17 +231,17 @@ export function BrewTimeline({ history, predictedNextBrew }: BrewTimelineProps) 
                 animate={{ y: isHovered ? 20 : 0 }}
               >
                 <div className={cn(
-                  "w-4 h-4 rounded-full border-2 border-white dark:border-slate-900 transition-transform group-hover:scale-125 shadow-sm",
+                  "w-4 h-4 rounded-full border-2 border-white dark:border-slate-900 netlight:border-white transition-transform group-hover:scale-125 shadow-sm",
                   b.isSmall 
-                    ? "bg-amber-400/60 dark:bg-amber-600/40" 
-                    : "bg-blue-500/60 dark:bg-blue-600/40"
+                    ? "bg-amber-400/60 dark:bg-amber-600/40 netlight:bg-nl-yellow/60" 
+                    : "bg-blue-500/60 dark:bg-blue-600/40 netlight:bg-nl-purple-l/60"
                 )} />
                 <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
                   <div className={cn(
                     "text-white text-[10px] font-black px-3 py-1.5 rounded-xl whitespace-nowrap shadow-2xl border",
                     b.isSmall
-                      ? "bg-amber-600 dark:bg-amber-900 border-amber-500/30"
-                      : "bg-blue-600 dark:bg-blue-900 border-blue-500/30"
+                      ? "bg-amber-600 dark:bg-amber-900 netlight:bg-nl-yellow netlight:text-nl-purple-d border-amber-500/30 netlight:border-nl-yellow/30"
+                      : "bg-blue-600 dark:bg-blue-900 netlight:bg-nl-purple border-blue-500/30 netlight:border-nl-purple/30"
                   )}>
                     Typical Pot #{b.seqIndex + 1} - {b.avgTime} ({b.isSmall ? 'Small' : 'Big'})
                   </div>
@@ -258,15 +258,15 @@ export function BrewTimeline({ history, predictedNextBrew }: BrewTimelineProps) 
                 animate={{ y: isHovered ? -20 : 0 }}
               >
                 <div className={cn(
-                  "w-6 h-6 rounded-full border-4 border-white dark:border-slate-900 shadow-lg transition-transform group-hover:scale-110",
+                  "w-6 h-6 rounded-full border-4 border-white dark:border-slate-900 netlight:border-white shadow-lg netlight:shadow-none transition-transform group-hover:scale-110",
                   b.isSmall 
-                    ? "bg-amber-400 shadow-amber-400/40" 
-                    : "bg-blue-500 shadow-blue-500/40"
+                    ? "bg-amber-400 shadow-amber-400/40 netlight:bg-nl-yellow" 
+                    : "bg-blue-500 shadow-blue-500/40 netlight:bg-nl-purple"
                 )} />
                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-30">
                   <div className={cn(
                     "text-white text-[10px] font-black px-3 py-1.5 rounded-xl whitespace-nowrap shadow-2xl",
-                    b.isSmall ? "bg-amber-500" : "bg-blue-500"
+                    b.isSmall ? "bg-amber-500 netlight:bg-nl-yellow netlight:text-nl-purple-d" : "bg-blue-500 netlight:bg-nl-purple"
                   )}>
                     Pot #{i + 1} @ {formatCphTime(b.timestamp)} ({b.isSmall ? 'Small' : 'Big'})
                   </div>
@@ -283,13 +283,13 @@ export function BrewTimeline({ history, predictedNextBrew }: BrewTimelineProps) 
               >
                 {/* Text and Line positioned above the dot */}
                 <div className="absolute bottom-full flex flex-col items-center">
-                  <div className="whitespace-nowrap bg-blue-500 text-white text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter shadow-lg mb-2">
+                  <div className="whitespace-nowrap bg-blue-500 netlight:bg-nl-purple-d text-white text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter shadow-lg mb-2">
                     You Are Here
                   </div>
-                  <div className="w-1 h-12 bg-blue-500/40 rounded-full" />
+                  <div className="w-1 h-12 bg-blue-500/40 netlight:bg-nl-purple-d/40 rounded-full" />
                 </div>
                 {/* The Dot: centered on the timeline line */}
-                <div className="w-3 h-3 rounded-full bg-blue-500 ring-4 ring-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.6)] relative z-10" />
+                <div className="w-3 h-3 rounded-full bg-blue-500 netlight:bg-nl-purple-d ring-4 ring-blue-500/20 netlight:ring-nl-purple-d/20 shadow-[0_0_15px_rgba(59,130,246,0.6)] netlight:shadow-none relative z-10" />
               </motion.div>
             )}
           </div>

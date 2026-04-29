@@ -158,7 +158,7 @@ export function AggregateRhythm({
     <div className="w-full space-y-6 md:space-y-8" onClick={() => setClickedIdx(null)}>
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
-          <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+          <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 netlight:text-nl-purple uppercase tracking-wider">
             {mode === "yearly"
               ? "Density Map (7 AM — 6 PM)"
               : "Aggregate (7 AM — 6 PM)"}
@@ -166,7 +166,7 @@ export function AggregateRhythm({
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-          <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+          <div className="flex bg-slate-100 dark:bg-slate-800 netlight:bg-nl-beige p-1 rounded-xl">
             {(["weekly", "monthly", "yearly"] as RhythmMode[]).map((m) => (
               <button
                 key={m}
@@ -174,8 +174,8 @@ export function AggregateRhythm({
                 className={cn(
                   "px-3 md:px-4 py-1.5 rounded-lg text-[9px] md:text-[10px] font-black uppercase tracking-wider transition-all",
                   mode === m
-                    ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm"
-                    : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200",
+                    ? "bg-white dark:bg-slate-700 netlight:bg-white text-slate-900 dark:text-slate-100 netlight:text-nl-purple-d shadow-sm"
+                    : "text-slate-500 dark:text-slate-400 netlight:text-nl-purple/60 hover:text-slate-700 dark:hover:text-slate-200 netlight:hover:text-nl-purple-d",
                 )}
               >
                 {m}
@@ -185,14 +185,14 @@ export function AggregateRhythm({
 
           <div className="flex items-center gap-3 md:gap-4 text-[8px] md:text-[9px] font-bold uppercase tracking-wider">
             <div className="flex items-center gap-1.5">
-              <div className="w-2 md:w-2.5 h-2 md:h-2.5 rounded-full bg-blue-500 dark:bg-blue-400 shadow-[0_0_8px_rgba(59,130,246,0.4)]" />
-              <span className="text-slate-500 dark:text-slate-400 whitespace-nowrap">
+              <div className="w-2 md:w-2.5 h-2 md:h-2.5 rounded-full bg-blue-500 dark:bg-blue-400 netlight:bg-nl-purple shadow-[0_0_8px_rgba(59,130,246,0.4)] netlight:shadow-none" />
+              <span className="text-slate-500 dark:text-slate-400 netlight:text-nl-purple/60 whitespace-nowrap">
                 {mode === "yearly" ? "Big Intensity" : "Big"}
               </span>
             </div>
             <div className="flex items-center gap-1.5">
-              <div className="w-2 md:w-2.5 h-2 md:h-2.5 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.4)]" />
-              <span className="text-slate-500 dark:text-slate-400 whitespace-nowrap">
+              <div className="w-2 md:w-2.5 h-2 md:h-2.5 rounded-full bg-amber-400 netlight:bg-nl-yellow shadow-[0_0_8px_rgba(251,191,36,0.4)] netlight:shadow-none" />
+              <span className="text-slate-500 dark:text-slate-400 netlight:text-nl-purple/60 whitespace-nowrap">
                 {mode === "yearly" ? "Small Intensity" : "Small"}
               </span>
             </div>
@@ -202,11 +202,11 @@ export function AggregateRhythm({
 
       <div className="relative h-[400px] md:h-[500px] flex group pt-8">
         {/* Y-Axis Labels (Time) */}
-        <div className="relative w-10 md:w-12 border-r border-slate-100 dark:border-slate-800">
+        <div className="relative w-10 md:w-12 border-r border-slate-100 dark:border-slate-800 netlight:border-nl-purple-d/10">
           {[7, 8, 10, 12, 14, 16, 18].map((h) => (
             <span
               key={h}
-              className="absolute right-2 md:right-3 -translate-y-1/2 text-[9px] md:text-[10px] font-bold text-slate-400 dark:text-slate-500 whitespace-nowrap"
+              className="absolute right-2 md:right-3 -translate-y-1/2 text-[9px] md:text-[10px] font-bold text-slate-400 dark:text-slate-500 netlight:text-nl-purple-l whitespace-nowrap"
               style={{ top: `${((h - MIN_HOUR) / HOUR_RANGE) * 100}%` }}
             >
               {h === 12 ? "12PM" : h > 12 ? `${h - 12}PM` : `${h}AM`}
@@ -221,18 +221,18 @@ export function AggregateRhythm({
             <div
               key={idx}
               className={cn(
-                "flex-1 relative border-r border-slate-50 dark:border-slate-900 last:border-r-0 group/lane transition-colors",
-                idx === currentIdx && "bg-blue-50/20 dark:bg-blue-900/10",
+                "flex-1 relative border-r border-slate-50 dark:border-slate-900 netlight:border-nl-purple-d/5 last:border-r-0 group/lane transition-colors",
+                idx === currentIdx && "bg-blue-50/20 dark:bg-blue-900/10 netlight:bg-nl-purple-l/10",
               )}
             >
-              <div className="absolute inset-0 bg-slate-50/0 group-hover/lane:bg-slate-50/50 dark:group-hover/lane:bg-slate-800/30 transition-colors" />
+              <div className="absolute inset-0 bg-slate-50/0 group-hover/lane:bg-slate-50/50 dark:group-hover/lane:bg-slate-800/30 netlight:group-hover/lane:bg-nl-purple-l/20 transition-colors" />
               <div
                 className={cn(
                   "absolute -top-8 left-1/2 -translate-x-1/2 font-black uppercase tracking-tighter text-center transition-all",
                   mode === "monthly" ? "text-[8px]" : "text-[11px]",
                   idx === currentIdx
-                    ? "text-blue-600 dark:text-blue-400 scale-110"
-                    : "text-slate-400 dark:text-slate-600",
+                    ? "text-blue-600 dark:text-blue-400 netlight:text-nl-purple-d scale-110"
+                    : "text-slate-400 dark:text-slate-600 netlight:text-nl-purple-l",
                 )}
               >
                 {unit}
@@ -240,7 +240,7 @@ export function AggregateRhythm({
               {[7, 8, 10, 12, 14, 16, 18].map((h) => (
                 <div
                   key={h}
-                  className="absolute w-full border-t border-slate-100/50 dark:border-slate-800/50"
+                  className="absolute w-full border-t border-slate-100/50 dark:border-slate-800/50 netlight:border-nl-purple-d/5"
                   style={{ top: `${((h - MIN_HOUR) / HOUR_RANGE) * 100}%` }}
                 />
               ))}
@@ -289,10 +289,10 @@ export function AggregateRhythm({
                     className={cn(
                       "w-full h-full rounded-full transition-all group-hover/dot:scale-150",
                       brew.isSmall
-                        ? "bg-amber-400 shadow-[0_0_12px_rgba(251,191,36,0.25)]"
-                        : "bg-blue-500 dark:bg-blue-400 shadow-[0_0_12px_rgba(59,130,246,0.25)]",
-                      "ring-2 ring-white dark:ring-slate-800",
-                      clickedIdx === i && "ring-blue-500 dark:ring-blue-400 scale-150"
+                        ? "bg-amber-400 netlight:bg-nl-yellow shadow-[0_0_12px_rgba(251,191,36,0.25)] netlight:shadow-none"
+                        : "bg-blue-500 dark:bg-blue-400 netlight:bg-nl-purple shadow-[0_0_12px_rgba(59,130,246,0.25)] netlight:shadow-none",
+                      "ring-2 ring-white dark:ring-slate-800 netlight:ring-white",
+                      clickedIdx === i && "ring-blue-500 dark:ring-blue-400 netlight:ring-nl-purple-d scale-150"
                     )}
                     style={{ opacity }}
                   />
@@ -300,7 +300,7 @@ export function AggregateRhythm({
                   {/* Tooltip (Solid 100% opacity) */}
                   <div
                     className={cn(
-                      "absolute top-1/2 -translate-y-1/2 px-2.5 py-1.5 bg-slate-900 dark:bg-slate-950 text-white rounded-xl transition-all duration-200 whitespace-nowrap pointer-events-none z-50 shadow-2xl border border-white/10 flex items-center gap-2",
+                      "absolute top-1/2 -translate-y-1/2 px-2.5 py-1.5 bg-slate-900 dark:bg-slate-950 netlight:bg-nl-purple-d text-white rounded-xl transition-all duration-200 whitespace-nowrap pointer-events-none z-50 shadow-2xl border border-white/10 flex items-center gap-2",
                       isRightSide
                         ? "right-full mr-3 group-hover/dot:-translate-x-1"
                         : "left-full ml-3 group-hover/dot:translate-x-1",
@@ -312,7 +312,7 @@ export function AggregateRhythm({
                     <div
                       className={cn(
                         "w-2 h-2 rounded-full",
-                        brew.isSmall ? "bg-amber-400" : "bg-blue-400",
+                        brew.isSmall ? "bg-amber-400 netlight:bg-nl-yellow" : "bg-blue-400 netlight:bg-nl-purple",
                       )}
                     />
                     <div className="flex flex-col pr-1">

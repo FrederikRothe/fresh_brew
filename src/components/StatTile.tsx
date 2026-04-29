@@ -16,15 +16,15 @@ export function StatTile({
   return (
     <div
       className={cn(
-        "bg-white dark:bg-slate-900 rounded-2xl p-6 flex flex-col items-center border border-slate-200 dark:border-slate-800 shadow-sm",
+        "bg-white dark:bg-slate-900 netlight:bg-white rounded-2xl p-6 flex flex-col items-center border border-slate-200 dark:border-slate-800 netlight:border-nl-purple-d/10 shadow-sm",
         className,
       )}
     >
-      <Icon className="w-5 h-5 text-slate-400 dark:text-slate-500 mb-2" />
-      <span className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-1">
+      <Icon className="w-5 h-5 text-slate-400 dark:text-slate-500 netlight:text-nl-purple mb-2" />
+      <span className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400 netlight:text-nl-purple/60 tracking-wider mb-1">
         {label}
       </span>
-      <span className={cn("text-2xl md:text-4xl font-black text-slate-900 dark:text-slate-100", valueClassName)}>
+      <span className={cn("text-2xl md:text-4xl font-black text-slate-900 dark:text-slate-100 netlight:text-nl-purple-d", valueClassName)}>
         {value}
       </span>
     </div>

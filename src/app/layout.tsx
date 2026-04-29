@@ -19,13 +19,16 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
+        <div className="netlight:block hidden fixed top-6 right-8 opacity-40 pointer-events-none z-50">
+          <span className="font-black text-xl tracking-tighter text-nl-purple-d">NETLIGHT</span>
+        </div>
         <ThemeToggle />
         {children}
         <a
           href="https://github.com/FrederikRothe/fresh_brew"
           target="_blank"
           rel="noopener noreferrer"
-          className="fixed bottom-4 right-4 text-gray-400 dark:text-gray-600 hover:text-gray-600 dark:hover:text-gray-400 opacity-50 hover:opacity-100"
+          className="fixed bottom-4 right-4 text-gray-400 dark:text-gray-600 netlight:text-nl-purple-d hover:text-gray-600 dark:hover:text-gray-400 netlight:hover:text-nl-purple opacity-50 hover:opacity-100"
           aria-label="GitHub Repository"
         >
           <Github size={16} />

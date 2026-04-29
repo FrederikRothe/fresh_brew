@@ -1,6 +1,25 @@
 @import "tailwindcss";
 
 @variant dark (&:where(.dark, .dark *));
+@variant netlight (&:where(.netlight, .netlight *));
+
+@theme {
+  --color-nl-purple-l: #C6C6FF;
+  --color-nl-purple: #A29AFF;
+  --color-nl-purple-d: #6664F1;
+  --color-nl-yellow-l: #FFF4A4;
+  --color-nl-yellow: #FFF400;
+  --color-nl-yellow-d: #EFD500;
+  --color-nl-black: #000000;
+  --color-nl-white: #FFFFFF;
+  --color-nl-beige: #FFF0E6;
+  --color-nl-orange: #FFA740;
+  --color-nl-pink: #FF99FF;
+  --color-nl-blue: #6CDBFF;
+  --color-nl-green: #7FFF78;
+
+  --font-nl: "Inter", sans-serif;
+}
 
 :root {
   --background: #ffffff;
@@ -8,7 +27,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root:not(.light) {
+  :root:not(.light):not(.netlight) {
     --background: #0a0a0a;
     --foreground: #ededed;
   }
@@ -17,6 +36,12 @@
 .dark {
   --background: #0a0a0a;
   --foreground: #ededed;
+}
+
+.netlight {
+  --background: var(--color-nl-beige);
+  --foreground: var(--color-nl-black);
+  font-family: var(--font-nl);
 }
 
 html,
@@ -30,4 +55,8 @@ body {
   font-family: Arial, Helvetica, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.netlight body {
+  font-family: var(--font-nl);
 }
