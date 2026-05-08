@@ -222,10 +222,10 @@ export function AggregateRhythm({
               key={idx}
               className={cn(
                 "flex-1 relative border-r border-slate-50 dark:border-slate-900 last:border-r-0 group/lane transition-colors",
-                idx === currentIdx && "bg-blue-50/20 dark:bg-blue-900/10",
+                idx === currentIdx && "bg-blue-50/20 dark:bg-blue-900/30",
               )}
             >
-              <div className="absolute inset-0 bg-slate-50/0 group-hover/lane:bg-slate-50/50 dark:group-hover/lane:bg-slate-800/30 transition-colors" />
+              <div className="absolute inset-0 bg-slate-50/0 group-hover/lane:bg-slate-50/50 dark:group-hover/lane:bg-slate-800/50 transition-colors" />
               <div
                 className={cn(
                   "absolute -top-8 left-1/2 -translate-x-1/2 font-black uppercase tracking-tighter text-center transition-all",

@@ -152,7 +152,7 @@ export default function Dashboard({
         {adminPassword ? (
           <button
             onClick={handleLogout}
-            className="flex items-center space-x-2 bg-white/20 dark:bg-slate-800/40 hover:bg-white/30 dark:hover:bg-slate-800/60 backdrop-blur-md px-3 md:px-4 py-1.5 md:py-2 landscape:px-2 landscape:py-1 landscape:md:px-4 landscape:md:py-2 rounded-full text-white text-[11px] md:text-sm font-bold transition-none border border-white/20 dark:border-slate-700"
+            className="flex items-center space-x-2 bg-white/40 dark:bg-slate-800/60 hover:bg-white/50 dark:hover:bg-slate-800/80 backdrop-blur-md px-3 md:px-4 py-1.5 md:py-2 landscape:px-2 landscape:py-1 landscape:md:px-4 landscape:md:py-2 rounded-full text-white text-[11px] md:text-sm font-bold transition-none border border-white/20 dark:border-slate-700"
           >
             <Unlock className="w-3.5 h-3.5 md:w-4 md:h-4" />
             <span className="uppercase tracking-tight">
@@ -164,7 +164,7 @@ export default function Dashboard({
         ) : (
           <button
             onClick={handleLogin}
-            className="flex items-center space-x-2 bg-white/10 dark:bg-slate-800/20 hover:bg-white/20 dark:hover:bg-slate-800/40 backdrop-blur-md px-3 md:px-4 py-1.5 md:py-2 landscape:px-2 landscape:py-1 landscape:md:px-4 landscape:md:py-2 rounded-full text-white/70 dark:text-slate-400 hover:text-white dark:hover:text-slate-200 text-[11px] md:text-sm font-bold transition-none border border-white/10 dark:border-slate-700/50"
+            className="flex items-center space-x-2 bg-white/25 dark:bg-slate-800/40 hover:bg-white/35 dark:hover:bg-slate-800/60 backdrop-blur-md px-3 md:px-4 py-1.5 md:py-2 landscape:px-2 landscape:py-1 landscape:md:px-4 landscape:md:py-2 rounded-full text-white/70 dark:text-slate-400 hover:text-white dark:hover:text-slate-200 text-[11px] md:text-sm font-bold transition-none border border-white/10 dark:border-slate-700/50"
           >
             <Lock className="w-3.5 h-3.5 md:w-4 md:h-4" />
             <span className="uppercase tracking-tight">
@@ -176,7 +176,7 @@ export default function Dashboard({
         )}
       </div>
 
-      <div className="max-w-3xl w-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-md rounded-3xl md:rounded-[2.5rem] shadow-2xl p-5 md:p-12 landscape:p-4 landscape:md:p-12 flex flex-col items-center text-center space-y-8 md:space-y-10 landscape:space-y-4 landscape:md:space-y-10 border-4 border-white/20 dark:border-slate-800/50">
+      <div className="max-w-3xl w-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-3xl md:rounded-[2.5rem] shadow-2xl p-5 md:p-12 landscape:p-4 landscape:md:p-12 flex flex-col items-center text-center space-y-8 md:space-y-10 landscape:space-y-4 landscape:md:space-y-10 border-4 border-white/20 dark:border-slate-800/50">
         {/* Header */}
         <div className="space-y-1 md:space-y-2 landscape:space-y-0 landscape:md:space-y-2">
           <div className="flex items-center justify-center space-x-2 md:space-x-3 mb-2 md:mb-4 landscape:mb-1 landscape:md:mb-4">
@@ -196,8 +196,8 @@ export default function Dashboard({
             className={cn(
               "w-full border rounded-2xl py-3 px-4 flex items-center justify-between shadow-sm transition-colors",
               predictedNextBrew.isOverdue
-                ? "bg-amber-100/50 dark:bg-amber-950/20 border-amber-300/50 dark:border-amber-800/30"
-                : "bg-amber-50/50 dark:bg-amber-950/10 border-amber-200/50 dark:border-amber-800/20",
+                ? "bg-amber-100/80 dark:bg-amber-950/40 border-amber-300/50 dark:border-amber-800/30"
+                : "bg-amber-50/80 dark:bg-amber-950/30 border-amber-200/50 dark:border-amber-800/20",
             )}
           >
             <div className="flex items-center gap-3">
@@ -304,7 +304,7 @@ export default function Dashboard({
             <button
               onClick={() => setShowWasteConfirm(true)}
               disabled={isWastePending}
-              className="bg-red-50 dark:bg-red-950/20 p-5 md:p-6 landscape:p-3 landscape:md:p-6 rounded-2xl flex flex-col items-center justify-center border border-red-200 dark:border-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/40 active:scale-95 transition-all group"
+              className="bg-red-100 dark:bg-red-950/40 p-5 md:p-6 landscape:p-3 landscape:md:p-6 rounded-2xl flex flex-col items-center justify-center border border-red-200 dark:border-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/60 active:scale-95 transition-all group"
             >
               {isWastePending ? (
                 <RefreshCw className="w-6 h-6 md:w-8 md:h-8 animate-spin text-red-600 dark:text-red-400" />
@@ -323,7 +323,7 @@ export default function Dashboard({
           ) : (
             <div
               className={cn(
-                "bg-slate-100 dark:bg-slate-800/50 p-5 md:p-6 landscape:p-3 landscape:md:p-6 rounded-2xl flex flex-col items-center justify-center border border-slate-200 dark:border-slate-800",
+                "bg-slate-100 dark:bg-slate-800/80 p-5 md:p-6 landscape:p-3 landscape:md:p-6 rounded-2xl flex flex-col items-center justify-center border border-slate-200 dark:border-slate-800",
                 "py-8 md:py-12 landscape:py-4 landscape:md:py-12",
               )}
             >

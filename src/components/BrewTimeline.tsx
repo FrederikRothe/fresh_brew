@@ -97,7 +97,7 @@ export function BrewTimeline({ history, predictedNextBrew }: BrewTimelineProps) 
   };
 
   return (
-    <div className="bg-white dark:bg-slate-950/40 border-2 border-slate-200 dark:border-amber-900/30 rounded-[2.5rem] overflow-hidden shadow-2xl shadow-slate-200/50 dark:shadow-amber-950/20">
+    <div className="bg-white dark:bg-slate-950/90 border-2 border-slate-200 dark:border-amber-900/30 rounded-[2.5rem] overflow-hidden shadow-2xl shadow-slate-200/50 dark:shadow-amber-950/20">
       
       {/* 1. Prediction Banner Section */}
       {predictedNextBrew && (
@@ -312,7 +312,7 @@ export function BrewTimeline({ history, predictedNextBrew }: BrewTimelineProps) 
       </div>
 
       {/* 3. Status Info Section */}
-      <div className="p-8 py-6 bg-slate-50 dark:bg-amber-950/10 border-t border-slate-100 dark:border-amber-900/10">
+      <div className="p-8 py-6 bg-slate-50 dark:bg-amber-950/30 border-t border-slate-100 dark:border-amber-900/10">
         <div className="flex items-center gap-4">
           <div className="bg-slate-200 dark:bg-amber-900/30 p-2.5 rounded-xl border border-slate-300 dark:border-amber-800/20">
             <Info className="w-4 h-4 text-slate-500 dark:text-amber-500" />
