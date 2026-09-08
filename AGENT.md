@@ -16,17 +16,18 @@ This project provides a real-time dashboard to monitor when the last pot of coff
 - **Deployment:** Docker Compose (local Redis service)
 - **Testing:** Vitest, React Testing Library, JSDOM
 - **Icons:** Lucide React
-- **Date Handling:** `date-fns` (week/year grouping) + native `Intl.DateTimeFormat` for all timezone-sensitive formatting (pinned to `Europe/Copenhagen`)
+- **Date Handling:** native `Intl.DateTimeFormat` for all timezone-sensitive formatting (pinned to `Europe/Copenhagen`), plus ISO-week helpers in `src/lib/utils.ts`
 
 ### Architecture
 - **`src/app/page.tsx`**: Entry point (Server Component). Fetches initial brew status and renders the `Dashboard`.
-- **`src/app/analyze/page.tsx`**: Publicly accessible consumption analytics dashboard.
+- **`src/app/analyze/page.tsx`**: Public consumption analytics dashboard (Server Component). Fetches `getBrewAnalytics` and hydrates `AnalyzeDashboard`.
+- **`src/components/AnalyzeDashboard.tsx`**: Client UI for `/analyze` — shared period control, charts, freshness/waste, and retry empty state.
 - **`src/components/Dashboard.tsx`**: Main UI (Client Component). Orchestrates the dashboard using custom hooks.
 - **`src/hooks/`**: Specialized client hooks for timer logic (`useTimer`), brew status polling (`useBrewStatus`), admin authentication (`useAdminAuth`), and theme-aware body styling (`useBodyBackground`).
-- **`src/lib/`**: Shared logic including Redis storage (`storage.ts`), calculation helpers (`brew-utils.ts`), common thresholds (`constants.ts`), and styling utilities (`utils.ts`).
-- **`src/app/actions.ts`**: Server Actions for data fetching and mutation. Includes Slack notification logic, brew analytics calculation (grams, frequency, density), and admin password verification.
-- **`src/components/AggregateRhythm.tsx`**: Visualizes consumption density over weekly, monthly, and yearly intervals.
-- **`src/components/CoffeeBurnChart.tsx`**: Tracks daily coffee consumption in grams (Big: 340g, Small: 180g) with bar charts.
+- **`src/lib/`**: Shared logic including Redis storage (`storage.ts`), brew analytics (`analytics.ts`), calculation helpers (`brew-utils.ts`), common thresholds (`constants.ts`), and styling/timezone utilities (`utils.ts`).
+- **`src/app/actions.ts`**: Server Actions for data fetching and mutation. Includes Slack notification logic, a thin wrapper around `src/lib/analytics.ts`, and admin password verification.
+- **`src/components/AggregateRhythm.tsx`**: Renders precomputed brew-density series (weekday / last 7 days / month / year).
+- **`src/components/CoffeeBurnChart.tsx`**: Renders precomputed grams-consumed bars (Big: 340g, Small: 180g).
 - **`src/components/StatTile.tsx`**: Reusable component for displaying key metrics with icons.
 - **`src/components/CollapsibleSection.tsx`**: Layout wrapper for expandable analytics sections.
 - **`src/app/globals.css`**: Tailwind 4 configuration and global styles.
@@ -67,6 +68,10 @@ This project provides a real-time dashboard to monitor when the last pot of coff
   - `getCphDayOfWeek(ts)` → `0–6` (Predictive analytics day grouping)
   - `getCphSecondsSinceMidnight(ts)` → seconds (Predictive timing calculations)
   - `getCphISOWeek(ts)` → `{ week, year }` (Weekly analytics; **must** use ISO year to handle year-end boundaries correctly)
+  - `formatHourClock(hour)` → `HH:00` (peak-hour labels)
+  - `getCphMinute(ts)` / `getCphDayOfMonth(ts)` / `getCphMonth(ts)` / `getCphYear(ts)` (chart bucketing)
+  - `getCphLastNDates(n)` / `getCphMonthDates(ts)` (calendar windows in Copenhagen)
+  - `previousIsoWeek` / `isoWeekKey` (week-over-week grams)
 - **CRITICAL PITFALLS:**
   - **Server-Side:** Never use native `Date` methods (e.g., `getHours()`, `getDay()`) or `date-fns` formatting/extraction functions directly in Server Actions or components. They will use the server's system time.
   - **Client-Side:** Be wary of browser-local time drift. Tooltips and banners (e.g., in `/analyze`) should use the CPH helpers to match the server's state, especially when displaying "Today" or specific timestamps.
@@ -91,13 +96,15 @@ This project provides a real-time dashboard to monitor when the last pot of coff
 - **Daily Pot Count:** Automatically resets at midnight (calculated on-the-fly during data fetch).
 - **Predictive Next Brew:** Smart estimation of when the next pot will be brewed, based on the historical sequence for the current day of the week (e.g., "pot #3 on a Monday").
 - **Analyze Consumption:** Publicly accessible page (`/analyze`) with:
-  - **Consumption Rhythm:** Density map of brews over time (7 AM — 6 PM).
+  - **Server-side initial fetch:** the page is an RSC; chart series and summary metrics are computed in `src/lib/analytics.ts` (Copenhagen time) so the client does not receive unbounded brew history.
+  - **Shared period control:** Typical weekdays (all-time Mon–Fri density + ISO-week grams) | Last 7 days | This month | This year. Labels distinguish stacked weekday rhythm from actual calendar windows.
+  - **Consumption Rhythm:** Density map of brews (7 AM — 6 PM, Copenhagen).
   - **Coffee Burn Rate:** Bar chart tracking grams consumed (Big: 340g, Small: 180g).
-  - **Waste Analytics:** Tracks "Total Waste" and "Waste Correlation" (distribution of waste events by pot size).
-  - **Deep Dive Fun Facts:** 
-    - **Total Volume:** Liters brewed (calculated at 60g/L).
-    - **Caffeine Load:** Equivalent number of double espresso shots (18g).
-    - **Patience Metric:** Total hours spent waiting for the machine to finish brewing.
+  - **Trends:** Average grams/day and week-over-week grams (last complete ISO week vs the week before).
+  - **Freshness & Waste:** Share of pots that were still fresh when the next brew or waste was logged; waste **rates** (% of big vs small pots dumped), not only counts.
+  - **Deep Dive Fun Facts:** Total volume (60g/L), caffeine load (18g double espresso), patience (brew wait time), waste rates.
+  - **Predictions:** Overdue next-brew messaging (same `isOverdue` / `overdueMins` fields as the home dashboard).
+  - **Error state:** Storage failures render a retry empty state instead of a blank page.
 - **Admin Brewer Mode:** Secure login for starting new brews and **indicating waste** (poured in sink).
   - **Indicate Waste:** Resets the freshness timer and logs the event (including last brew details) for correlation analysis.
   - **Custom Confirmation:** Uses a stylized `ConfirmModal` instead of native browser dialogs.

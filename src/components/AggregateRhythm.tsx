@@ -1,335 +1,183 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { format, getDay, getDate, getMonth } from "date-fns";
 import { cn } from "@/lib/utils";
-import { SMALL_BATCH_THRESHOLD_MS } from "@/lib/constants";
-
-type RhythmMode = "weekly" | "monthly" | "yearly";
-
-interface ProcessedBrew {
-  unitIdx: number;
-  hour: number;
-  isSmall: boolean;
-  dateStr: string;
-  timeStr: string;
-  count: number;
-  hasOther: boolean;
-}
+import type { RhythmChartData, RhythmPoint } from "@/lib/analytics";
 
 export function AggregateRhythm({
-  history,
+  data,
 }: {
-  history: { timestamp: number; durationMs: number }[];
+  data: RhythmChartData;
 }) {
-  const [mode, setMode] = useState<RhythmMode>("weekly");
   const [isMobile, setIsMobile] = useState(false);
   const [clickedIdx, setClickedIdx] = useState<number | null>(null);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
-
-  // Close tooltip on mode change
-  useEffect(() => {
-    setClickedIdx(null);
-  }, [mode]);
-
-  const now = new Date();
-  let currentIdx: number | null = null;
-
-  if (mode === "weekly") {
-    const day = getDay(now); // 0=Sun, 1=Mon...6=Sat
-    if (day >= 1 && day <= 5) {
-      currentIdx = day - 1;
-    }
-  } else if (mode === "monthly") {
-    currentIdx = getDate(now) - 1;
-  } else if (mode === "yearly") {
-    currentIdx = getMonth(now);
-  }
 
   const MIN_HOUR = 7;
   const MAX_HOUR = 18;
   const HOUR_RANGE = MAX_HOUR - MIN_HOUR;
-
-  let units: string[] = [];
-
-  // Group into 20-minute slots (0.33 hours) for aggregation
-  const slotSize = 1 / 3;
-
-  const aggregated = new Map<
-    string,
-    {
-      unitIdx: number;
-      hour: number;
-      smallCount: number;
-      bigCount: number;
-    }
-  >();
-
-  const processHistory = (unitIdxCalc: (d: Date) => number | null) => {
-    history.forEach((h) => {
-      const d = new Date(h.timestamp);
-      const unitIdx = unitIdxCalc(d);
-      if (unitIdx === null) return;
-
-      const hour = d.getHours() + Math.floor(d.getMinutes() / 20) * slotSize;
-      const isSmall = h.durationMs <= SMALL_BATCH_THRESHOLD_MS;
-      const key = `${unitIdx}-${hour.toFixed(2)}`;
-
-      const existing = aggregated.get(key) || {
-        unitIdx,
-        hour,
-        smallCount: 0,
-        bigCount: 0,
-      };
-      if (isSmall) existing.smallCount++;
-      else existing.bigCount++;
-      aggregated.set(key, existing);
-    });
-  };
-
-  if (mode === "weekly") {
-    units = ["Mon", "Tue", "Wed", "Thu", "Fri"];
-    processHistory((d) => {
-      const dayIdx = getDay(d);
-      if (dayIdx === 0 || dayIdx === 6) return null;
-      return dayIdx - 1;
-    });
-  } else if (mode === "monthly") {
-    units = Array.from({ length: 31 }, (_, i) => String(i + 1));
-    processHistory((d) => getDate(d) - 1);
-  } else if (mode === "yearly") {
-    units = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ];
-    processHistory((d) => getMonth(d));
-  }
-
-  const validPoints = Array.from(aggregated.values())
-    .filter((d) => d.hour >= MIN_HOUR && d.hour <= MAX_HOUR)
-    .flatMap((a) => {
-      const points = [];
-      const timeStr = `${Math.floor(a.hour)}:${String(
-        Math.round((a.hour % 1) * 60),
-      ).padStart(2, "0")}`;
-
-      if (a.bigCount > 0) {
-        points.push({
-          unitIdx: a.unitIdx,
-          hour: a.hour,
-          isSmall: false,
-          count: a.bigCount,
-          hasOther: a.smallCount > 0,
-          dateStr: `${a.bigCount} big brew${a.bigCount > 1 ? "s" : ""}`,
-          timeStr,
-        });
-      }
-      if (a.smallCount > 0) {
-        points.push({
-          unitIdx: a.unitIdx,
-          hour: a.hour,
-          isSmall: true,
-          count: a.smallCount,
-          hasOther: a.bigCount > 0,
-          dateStr: `${a.smallCount} small brew${a.smallCount > 1 ? "s" : ""}`,
-          timeStr,
-        });
-      }
-      return points;
-    });
+  const units = data.units;
+  const currentIdx = data.currentIdx;
+  const validPoints: RhythmPoint[] = data.points;
+  const isMonthly = units.length > 12;
+  const isEmpty = validPoints.length === 0;
 
   return (
     <div className="w-full space-y-6 md:space-y-8" onClick={() => setClickedIdx(null)}>
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="space-y-1">
-          <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-            {mode === "yearly"
-              ? "Density Map (7 AM — 6 PM)"
-              : "Aggregate (7 AM — 6 PM)"}
+      <div className="space-y-1">
+        <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+          Density map (7 AM — 6 PM, Copenhagen)
+        </p>
+        <p className="text-[10px] font-medium text-slate-400 dark:text-slate-600">
+          {data.caption}
+        </p>
+      </div>
+
+      <div className="flex items-center gap-3 md:gap-4 text-[8px] md:text-[9px] font-bold uppercase tracking-wider">
+        <div className="flex items-center gap-1.5">
+          <div className="w-2 md:w-2.5 h-2 md:h-2.5 rounded-full bg-blue-500 dark:bg-blue-400 shadow-[0_0_8px_rgba(59,130,246,0.4)]" />
+          <span className="text-slate-500 dark:text-slate-400 whitespace-nowrap">Big</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-2 md:w-2.5 h-2 md:h-2.5 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.4)]" />
+          <span className="text-slate-500 dark:text-slate-400 whitespace-nowrap">Small</span>
+        </div>
+      </div>
+
+      {isEmpty ? (
+        <div className="h-[200px] md:h-[240px] flex items-center justify-center rounded-2xl border border-dashed border-slate-200 dark:border-slate-800">
+          <p className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-600 text-center px-6">
+            No brews in this view
           </p>
         </div>
-
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-          <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
-            {(["weekly", "monthly", "yearly"] as RhythmMode[]).map((m) => (
-              <button
-                key={m}
-                onClick={() => setMode(m)}
-                className={cn(
-                  "px-3 md:px-4 py-1.5 rounded-lg text-[9px] md:text-[10px] font-black uppercase tracking-wider transition-all",
-                  mode === m
-                    ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm"
-                    : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200",
-                )}
+      ) : (
+        <div className="relative h-[400px] md:h-[500px] flex group pt-8">
+          <div className="relative w-10 md:w-12 border-r border-slate-100 dark:border-slate-800">
+            {[7, 8, 10, 12, 14, 16, 18].map((h) => (
+              <span
+                key={h}
+                className="absolute right-2 md:right-3 -translate-y-1/2 text-[9px] md:text-[10px] font-bold text-slate-400 dark:text-slate-500 whitespace-nowrap"
+                style={{ top: `${((h - MIN_HOUR) / HOUR_RANGE) * 100}%` }}
               >
-                {m}
-              </button>
+                {h === 12 ? "12PM" : h > 12 ? `${h - 12}PM` : `${h}AM`}
+              </span>
             ))}
           </div>
 
-          <div className="flex items-center gap-3 md:gap-4 text-[8px] md:text-[9px] font-bold uppercase tracking-wider">
-            <div className="flex items-center gap-1.5">
-              <div className="w-2 md:w-2.5 h-2 md:h-2.5 rounded-full bg-blue-500 dark:bg-blue-400 shadow-[0_0_8px_rgba(59,130,246,0.4)]" />
-              <span className="text-slate-500 dark:text-slate-400 whitespace-nowrap">
-                {mode === "yearly" ? "Big Intensity" : "Big"}
-              </span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-2 md:w-2.5 h-2 md:h-2.5 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.4)]" />
-              <span className="text-slate-500 dark:text-slate-400 whitespace-nowrap">
-                {mode === "yearly" ? "Small Intensity" : "Small"}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="relative h-[400px] md:h-[500px] flex group pt-8">
-        {/* Y-Axis Labels (Time) */}
-        <div className="relative w-10 md:w-12 border-r border-slate-100 dark:border-slate-800">
-          {[7, 8, 10, 12, 14, 16, 18].map((h) => (
-            <span
-              key={h}
-              className="absolute right-2 md:right-3 -translate-y-1/2 text-[9px] md:text-[10px] font-bold text-slate-400 dark:text-slate-500 whitespace-nowrap"
-              style={{ top: `${((h - MIN_HOUR) / HOUR_RANGE) * 100}%` }}
-            >
-              {h === 12 ? "12PM" : h > 12 ? `${h - 12}PM` : `${h}AM`}
-            </span>
-          ))}
-        </div>
-
-        {/* Swimlanes */}
-        <div className="flex-1 flex relative">
-          {/* Lane Backgrounds and Headers */}
-          {units.map((unit, idx) => (
-            <div
-              key={idx}
-              className={cn(
-                "flex-1 relative border-r border-slate-50 dark:border-slate-900 last:border-r-0 group/lane transition-colors",
-                idx === currentIdx && "bg-blue-50/20 dark:bg-blue-900/10",
-              )}
-            >
-              <div className="absolute inset-0 bg-slate-50/0 group-hover/lane:bg-slate-50/50 dark:group-hover/lane:bg-slate-800/30 transition-colors" />
+          <div className="flex-1 flex relative">
+            {units.map((unit, idx) => (
               <div
+                key={idx}
                 className={cn(
-                  "absolute -top-8 left-1/2 -translate-x-1/2 font-black uppercase tracking-tighter text-center transition-all",
-                  mode === "monthly" ? "text-[8px]" : "text-[11px]",
-                  idx === currentIdx
-                    ? "text-blue-600 dark:text-blue-400 scale-110"
-                    : "text-slate-400 dark:text-slate-600",
+                  "flex-1 relative border-r border-slate-50 dark:border-slate-900 last:border-r-0 group/lane transition-colors",
+                  idx === currentIdx && "bg-blue-50/20 dark:bg-blue-900/10",
                 )}
               >
-                {unit}
-              </div>
-              {[7, 8, 10, 12, 14, 16, 18].map((h) => (
+                <div className="absolute inset-0 bg-slate-50/0 group-hover/lane:bg-slate-50/50 dark:group-hover/lane:bg-slate-800/30 transition-colors" />
                 <div
-                  key={h}
-                  className="absolute w-full border-t border-slate-100/50 dark:border-slate-800/50"
-                  style={{ top: `${((h - MIN_HOUR) / HOUR_RANGE) * 100}%` }}
-                />
-              ))}
-            </div>
-          ))}
-
-          {/* Dots Overlay */}
-          <div className="absolute inset-0 pointer-events-none overflow-visible">
-            {validPoints.map((brew, i) => {
-              const unitWidth = 100 / units.length;
-              const xPos = (brew.unitIdx + 0.5) * unitWidth;
-              const yPos = ((brew.hour - MIN_HOUR) / HOUR_RANGE) * 100;
-
-              // Calculate size and opacity
-              const count = brew.count || 1;
-              const baseSize = isMobile ? 3 : 4;
-              const size = Math.min(8, baseSize + Math.log2(count) * 2);
-              const opacity = Math.min(1, 0.6 + (count - 1) * 0.1);
-
-              // Offset if both big and small brews exist in the same slot
-              const xOffset = brew.hasOther ? (brew.isSmall ? 4 : -4) : 0;
-
-              // Determine tooltip position based on which side of the chart we're on
-              const isRightSide = brew.unitIdx > units.length / 2;
-
-              return (
-                <div
-                  key={i}
                   className={cn(
-                    "absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer pointer-events-auto group/dot z-10 transition-transform",
-                    clickedIdx === i ? "z-50 scale-125" : "hover:z-50"
+                    "absolute -top-8 left-1/2 -translate-x-1/2 font-black uppercase tracking-tighter text-center transition-all",
+                    isMonthly ? "text-[8px]" : "text-[11px]",
+                    idx === currentIdx
+                      ? "text-blue-600 dark:text-blue-400 scale-110"
+                      : "text-slate-400 dark:text-slate-600",
                   )}
-                  style={{
-                    top: `${yPos}%`,
-                    left: `calc(${xPos}% + ${xOffset}px)`,
-                    width: `${size * (isMobile ? 3 : 4)}px`,
-                    height: `${size * (isMobile ? 3 : 4)}px`,
-                  }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setClickedIdx(clickedIdx === i ? null : i);
-                  }}
                 >
-                  {/* Visual Dot with specific opacity */}
+                  {unit}
+                </div>
+                {[7, 8, 10, 12, 14, 16, 18].map((h) => (
                   <div
-                    className={cn(
-                      "w-full h-full rounded-full transition-all group-hover/dot:scale-150",
-                      brew.isSmall
-                        ? "bg-amber-400 shadow-[0_0_12px_rgba(251,191,36,0.25)]"
-                        : "bg-blue-500 dark:bg-blue-400 shadow-[0_0_12px_rgba(59,130,246,0.25)]",
-                      "ring-2 ring-white dark:ring-slate-800",
-                      clickedIdx === i && "ring-blue-500 dark:ring-blue-400 scale-150"
-                    )}
-                    style={{ opacity }}
+                    key={h}
+                    className="absolute w-full border-t border-slate-100/50 dark:border-slate-800/50"
+                    style={{ top: `${((h - MIN_HOUR) / HOUR_RANGE) * 100}%` }}
                   />
+                ))}
+              </div>
+            ))}
 
-                  {/* Tooltip (Solid 100% opacity) */}
+            <div className="absolute inset-0 pointer-events-none overflow-visible">
+              {validPoints.map((brew, i) => {
+                const unitWidth = 100 / units.length;
+                const xPos = (brew.unitIdx + 0.5) * unitWidth;
+                const yPos = ((brew.hour - MIN_HOUR) / HOUR_RANGE) * 100;
+                const count = brew.count || 1;
+                const baseSize = isMobile ? 3 : 4;
+                const size = Math.min(8, baseSize + Math.log2(count) * 2);
+                const opacity = Math.min(1, 0.6 + (count - 1) * 0.1);
+                const xOffset = brew.hasOther ? (brew.isSmall ? 4 : -4) : 0;
+                const isRightSide = brew.unitIdx > units.length / 2;
+
+                return (
                   <div
+                    key={i}
                     className={cn(
-                      "absolute top-1/2 -translate-y-1/2 px-2.5 py-1.5 bg-slate-900 dark:bg-slate-950 text-white rounded-xl transition-all duration-200 whitespace-nowrap pointer-events-none z-50 shadow-2xl border border-white/10 flex items-center gap-2",
-                      isRightSide
-                        ? "right-full mr-3 group-hover/dot:-translate-x-1"
-                        : "left-full ml-3 group-hover/dot:translate-x-1",
-                      clickedIdx === i 
-                        ? (isRightSide ? "opacity-100 -translate-x-1" : "opacity-100 translate-x-1")
-                        : "opacity-0 group-hover/dot:opacity-100"
+                      "absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer pointer-events-auto group/dot z-10 transition-transform",
+                      clickedIdx === i ? "z-50 scale-125" : "hover:z-50",
                     )}
+                    style={{
+                      top: `${yPos}%`,
+                      left: `calc(${xPos}% + ${xOffset}px)`,
+                      width: `${size * (isMobile ? 3 : 4)}px`,
+                      height: `${size * (isMobile ? 3 : 4)}px`,
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setClickedIdx(clickedIdx === i ? null : i);
+                    }}
                   >
                     <div
                       className={cn(
-                        "w-2 h-2 rounded-full",
-                        brew.isSmall ? "bg-amber-400" : "bg-blue-400",
+                        "w-full h-full rounded-full transition-all group-hover/dot:scale-150",
+                        brew.isSmall
+                          ? "bg-amber-400 shadow-[0_0_12px_rgba(251,191,36,0.25)]"
+                          : "bg-blue-500 dark:bg-blue-400 shadow-[0_0_12px_rgba(59,130,246,0.25)]",
+                        "ring-2 ring-white dark:ring-slate-800",
+                        clickedIdx === i && "ring-blue-500 dark:ring-blue-400 scale-150",
                       )}
+                      style={{ opacity }}
                     />
-                    <div className="flex flex-col pr-1">
-                      <span className="text-[10px] font-black leading-none uppercase tracking-tighter">
-                        {brew.dateStr}
-                      </span>
-                      <span className="text-[8px] text-slate-400 dark:text-slate-500 font-bold mt-0.5">
-                        {brew.timeStr}
-                      </span>
+
+                    <div
+                      className={cn(
+                        "absolute top-1/2 -translate-y-1/2 px-2.5 py-1.5 bg-slate-900 dark:bg-slate-950 text-white rounded-xl transition-all duration-200 whitespace-nowrap pointer-events-none z-50 shadow-2xl border border-white/10 flex items-center gap-2",
+                        isRightSide
+                          ? "right-full mr-3 group-hover/dot:-translate-x-1"
+                          : "left-full ml-3 group-hover/dot:translate-x-1",
+                        clickedIdx === i
+                          ? isRightSide
+                            ? "opacity-100 -translate-x-1"
+                            : "opacity-100 translate-x-1"
+                          : "opacity-0 group-hover/dot:opacity-100",
+                      )}
+                    >
+                      <div
+                        className={cn(
+                          "w-2 h-2 rounded-full",
+                          brew.isSmall ? "bg-amber-400" : "bg-blue-400",
+                        )}
+                      />
+                      <div className="flex flex-col pr-1">
+                        <span className="text-[10px] font-black leading-none uppercase tracking-tighter">
+                          {brew.dateStr}
+                        </span>
+                        <span className="text-[8px] text-slate-400 dark:text-slate-500 font-bold mt-1">
+                          {brew.timeStr}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       <p className="text-center text-[10px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-widest italic pt-4">
         &quot;Nothing like timing a fresh brew.&quot;

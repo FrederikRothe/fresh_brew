@@ -1,5 +1,21 @@
 import { describe, it, expect } from 'vitest';
-import { formatCphDate, formatCphTime, getCphHour, getCphDayOfWeek, getCphSecondsSinceMidnight } from '@/lib/utils';
+import {
+  formatCphDate,
+  formatCphTime,
+  getCphHour,
+  getCphDayOfWeek,
+  getCphSecondsSinceMidnight,
+  getCphMinute,
+  getCphDayOfMonth,
+  getCphMonth,
+  getCphYear,
+  getCphISOWeek,
+  formatHourClock,
+  addDaysToDateString,
+  getCphLastNDates,
+  previousIsoWeek,
+  isoWeekKey,
+} from '@/lib/utils';
 
 // Copenhagen is CET (UTC+1) in winter and CEST (UTC+2) in summer.
 // All timestamps below are in UTC; expected values are in Copenhagen local time.
@@ -109,5 +125,47 @@ describe('getCphSecondsSinceMidnight', () => {
     // 2026-07-15 10:34:56 UTC = 12:34:56 CEST
     // 12 * 3600 + 34 * 60 + 56 = 43200 + 2040 + 56 = 45296
     expect(getCphSecondsSinceMidnight(new Date('2026-07-15T10:34:56Z'))).toBe(45296);
+  });
+});
+
+describe('Copenhagen calendar helpers', () => {
+  it('extracts minute, day, month, and year across the CET midnight boundary', () => {
+    // 2026-01-15 23:30 UTC = 00:30 CET Jan 16
+    const ts = new Date('2026-01-15T23:30:00Z');
+    expect(getCphMinute(ts)).toBe(30);
+    expect(getCphDayOfMonth(ts)).toBe(16);
+    expect(getCphMonth(ts)).toBe(0);
+    expect(getCphYear(ts)).toBe(2026);
+    expect(getCphHour(ts)).toBe(0);
+  });
+
+  it('pads peak-hour labels as HH:mm', () => {
+    expect(formatHourClock(9)).toBe('09:00');
+    expect(formatHourClock(0)).toBe('00:00');
+    expect(formatHourClock(18)).toBe('18:00');
+  });
+
+  it('shifts civil dates without using the host timezone', () => {
+    expect(addDaysToDateString('2026-03-01', -1)).toBe('2026-02-28');
+    expect(addDaysToDateString('2026-12-31', 1)).toBe('2027-01-01');
+  });
+
+  it('returns the last 7 Copenhagen dates ending today', () => {
+    // 2026-01-15 23:30 UTC = 00:30 CET Jan 16
+    expect(getCphLastNDates(7, new Date('2026-01-15T23:30:00Z'))).toEqual([
+      '2026-01-10',
+      '2026-01-11',
+      '2026-01-12',
+      '2026-01-13',
+      '2026-01-14',
+      '2026-01-15',
+      '2026-01-16',
+    ]);
+  });
+
+  it('computes ISO week 1 of 2026 for late December 2025', () => {
+    expect(getCphISOWeek(new Date('2025-12-29T12:00:00Z'))).toEqual({ week: 1, year: 2026 });
+    expect(previousIsoWeek(1, 2026)).toEqual({ week: 52, year: 2025 });
+    expect(isoWeekKey(3, 2026)).toBe('2026-W03');
   });
 });

@@ -109,3 +109,32 @@ export async function readWasteHistory(): Promise<WasteRecord[]> {
     return [];
   }
 }
+
+/**
+ * Load brew + waste history for analytics. Throws on missing config or Redis errors
+ * so the analyze page can show a real error state instead of empty charts.
+ */
+export async function readHistoryForAnalytics(): Promise<{
+  history: BrewRecord[];
+  wasteHistory: WasteRecord[];
+}> {
+  if (!redisUrl) {
+    throw new Error('STORAGE_REDIS_URL is not configured');
+  }
+
+  try {
+    const client = await getRedisClient();
+    const [rawBrews, rawWaste] = await Promise.all([
+      client.lRange(BREW_HISTORY_KEY, 0, -1),
+      client.lRange(WASTE_HISTORY_KEY, 0, -1),
+    ]);
+    await client.quit();
+    return {
+      history: rawBrews.map((r) => JSON.parse(r)),
+      wasteHistory: rawWaste.map((r) => JSON.parse(r)),
+    };
+  } catch (error) {
+    console.error('Error reading analytics history:', error);
+    throw new Error('Could not load brew analytics. Storage error.');
+  }
+}

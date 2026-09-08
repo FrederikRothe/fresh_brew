@@ -44,6 +44,24 @@ describe('BrewTimeline Component', () => {
     expect(screen.getByText(/You're right on schedule with your typical rhythm/)).toBeInTheDocument();
   });
 
+  it('renders overdue messaging for a late prediction', () => {
+    render(
+      <BrewTimeline
+        history={mockHistory}
+        predictedNextBrew={{
+          time: '09:15',
+          sequenceIndex: 3,
+          dayName: 'Wednesday',
+          isOverdue: true,
+          overdueMins: 105,
+        }}
+      />,
+    );
+
+    expect(screen.getByText('Next Brew Overdue')).toBeInTheDocument();
+    expect(screen.getByText(/Should have been brewed 1h 45m ago/i)).toBeInTheDocument();
+  });
+
   it('splits the timeline on hover', async () => {
     render(<BrewTimeline history={mockHistory} />);
     

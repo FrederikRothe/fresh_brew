@@ -7,7 +7,7 @@ This project provides a real-time, high-visibility dashboard for shared office e
 
 - **Real-time Status:** Live countdowns and color-coded freshness states (Fresh 🟢 → Sour 🟡 → Stale 🟠 → Empty 🔴).
 - **Daily Counter:** Automatic midnight reset to track today's caffeine output. 📊
-- **Consumption Analytics:** A dedicated public `/analyze` page visualizing weekly rhythms, usage peaks, and "Deep Dive" metrics (Liters, Caffeine load, Patience). 📈
+- **Consumption Analytics:** A dedicated public `/analyze` page (server-fetched) with weekday rhythm, calendar burn rate, freshness compliance, waste **rates**, and week-over-week grams. All times are Copenhagen. 📈
 - **Predictive Insight:** Smart estimation of the next brew time based on historical patterns for the current day of the week. 🔮
 - **Admin Control:** Secure "Brewer Mode" for starting Big (7m) or Small (4m) pots and **Waste Tracking** ♻️ (logging coffee poured into the sink).
 - **Timezone Aware:** Hardcoded to **Copenhagen Time (CET/CEST)** for consistent office-wide analytics and midnight resets. 🇩🇰
@@ -61,7 +61,8 @@ docker compose run --rm db-clear
 ```
 
 ## Architecture 🏗️
-- **`/analyze`**: Public consumption analytics dashboard. 📊
+- **`/analyze`**: Public consumption analytics (RSC fetch + client charts). 📊
+- **`/src/lib/analytics.ts`**: Pure Copenhagen-time aggregations for `/analyze`. 📈
 - **`/src/lib/storage.ts`**: Redis abstraction layer. 💾
 - **`/src/app/actions.ts`**: Server-side logic for brews and analytics. ⚙️
 - **`/src/components/Dashboard.tsx`**: Main interactive dashboard. 🖥️

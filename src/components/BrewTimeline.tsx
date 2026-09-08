@@ -8,9 +8,10 @@ import {
   formatCphTime 
 } from "@/lib/utils";
 import { cn } from "@/lib/utils";
-import { Coffee, Info, Sparkles } from "lucide-react";
+import { Info, Sparkles, AlertTriangle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SMALL_BATCH_THRESHOLD_MS } from "@/lib/constants";
+import { formatMinsToDuration } from "@/lib/utils";
 
 interface BrewTimelineProps {
   history: { timestamp: number; durationMs: number }[];
@@ -18,6 +19,8 @@ interface BrewTimelineProps {
     time: string;
     sequenceIndex: number;
     dayName: string;
+    isOverdue?: boolean;
+    overdueMins?: number;
   } | null;
 }
 
@@ -101,14 +104,28 @@ export function BrewTimeline({ history, predictedNextBrew }: BrewTimelineProps) 
       
       {/* 1. Prediction Banner Section */}
       {predictedNextBrew && (
-        <div className="p-6 md:p-8 pb-6 flex flex-col md:flex-row items-center justify-between gap-6 border-b border-slate-100 dark:border-amber-900/10">
+        <div className={cn(
+          "p-6 md:p-8 pb-6 flex flex-col md:flex-row items-center justify-between gap-6 border-b",
+          predictedNextBrew.isOverdue
+            ? "border-amber-200 dark:border-amber-800/40 bg-amber-50/40 dark:bg-amber-950/20"
+            : "border-slate-100 dark:border-amber-900/10",
+        )}>
           <div className="flex items-center gap-5">
-            <div className="bg-amber-500 rounded-2xl p-3 md:p-3.5 shadow-lg shadow-amber-500/20">
-              <Sparkles className="w-5 h-5 md:w-6 md:h-6 text-white" />
+            <div className={cn(
+              "rounded-2xl p-3 md:p-3.5 shadow-lg",
+              predictedNextBrew.isOverdue
+                ? "bg-amber-600 shadow-amber-600/20"
+                : "bg-amber-500 shadow-amber-500/20",
+            )}>
+              {predictedNextBrew.isOverdue ? (
+                <AlertTriangle className="w-5 h-5 md:w-6 md:h-6 text-white" />
+              ) : (
+                <Sparkles className="w-5 h-5 md:w-6 md:h-6 text-white" />
+              )}
             </div>
             <div className="space-y-1 text-center md:text-left">
               <h3 className="text-slate-900 dark:text-white font-black uppercase tracking-tight text-xl md:text-2xl flex items-center justify-center md:justify-start gap-2">
-                Next Brew Predicted
+                {predictedNextBrew.isOverdue ? "Next Brew Overdue" : "Next Brew Predicted"}
                 <div className="group relative flex items-center">
                   <Info className="w-4 h-4 text-slate-300 dark:text-amber-500/40 cursor-help transition-colors group-hover:text-amber-500" />
                   <div className="invisible group-hover:visible absolute left-1/2 -translate-x-1/2 md:left-0 md:translate-x-0 bottom-full mb-3 w-56 bg-white dark:bg-slate-950 text-slate-900 dark:text-amber-50 text-[10px] p-4 rounded-2xl font-bold normal-case tracking-tight shadow-2xl z-50 border border-slate-200 dark:border-amber-900/30">
@@ -120,7 +137,9 @@ export function BrewTimeline({ history, predictedNextBrew }: BrewTimelineProps) 
                 </div>
               </h3>
               <p className="text-amber-600/60 dark:text-amber-500/60 text-[10px] font-black uppercase tracking-[0.2em]">
-                Based on your typical {predictedNextBrew.dayName} rhythm
+                {predictedNextBrew.isOverdue
+                  ? `Should have been brewed ${formatMinsToDuration(predictedNextBrew.overdueMins ?? 0)} ago`
+                  : `Based on your typical ${predictedNextBrew.dayName} rhythm`}
               </p>
             </div>
           </div>
@@ -135,7 +154,7 @@ export function BrewTimeline({ history, predictedNextBrew }: BrewTimelineProps) 
               {predictedNextBrew.time}
             </span>
             <span className="text-[10px] font-black text-amber-600/40 dark:text-amber-500/40 uppercase tracking-[0.4em] mt-3">
-              Estimated Time
+              {predictedNextBrew.isOverdue ? "Typical Time" : "Estimated Time"}
             </span>
           </motion.div>
         </div>

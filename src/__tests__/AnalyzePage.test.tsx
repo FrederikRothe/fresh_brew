@@ -1,193 +1,171 @@
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
-import AnalyzePage from '@/app/analyze/page';
+import { AnalyzeDashboard } from '@/components/AnalyzeDashboard';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
-
+import { computeBrewAnalytics } from '@/lib/analytics';
 import * as actions from '@/app/actions';
 
-// Mock the actions
 vi.mock('@/app/actions', () => ({
   getBrewAnalytics: vi.fn(),
 }));
 
-// Mock next/navigation
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
     push: vi.fn(),
   }),
 }));
 
-describe('AnalyzePage Component', () => {
-  const mockAnalytics = {
-    totalBrews: 10,
-    totalCoffeeGrams: 3080,
-    bigBrews: 8,
-    smallBrews: 2,
-    brewsPerWeek: { '2026-W12': 10 },
-    avgBrewsPerDay: 2,
-    avgCoffeePerDay: 616,
-    hourDistribution: { '9': 5, '10': 5 },
-    durationBreakdown: { [7 * 60 * 1000]: 8, [4 * 60 * 1000]: 2 },
-    history: [
-      { timestamp: new Date('2026-03-18T09:00:00Z').getTime(), durationMs: 7 * 60 * 1000 },
-      { timestamp: new Date('2026-03-18T10:00:00Z').getTime(), durationMs: 4 * 60 * 1000 },
+const BIG = 7 * 60 * 1000;
+const SMALL = 4 * 60 * 1000;
+
+function brew(iso: string, durationMs = BIG) {
+  return { timestamp: new Date(iso).getTime(), durationMs };
+}
+
+describe('AnalyzeDashboard', () => {
+  const now = new Date('2026-03-18T12:00:00Z');
+
+  const mockAnalytics = computeBrewAnalytics(
+    [
+      brew('2026-03-18T08:00:00Z', BIG),
+      brew('2026-03-18T09:00:00Z', SMALL),
+      brew('2026-03-11T08:00:00Z', BIG),
+      brew('2026-03-11T09:00:00Z', BIG),
+      brew('2026-03-11T12:00:00Z', BIG),
+      brew('2026-03-16T08:00:00Z', BIG),
+      brew('2026-03-17T08:00:00Z', BIG),
+      brew('2026-03-10T08:00:00Z', BIG),
+      brew('2026-03-04T08:00:00Z', SMALL),
+      brew('2026-03-04T10:00:00Z', BIG),
     ],
-    predictedNextBrew: {
-      time: '14:30',
-      isOverdue: false,
-      overdueMins: 0,
-    },
-    totalLiters: 51.3,
-    espressoEquivalent: 171,
-    totalWaitingMins: 70,
-    wasteHistory: [],
-    totalWasteCount: 5,
-    wasteByDuration: { [7 * 60 * 1000]: 3, [4 * 60 * 1000]: 2 },
-  };
+    [
+      {
+        timestamp: new Date('2026-03-16T10:00:00Z').getTime(),
+        lastBrewTimestamp: new Date('2026-03-16T08:00:00Z').getTime(),
+        lastBrewDurationMs: BIG,
+      },
+      {
+        timestamp: new Date('2026-03-04T12:00:00Z').getTime(),
+        lastBrewTimestamp: new Date('2026-03-04T08:00:00Z').getTime(),
+        lastBrewDurationMs: SMALL,
+      },
+    ],
+    now,
+  );
 
   beforeEach(() => {
-    // Wednesday, March 18, 2026
-    const mockDate = new Date('2026-03-18T12:00:00Z');
-    vi.setSystemTime(mockDate);
-    vi.mocked(actions.getBrewAnalytics).mockResolvedValue(mockAnalytics as actions.BrewAnalytics);
+    vi.setSystemTime(now);
+    vi.mocked(actions.getBrewAnalytics).mockResolvedValue(mockAnalytics);
   });
 
   afterEach(() => {
     vi.clearAllMocks();
   });
 
-  it('renders stats and Consumption Rhythm graph', async () => {
-    render(<AnalyzePage />);
-    
-    await waitFor(() => {
-      expect(screen.getByText('Total Brews')).toBeInTheDocument();
-      expect(screen.getByText('Coffee Burn Rate')).toBeInTheDocument();
-      expect(screen.getByText('Consumption Rhythm')).toBeInTheDocument();
-    });
+  it('renders stats and Consumption Rhythm graph', () => {
+    render(<AnalyzeDashboard initialAnalytics={mockAnalytics} />);
+    expect(screen.getByText('Total Brews')).toBeInTheDocument();
+    expect(screen.getByText('Coffee Burn Rate')).toBeInTheDocument();
+    expect(screen.getByText('Consumption Rhythm')).toBeInTheDocument();
+    expect(screen.getByText('Avg g / day')).toBeInTheDocument();
+    expect(screen.getByText('Freshness & Waste')).toBeInTheDocument();
   });
 
-  it('highlights the current day (Wednesday) in weekly mode', async () => {
-    render(<AnalyzePage />);
-    
-    await waitFor(() => {
-      // AggregateRhythm uses div for day labels, CoffeeBurnChart uses span
-      const wednesdayLabels = screen.getAllByText('Wed');
-      const rhythmLabel = wednesdayLabels.find(el => el.tagName === 'DIV');
-      expect(rhythmLabel).toHaveClass('text-blue-600');
-    });
+  it('highlights the current day (Wednesday) in last-7-days mode', () => {
+    render(<AnalyzeDashboard initialAnalytics={mockAnalytics} />);
+    const wednesdayLabels = screen.getAllByText('Wed');
+    const rhythmLabel = wednesdayLabels.find((el) => el.tagName === 'DIV');
+    expect(rhythmLabel).toHaveClass('text-blue-600');
   });
 
-  it('highlights the current day (18th) in monthly mode', async () => {
-    render(<AnalyzePage />);
-    
-    await waitFor(() => {
-      // Click the monthly button in the first chart (AggregateRhythm)
-      const monthlyButtons = screen.getAllByRole('button', { name: /monthly/i });
-      fireEvent.click(monthlyButtons[0]);
-    });
-
+  it('highlights the current day (18th) in this-month mode', () => {
+    render(<AnalyzeDashboard initialAnalytics={mockAnalytics} />);
+    fireEvent.click(screen.getByRole('button', { name: /this month/i }));
     const day18Label = screen.getByText('18');
     expect(day18Label).toHaveClass('text-blue-600');
   });
 
-  it('highlights the current month (March) in yearly mode', async () => {
-    render(<AnalyzePage />);
-    
-    await waitFor(() => {
-      const yearlyButtons = screen.getAllByRole('button', { name: /yearly/i });
-      fireEvent.click(yearlyButtons[0]);
-    });
-
-    const marchLabel = screen.getByText('Mar');
-    expect(marchLabel).toHaveClass('text-blue-600');
+  it('highlights the current month (March) in this-year mode', () => {
+    render(<AnalyzeDashboard initialAnalytics={mockAnalytics} />);
+    fireEvent.click(screen.getByRole('button', { name: /this year/i }));
+    const marchLabels = screen.getAllByText('Mar');
+    const rhythmLabel = marchLabels.find((el) => el.tagName === 'DIV');
+    expect(rhythmLabel).toHaveClass('text-blue-600');
   });
 
-  it('renders graph even with empty history', async () => {
-    const emptyAnalytics = {
-      totalBrews: 0,
-      totalCoffeeGrams: 0,
-      bigBrews: 0,
-      smallBrews: 0,
-      brewsPerWeek: {},
-      avgBrewsPerDay: 0,
-      avgCoffeePerDay: 0,
-      hourDistribution: {},
-      durationBreakdown: {},
-      history: [],
-      predictedNextBrew: null,
-      totalLiters: 0,
-      espressoEquivalent: 0,
-      totalWaitingMins: 0,
-      wasteHistory: [],
-      totalWasteCount: 0,
-      wasteByDuration: {},
+  it('renders graph even with empty history', () => {
+    const emptyAnalytics = computeBrewAnalytics([], [], now);
+    render(<AnalyzeDashboard initialAnalytics={emptyAnalytics} />);
+
+    expect(screen.getByText('Consumption Rhythm')).toBeInTheDocument();
+    expect(screen.getByText('Total Brews')).toBeInTheDocument();
+    expect(screen.getByText('Coffee Burn Rate')).toBeInTheDocument();
+    expect(screen.getByText('0')).toBeInTheDocument();
+    expect(screen.getByText('0.0')).toBeInTheDocument();
+    expect(screen.getByText('0/0')).toBeInTheDocument();
+    expect(screen.getByText('--')).toBeInTheDocument();
+    expect(screen.getAllByText('0%').length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('correctly positions time labels on the Y-axis', () => {
+    render(<AnalyzeDashboard initialAnalytics={mockAnalytics} />);
+
+    const getLabelByTop = (text: string) => {
+      const labels = screen.getAllByText(text);
+      return labels.find((el) => (el as HTMLElement).style.top !== '') as HTMLElement;
     };
-    vi.mocked(actions.getBrewAnalytics).mockResolvedValue(emptyAnalytics as actions.BrewAnalytics);
 
-    render(<AnalyzePage />);
-
-    await waitFor(() => {
-      expect(screen.getByText('Consumption Rhythm')).toBeInTheDocument();
-      expect(screen.getByText('Total Brews')).toBeInTheDocument();
-      expect(screen.getByText('Coffee Burn Rate')).toBeInTheDocument();
-      
-      // Should show "0" stats for both Total Brews and Total Waste
-      const zeroStats = screen.getAllByText('0');
-      expect(zeroStats.length).toBeGreaterThanOrEqual(2);
-      
-      expect(screen.getByText('0.0')).toBeInTheDocument(); // Avg / Day
-      
-      expect(screen.getByText('0/0')).toBeInTheDocument(); // Big / Small
-      expect(screen.getByText('--')).toBeInTheDocument(); // Peak Hour
-    });
+    expect(getLabelByTop('7AM').style.top).toBe('0%');
+    expect(getLabelByTop('8AM').style.top).toContain('9.09');
+    expect(getLabelByTop('10AM').style.top).toContain('27.27');
+    expect(getLabelByTop('12PM').style.top).toContain('45.45');
+    expect(getLabelByTop('2PM').style.top).toContain('63.63');
+    expect(getLabelByTop('4PM').style.top).toContain('81.81');
+    expect(getLabelByTop('6PM').style.top).toBe('100%');
   });
 
-  it('correctly positions time labels on the Y-axis', async () => {
-    render(<AnalyzePage />);
-    
-    await waitFor(() => {
-      const getLabelByTop = (text: string) => {
-        const labels = screen.getAllByText(text);
-        return labels.find(el => (el as HTMLElement).style.top !== '') as HTMLElement;
-      };
-
-      const label7AM = getLabelByTop('7AM');
-      const label8AM = getLabelByTop('8AM');
-      const label10AM = getLabelByTop('10AM');
-      const label12PM = getLabelByTop('12PM');
-      const label2PM = getLabelByTop('2PM');
-      const label4PM = getLabelByTop('4PM');
-      const label6PM = getLabelByTop('6PM');
-
-      expect(label7AM.style.top).toBe('0%');
-      expect(label8AM.style.top).toContain('9.09');
-      expect(label10AM.style.top).toContain('27.27');
-      expect(label12PM.style.top).toContain('45.45');
-      expect(label2PM.style.top).toContain('63.63');
-      expect(label4PM.style.top).toContain('81.81');
-      expect(label6PM.style.top).toBe('100%');
-    });
+  it('renders Predicted Next Brew banner when available', () => {
+    render(<AnalyzeDashboard initialAnalytics={mockAnalytics} />);
+    expect(screen.getByText('Next Brew Overdue')).toBeInTheDocument();
+    expect(screen.getByText(/on a Wednesday/i)).toBeInTheDocument();
   });
 
-  it('renders Predicted Next Brew banner when available', async () => {
-    render(<AnalyzePage />);
-    
-    await waitFor(() => {
-      expect(screen.getByText('Next Brew Predicted')).toBeInTheDocument();
-      expect(screen.getByText('14:30')).toBeInTheDocument();
-      expect(screen.getByText(/Based on your typical Wednesday rhythm/i)).toBeInTheDocument();
-    });
+  it('renders overdue messaging when the prediction is in the past', () => {
+    const overdue = {
+      ...mockAnalytics,
+      predictedNextBrew: { time: '09:15', isOverdue: true, overdueMins: 225 },
+    };
+    render(<AnalyzeDashboard initialAnalytics={overdue} />);
+    expect(screen.getByText('Next Brew Overdue')).toBeInTheDocument();
+    expect(screen.getByText(/Should have been brewed 3h 45m ago/i)).toBeInTheDocument();
   });
 
-  it('renders Deep Dive Fun Facts section', async () => {
-    render(<AnalyzePage />);
-    
+  it('renders Deep Dive Fun Facts and waste rates', () => {
+    render(<AnalyzeDashboard initialAnalytics={mockAnalytics} />);
+    expect(screen.getByText('Deep Dive Fun Facts')).toBeInTheDocument();
+    expect(screen.getByText('Waste Correlation')).toBeInTheDocument();
+    expect(screen.getByText('Big pot waste rate')).toBeInTheDocument();
+    expect(screen.getByText('Small pot waste rate')).toBeInTheDocument();
+  });
+
+  it('formats peak hour as Copenhagen HH:mm', () => {
+    render(<AnalyzeDashboard initialAnalytics={mockAnalytics} />);
+    expect(screen.getByText('Peak Hour')).toBeInTheDocument();
+    expect(screen.getAllByText('09:00').length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('shows an error state with retry instead of a blank page', async () => {
+    render(
+      <AnalyzeDashboard
+        initialAnalytics={null}
+        initialError="Could not load analytics from storage. Check Redis and try again."
+      />,
+    );
+    expect(screen.getByText('Analytics unavailable')).toBeInTheDocument();
+    expect(screen.queryByText('Consumption Rhythm')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /retry/i }));
     await waitFor(() => {
-      expect(screen.getByText('Deep Dive Fun Facts')).toBeInTheDocument();
-      expect(screen.getByText('51L')).toBeInTheDocument();
-      expect(screen.getByText('171 Shots')).toBeInTheDocument();
-      expect(screen.getByText('1.2h')).toBeInTheDocument(); // 70 mins = 1.166...h -> 1.2h
-      expect(screen.getByText('Waste Correlation')).toBeInTheDocument();
-      expect(screen.getByText('3 Big vs 2 Small')).toBeInTheDocument();
+      expect(actions.getBrewAnalytics).toHaveBeenCalled();
     });
   });
 });

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { readBrewData, writeBrewData, appendBrewRecord, readBrewHistory } from '@/lib/storage';
+import { readBrewData, writeBrewData, appendBrewRecord, readBrewHistory, readHistoryForAnalytics } from '@/lib/storage';
 import { createClient } from 'redis';
 
 // Mock redis
@@ -95,5 +95,25 @@ describe('Storage Library', () => {
     const history = await readBrewHistory();
 
     expect(history).toEqual([]);
+  });
+
+  it('reads brew and waste history together for analytics', async () => {
+    const brews = [{ timestamp: 1000, durationMs: 420000 }];
+    const waste = [{ timestamp: 2000, lastBrewTimestamp: 1000, lastBrewDurationMs: 420000 }];
+    mockClient.lRange
+      .mockResolvedValueOnce(brews.map((r) => JSON.stringify(r)))
+      .mockResolvedValueOnce(waste.map((r) => JSON.stringify(r)));
+
+    const result = await readHistoryForAnalytics();
+
+    expect(result.history).toEqual(brews);
+    expect(result.wasteHistory).toEqual(waste);
+    expect(mockClient.lRange).toHaveBeenCalledWith('coffee_brew_history', 0, -1);
+    expect(mockClient.lRange).toHaveBeenCalledWith('coffee_waste_history', 0, -1);
+  });
+
+  it('throws when analytics history cannot be read', async () => {
+    mockClient.lRange.mockRejectedValue(new Error('Redis Error'));
+    await expect(readHistoryForAnalytics()).rejects.toThrow(/Could not load brew analytics/);
   });
 });
