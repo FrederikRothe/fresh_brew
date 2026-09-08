@@ -2,7 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { getBrewAnalytics, type BrewAnalytics } from "@/app/actions";
+import { getBrewAnalytics } from "@/app/actions";
+import {
+  ANALYTICS_PERIODS,
+  type AnalyticsPeriod,
+  type BrewAnalytics,
+} from "@/lib/analytics";
 import {
   Coffee,
   ArrowLeft,
@@ -23,10 +28,6 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import {
-  ANALYTICS_PERIODS,
-  type AnalyticsPeriod,
-} from "@/lib/analytics";
 import { StatTile } from "@/components/StatTile";
 import { AggregateRhythm } from "@/components/AggregateRhythm";
 import { CoffeeBurnChart } from "@/components/CoffeeBurnChart";

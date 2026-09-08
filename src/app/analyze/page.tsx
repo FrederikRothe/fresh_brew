@@ -1,4 +1,5 @@
-import { getBrewAnalytics, type BrewAnalytics } from "@/app/actions";
+import { getBrewAnalytics } from "@/app/actions";
+import type { BrewAnalytics } from "@/lib/analytics";
 import { AnalyzeDashboard } from "@/components/AnalyzeDashboard";
 
 export const dynamic = "force-dynamic";

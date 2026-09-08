@@ -23,7 +23,7 @@ import { useTimer } from "@/hooks/use-timer";
 import { useBrewStatus } from "@/hooks/use-brew-status";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
 import { useBodyBackground } from "@/hooks/use-body-background";
-import type { PredictionData } from "@/app/actions";
+import type { PredictionData } from "@/lib/analytics";
 import ConfirmModal from "./ConfirmModal";
 
 export default function Dashboard({

@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { readBrewData, writeBrewData, appendBrewRecord, readBrewHistory, appendWasteRecord, readHistoryForAnalytics, type BrewData, type BrewRecord, type WasteRecord } from '@/lib/storage';
+import { readBrewData, writeBrewData, appendBrewRecord, readBrewHistory, appendWasteRecord, readHistoryForAnalytics, type BrewData, type BrewRecord } from '@/lib/storage';
 import { formatCphDate, formatCphTime } from '@/lib/utils';
 import { SMALL_BATCH_THRESHOLD_MS } from '@/lib/constants';
 import {
@@ -10,9 +10,6 @@ import {
   type BrewAnalytics,
   type PredictionData,
 } from '@/lib/analytics';
-
-export type { BrewAnalytics, PredictionData };
-export type { BrewRecord, WasteRecord };
 
 export type BrewStatus = BrewData;
 

@@ -25,7 +25,7 @@ This project provides a real-time dashboard to monitor when the last pot of coff
 - **`src/components/Dashboard.tsx`**: Main UI (Client Component). Orchestrates the dashboard using custom hooks.
 - **`src/hooks/`**: Specialized client hooks for timer logic (`useTimer`), brew status polling (`useBrewStatus`), admin authentication (`useAdminAuth`), and theme-aware body styling (`useBodyBackground`).
 - **`src/lib/`**: Shared logic including Redis storage (`storage.ts`), brew analytics (`analytics.ts`), calculation helpers (`brew-utils.ts`), common thresholds (`constants.ts`), and styling/timezone utilities (`utils.ts`).
-- **`src/app/actions.ts`**: Server Actions for data fetching and mutation. Includes Slack notification logic, a thin wrapper around `src/lib/analytics.ts`, and admin password verification.
+- **`src/app/actions.ts`**: Server Actions for data fetching and mutation. Includes Slack notification logic, a thin wrapper around `src/lib/analytics.ts`, and admin password verification. Types used by client components (`BrewAnalytics`, `PredictionData`) are imported from `src/lib/`, not re-exported from this `'use server'` file.
 - **`src/components/AggregateRhythm.tsx`**: Renders precomputed brew-density series (weekday / last 7 days / month / year).
 - **`src/components/CoffeeBurnChart.tsx`**: Renders precomputed grams-consumed bars (Big: 340g, Small: 180g).
 - **`src/components/StatTile.tsx`**: Reusable component for displaying key metrics with icons.
