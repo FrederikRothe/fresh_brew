@@ -123,9 +123,8 @@ export async function startBrew(password: string, durationMs: number = 7 * 60 * 
 }
 
 export type PredictionData = {
-  time: string;
-  isOverdue: boolean;
-  overdueMins: number;
+  time: string;      // "HH:mm" in Copenhagen time
+  timestamp: number; // Unix ms of the predicted brew today
 };
 
 export type BrewAnalytics = {
@@ -152,59 +151,62 @@ export async function getPredictedNextBrew(history?: BrewRecord[]): Promise<Pred
   const brewHistory = history || await readBrewHistory();
   const sortedHistory = [...brewHistory].sort((a, b) => a.timestamp - b.timestamp);
 
-  const today = new Date();
-  const todayStr = formatCphDate(today);
-  const todayDayOfWeek = getCphDayOfWeek(today);
+  const now = Date.now();
+  const todayStr = formatCphDate(now);
+  const todayDayOfWeek = getCphDayOfWeek(now);
 
-  // For predictive analytics
-  const seqData: Record<number, Record<number, number[]>> = {}; // dayOfWeek -> seqIndex -> [secondsSinceMidnight]
+  // dayOfWeek -> seqIndex -> samples, in seconds since midnight
+  const seqTimes: Record<number, Record<number, number[]>> = {};
+  // dayOfWeek -> seqIndex -> seconds since the previous pot that day
+  const seqGaps: Record<number, Record<number, number[]>> = {};
   let lastDateStr = '';
+  let lastSeconds = 0;
   let currentSeq = 0;
+  let lastBrewTodaySeconds: number | null = null;
+  let brewedTodayCount = 0;
 
   for (const record of sortedHistory) {
-    const date = new Date(record.timestamp);
-    const dateStr = formatCphDate(date);
-    const dayOfWeek = getCphDayOfWeek(date);
-    const secondsSinceMidnight = getCphSecondsSinceMidnight(date);
+    const dateStr = formatCphDate(record.timestamp);
+    const dayOfWeek = getCphDayOfWeek(record.timestamp);
+    const secondsSinceMidnight = getCphSecondsSinceMidnight(record.timestamp);
 
     if (dateStr !== lastDateStr) {
       currentSeq = 0;
       lastDateStr = dateStr;
     } else {
       currentSeq++;
+      ((seqGaps[dayOfWeek] ??= {})[currentSeq] ??= []).push(secondsSinceMidnight - lastSeconds);
     }
+    ((seqTimes[dayOfWeek] ??= {})[currentSeq] ??= []).push(secondsSinceMidnight);
+    lastSeconds = secondsSinceMidnight;
 
-    if (!seqData[dayOfWeek]) seqData[dayOfWeek] = {};
-    if (!seqData[dayOfWeek][currentSeq]) seqData[dayOfWeek][currentSeq] = [];
-    seqData[dayOfWeek][currentSeq].push(secondsSinceMidnight);
+    if (dateStr === todayStr) {
+      brewedTodayCount++;
+      lastBrewTodaySeconds = secondsSinceMidnight;
+    }
   }
 
-  // Count how many brewed today so far
-  const brewedTodayCount = sortedHistory.filter(h => formatCphDate(h.timestamp) === todayStr).length;
-  
-  // Next brew sequence for today
-  const nextSeq = brewedTodayCount;
-  const typicalTimes = seqData[todayDayOfWeek]?.[nextSeq];
+  const typicalTimes = seqTimes[todayDayOfWeek]?.[brewedTodayCount];
+  if (!typicalTimes?.length) return null;
 
-  if (typicalTimes && typicalTimes.length > 0) {
-    const avgSeconds = typicalTimes.reduce((a, b) => a + b, 0) / typicalTimes.length;
-    const h = Math.floor(avgSeconds / 3600);
-    const m = Math.floor((avgSeconds % 3600) / 60);
-    const timeStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-    
-    // Check if predicted time is in the past for today
-    const nowSeconds = getCphSecondsSinceMidnight(today);
-    const isOverdue = avgSeconds <= nowSeconds;
-    const overdueMins = isOverdue ? Math.floor((nowSeconds - avgSeconds) / 60) : 0;
+  const average = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
+  let predictedSeconds = average(typicalTimes);
 
-    return {
-      time: timeStr,
-      isOverdue,
-      overdueMins
-    };
+  // If today's last pot came later than usual, the next one can't be due before it:
+  // push the prediction out by the typical gap between these two pots instead.
+  const typicalGaps = seqGaps[todayDayOfWeek]?.[brewedTodayCount];
+  if (lastBrewTodaySeconds !== null && typicalGaps?.length) {
+    predictedSeconds = Math.max(predictedSeconds, lastBrewTodaySeconds + average(typicalGaps));
   }
 
-  return null;
+  const h = Math.floor(predictedSeconds / 3600);
+  const m = Math.floor((predictedSeconds % 3600) / 60);
+  if (h >= 24) return null;
+
+  return {
+    time: `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`,
+    timestamp: now + (h * 3600 + m * 60 - getCphSecondsSinceMidnight(now)) * 1000,
+  };
 }
 
 export async function getBrewAnalytics(): Promise<BrewAnalytics> {

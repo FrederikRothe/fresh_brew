@@ -89,7 +89,7 @@ This project provides a real-time dashboard to monitor when the last pot of coff
 - **Stale (40-60m since ready):** Red (`bg-rose-500`)
 - **Empty/Old (120m+):** Gray (`bg-slate-500`)
 - **Daily Pot Count:** Automatically resets at midnight (calculated on-the-fly during data fetch).
-- **Predictive Next Brew:** Smart estimation of when the next pot will be brewed, based on the historical sequence for the current day of the week (e.g., "pot #3 on a Monday").
+- **Predictive Next Brew:** Smart estimation of when the next pot will be brewed, based on the historical sequence for the current day of the week (e.g., "pot #3 on a Monday"). If today's last pot was later than usual, it's shifted to last pot + typical gap. The server returns a `timestamp`; the dashboard derives "overdue" from the live clock and refetches after each brew / at midnight.
 - **Analyze Consumption:** Publicly accessible page (`/analyze`) with:
   - **Consumption Rhythm:** Density map of brews over time (7 AM — 6 PM).
   - **Coffee Burn Rate:** Bar chart tracking grams consumed (Big: 340g, Small: 180g).

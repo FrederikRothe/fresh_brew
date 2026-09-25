@@ -1,7 +1,14 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, act } from '@testing-library/react';
 import Dashboard from '@/components/Dashboard';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import type { BrewStatus } from '@/app/actions';
+
+vi.mock('@/app/actions', () => ({
+  getBrewStatus: vi.fn(),
+  startBrew: vi.fn(),
+  logWaste: vi.fn(),
+  getPredictedNextBrew: vi.fn().mockResolvedValue(null),
+}));
 
 // Mock the hooks
 const mockUseAdminAuth = vi.fn();
@@ -40,8 +47,7 @@ describe('Dashboard Prediction Banner', () => {
         initialStatus={initialStatus}
         predictedNextBrew={{
           time: '14:30',
-          isOverdue: false,
-          overdueMins: 0,
+          timestamp: Date.now() + 90 * 60 * 1000,
         }}
       />,
     );
@@ -64,8 +70,7 @@ describe('Dashboard Prediction Banner', () => {
         initialStatus={initialStatus}
         predictedNextBrew={{
           time: '11:30',
-          isOverdue: true,
-          overdueMins: 30,
+          timestamp: Date.now() - 30 * 60 * 1000,
         }}
       />,
     );
@@ -95,13 +100,35 @@ describe('Dashboard Prediction Banner', () => {
         initialStatus={initialStatus}
         predictedNextBrew={{
           time: '11:30',
-          isOverdue: true,
-          overdueMins: 362,
+          timestamp: Date.now() - 362 * 60 * 1000,
         }}
       />,
     );
 
     expect(screen.getByText('Should have been brewed 6h 2m ago')).toBeInTheDocument();
+  });
+
+  it('flips to overdue once the predicted time passes without a reload', () => {
+    mockUseAdminAuth.mockReturnValue({
+      adminPassword: null,
+      setAdminPassword: vi.fn(),
+      handleLogin: vi.fn(),
+      handleLogout: vi.fn(),
+    });
+
+    render(
+      <Dashboard
+        initialStatus={initialStatus}
+        predictedNextBrew={{ time: '13:05', timestamp: Date.now() + 5 * 60 * 1000 }}
+      />,
+    );
+
+    expect(screen.getByText('Next Brew Predicted')).toBeInTheDocument();
+    act(() => {
+      vi.advanceTimersByTime(6 * 60 * 1000);
+    });
+    expect(screen.getByText('Next Brew Overdue')).toBeInTheDocument();
+    expect(screen.getByText('Should have been brewed 1m ago')).toBeInTheDocument();
   });
 
   it('does NOT render prediction banner when in admin mode', () => {
@@ -117,8 +144,7 @@ describe('Dashboard Prediction Banner', () => {
         initialStatus={initialStatus}
         predictedNextBrew={{
           time: '14:30',
-          isOverdue: false,
-          overdueMins: 0,
+          timestamp: Date.now() + 90 * 60 * 1000,
         }}
       />,
     );

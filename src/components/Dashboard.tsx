@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, useTransition } from "react";
-import { startBrew, logWaste, type BrewStatus } from "@/app/actions";
+import { useEffect, useRef, useState, useTransition } from "react";
+import { startBrew, logWaste, getPredictedNextBrew, type BrewStatus } from "@/app/actions";
 import {
   Coffee,
   RefreshCw,
@@ -17,7 +17,7 @@ import {
   Trash2,
   Github,
 } from "lucide-react";
-import { cn, formatMinsToDuration } from "@/lib/utils";
+import { cn, formatCphDate, formatMinsToDuration } from "@/lib/utils";
 import {
   DEFAULT_BREW_TIME_MS,
   SMALL_BREW_TIME_MS,
@@ -79,7 +79,26 @@ export default function Dashboard({
       ).padStart(2, "0")}:${String(displaySecs).padStart(2, "0")}`
     : "--:--";
 
-  const showPrediction = !adminPassword && !!predictedNextBrew;
+  // The kiosk stays open all day, so refresh the prediction whenever a pot is
+  // brewed or the day rolls over, and derive "overdue" from the ticking clock.
+  const [prediction, setPrediction] = useState(predictedNextBrew ?? null);
+  const predictionKey = `${status.lastBrewTimestamp}|${formatCphDate(now)}`;
+  const predictionKeyRef = useRef(predictionKey);
+  useEffect(() => {
+    if (predictionKey === predictionKeyRef.current) return;
+    predictionKeyRef.current = predictionKey;
+    let stale = false;
+    getPredictedNextBrew()
+      .then((p) => !stale && setPrediction(p))
+      .catch(console.error);
+    return () => {
+      stale = true;
+    };
+  }, [predictionKey]);
+
+  const isOverdue = !!prediction && now >= prediction.timestamp;
+  const overdueMins = isOverdue ? Math.floor((now - prediction.timestamp) / 60000) : 0;
+  const showPrediction = !adminPassword && !!prediction;
 
   useBodyBackground(statusColor);
 
@@ -313,12 +332,12 @@ export default function Dashboard({
               </span>
             </div>
 
-            {showPrediction && predictedNextBrew && (
+            {showPrediction && prediction && (
               <div
                 className={cn(
                   "rounded-2xl backdrop-blur-md shadow-lg min-h-0",
                   "flex flex-col items-center justify-center text-center px-3 py-4 md:py-6 landscape-phone:py-1.5",
-                  predictedNextBrew.isOverdue
+                  isOverdue
                     ? "bg-amber-100/95 dark:bg-amber-950/90 ring-2 ring-amber-500"
                     : "bg-white/90 dark:bg-slate-900/90 ring-1 ring-black/5 dark:ring-white/10",
                 )}
@@ -326,38 +345,38 @@ export default function Dashboard({
                 <h3
                   className={cn(
                     "flex items-center text-[11px] md:text-xs font-bold uppercase tracking-wider",
-                    predictedNextBrew.isOverdue
+                    isOverdue
                       ? "text-amber-900 dark:text-amber-200"
                       : "text-slate-600 dark:text-slate-400",
                   )}
                 >
-                  {predictedNextBrew.isOverdue ? (
+                  {isOverdue ? (
                     <AlertTriangle className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 shrink-0 text-amber-700 dark:text-amber-400" aria-hidden />
                   ) : (
                     <Sparkles className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 shrink-0 text-amber-600 dark:text-amber-500" aria-hidden />
                   )}
-                  {predictedNextBrew.isOverdue ? "Next Brew Overdue" : "Next Brew Predicted"}
+                  {isOverdue ? "Next Brew Overdue" : "Next Brew Predicted"}
                 </h3>
                 <span
                   className={cn(
                     "text-3xl md:text-5xl font-black tabular-nums tracking-tighter leading-none mt-1 md:mt-2",
-                    predictedNextBrew.isOverdue
+                    isOverdue
                       ? "text-amber-700 dark:text-amber-400"
                       : "text-slate-900 dark:text-slate-100",
                   )}
                 >
-                  {predictedNextBrew.time}
+                  {prediction.time}
                 </span>
                 <p
                   className={cn(
                     "text-[11px] md:text-xs font-bold uppercase tracking-wide mt-1",
-                    predictedNextBrew.isOverdue
+                    isOverdue
                       ? "text-amber-800 dark:text-amber-300"
                       : "text-slate-500 dark:text-slate-400",
                   )}
                 >
-                  {predictedNextBrew.isOverdue
-                    ? `Should have been brewed ${formatMinsToDuration(predictedNextBrew.overdueMins)} ago`
+                  {isOverdue
+                    ? `Should have been brewed ${formatMinsToDuration(overdueMins)} ago`
                     : "Historical Estimate"}
                 </p>
               </div>

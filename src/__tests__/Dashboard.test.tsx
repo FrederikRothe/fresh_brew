@@ -9,6 +9,7 @@ vi.mock('@/app/actions', () => ({
   getBrewStatus: vi.fn(),
   startBrew: vi.fn(),
   logWaste: vi.fn(),
+  getPredictedNextBrew: vi.fn().mockResolvedValue(null),
 }));
 
 const mockSetAdminPassword = vi.fn();
