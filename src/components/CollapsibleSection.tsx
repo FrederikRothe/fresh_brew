@@ -26,6 +26,8 @@ export function CollapsibleSection({
   useEffect(() => {
     const savedState = localStorage.getItem(storageKey);
     if (savedState !== null) {
+      // Read after mount (not in the initializer) to keep SSR hydration consistent
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsOpen(savedState === "open");
     }
   }, [storageKey]);
@@ -47,25 +49,25 @@ export function CollapsibleSection({
         onClick={toggleOpen}
         aria-expanded={isOpen}
         aria-controls={contentId}
-        className="w-full flex items-center justify-between p-6 md:p-8 transition-colors group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-inset"
+        className="w-full flex items-center justify-between px-5 py-5 md:px-8 md:py-6 transition-colors group rounded-3xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-inset"
       >
         <div className="flex items-center gap-3">
-          <Icon className="w-6 h-6 text-slate-900 dark:text-slate-100 group-hover:scale-110 group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-all duration-300" />
-          <h3 className="text-lg md:text-xl font-black text-slate-900 dark:text-slate-100 uppercase tracking-tight group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors">
+          <Icon className="w-5 h-5 md:w-6 md:h-6 shrink-0 text-slate-900 dark:text-slate-100 group-hover:scale-110 group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-all duration-300" />
+          <h3 className="text-left text-lg md:text-xl font-black text-slate-900 dark:text-slate-100 uppercase tracking-tight group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors">
             {title}
           </h3>
         </div>
         {isOpen ? (
-          <ChevronUp className="w-5 h-5 text-slate-400 dark:text-slate-500" />
+          <ChevronUp className="w-5 h-5 text-slate-500 dark:text-slate-400 shrink-0" />
         ) : (
-          <ChevronDown className="w-5 h-5 text-slate-400 dark:text-slate-500" />
+          <ChevronDown className="w-5 h-5 text-slate-500 dark:text-slate-400 shrink-0" />
         )}
       </button>
 
       {isOpen && (
         <div
           id={contentId}
-          className="p-6 md:p-8 pt-0 md:pt-0 animate-in fade-in slide-in-from-top-2 duration-200"
+          className="px-5 pb-5 md:px-8 md:pb-8 animate-in fade-in slide-in-from-top-2 duration-200"
         >
           {children}
         </div>

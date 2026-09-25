@@ -190,4 +190,21 @@ describe('AnalyzePage Component', () => {
       expect(screen.getByText('3 Big vs 2 Small')).toBeInTheDocument();
     });
   });
+
+  it('only colours Total Waste red when there is waste', async () => {
+    render(<AnalyzePage />);
+    const wasteValue = await screen.findByText('5');
+    expect(wasteValue).toHaveClass('text-red-600');
+  });
+
+  it('shows a friendly empty state for waste correlation when nothing was wasted', async () => {
+    vi.mocked(actions.getBrewAnalytics).mockResolvedValue({
+      ...mockAnalytics,
+      totalWasteCount: 0,
+      wasteByDuration: {},
+    } as actions.BrewAnalytics);
+    render(<AnalyzePage />);
+    expect(await screen.findByText('No waste yet')).toBeInTheDocument();
+    expect(screen.queryByText('0 Big vs 0 Small')).not.toBeInTheDocument();
+  });
 });

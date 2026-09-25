@@ -15,7 +15,7 @@ This project provides a real-time, high-visibility dashboard for shared office e
 
 ## Tech Stack 🛠️
 - **Framework:** Next.js 16 (App Router + Server Actions)
-- **Styling:** Tailwind CSS 4 (with optimized landscape mobile support) 🎨
+- **Styling:** Tailwind CSS 4 (landscape-phone kiosk layout, dark mode by default) 🎨
 - **Storage:** Redis 7 (Persistent status and historical logs) 🗄️
 - **Icons:** Lucide React
 - **Testing:** Vitest + React Testing Library 🧪

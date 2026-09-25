@@ -28,7 +28,7 @@ vi.mock('@/hooks/use-admin-auth', () => ({
 
 // Mock the ConfirmModal to make testing easier
 vi.mock('../components/ConfirmModal', () => ({
-  default: ({ isOpen, onConfirm, title }: any) => isOpen ? (
+  default: ({ isOpen, onConfirm, title }: { isOpen: boolean; onConfirm: () => void; title: string }) => isOpen ? (
     <div data-testid="confirm-modal">
       <span>{title}</span>
       <button onClick={onConfirm}>Confirm</button>
@@ -68,7 +68,9 @@ describe('Dashboard Component', () => {
     expect(screen.getByText(/Coffee Tracker/i)).toBeInTheDocument();
     expect(screen.getByText(/Indicate Waste/i)).toBeInTheDocument();
     expect(screen.getByText(/Poured in sink/i)).toBeInTheDocument();
-    expect(screen.queryByText(/Daily Pot Count/i)).not.toBeInTheDocument();
+    // The pot count stays visible alongside the brewer controls.
+    expect(screen.getByText(/Daily Pot Count/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Log out of Brewer Mode/i })).toBeInTheDocument();
   });
 
   it('renders correctly in viewer mode (without admin password)', () => {
@@ -78,6 +80,28 @@ describe('Dashboard Component', () => {
     expect(screen.getByText(/Daily Pot Count/i)).toBeInTheDocument();
     expect(screen.getByText('1')).toBeInTheDocument();
     expect(screen.queryByText(/Indicate Waste/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Start BIG Brew/i)).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Coffee Brewer Login/i })).toBeInTheDocument();
+  });
+
+  it('does not pulse the status pill when the coffee is ready', () => {
+    const status = { ...initialStatus, lastBrewTimestamp: Date.now() - (BREW_TIME_MS + 60000) };
+    const { container } = render(<Dashboard initialStatus={status} />);
+    expect(container.querySelector('[class*="animate-pulse"], [class*="animate-ping"]')).toBeNull();
+  });
+
+  it('shows a brewing indicator only while brewing', () => {
+    const status = { ...initialStatus, lastBrewTimestamp: Date.now() };
+    const { container } = render(<Dashboard initialStatus={status} />);
+    expect(container.querySelector('[class*="animate-ping"]')).not.toBeNull();
+  });
+
+  it('renders the inline theme toggle and GitHub link', () => {
+    render(<Dashboard initialStatus={initialStatus} />);
+    expect(screen.getByRole('link', { name: /GitHub Repository/i })).toHaveAttribute(
+      'href',
+      'https://github.com/FrederikRothe/fresh_brew',
+    );
   });
 
   it('logs waste when the Waste button is clicked and confirmed', async () => {

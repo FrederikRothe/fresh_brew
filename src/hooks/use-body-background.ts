@@ -13,10 +13,8 @@ export function useBodyBackground(statusColor: string) {
     const colorClasses = Object.keys(colorMap);
 
     const updateBodyStyle = () => {
-      const isDark =
-        document.documentElement.classList.contains("dark") ||
-        (window.matchMedia("(prefers-color-scheme: dark)").matches &&
-          !document.documentElement.classList.contains("light"));
+      // Dark is the default theme; only an explicit `.light` class opts out.
+      const isDark = !document.documentElement.classList.contains("light");
       const fallback = isDark ? "#0a0a0a" : "#ffffff";
 
       document.body.style.backgroundColor = colorMap[statusColor] || fallback;

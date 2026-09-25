@@ -1,13 +1,14 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { validatePassword } from "@/app/actions";
 
 export function useAdminAuth() {
-  const [adminPassword, setAdminPassword] = useState<string | null>(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("coffee_admin_password");
-    }
-    return null;
-  });
+  const [adminPassword, setAdminPassword] = useState<string | null>(null);
+
+  // Read after mount so server and client render the same initial markup
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setAdminPassword(localStorage.getItem("coffee_admin_password"));
+  }, []);
 
   const handleLogin = useCallback(async () => {
     const password = prompt("Please enter the admin password to login:");
