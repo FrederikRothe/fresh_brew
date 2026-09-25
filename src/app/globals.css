@@ -2,21 +2,15 @@
 
 @variant dark (&:where(.dark, .dark *));
 
+/* Dark is the default theme; `.light` on <html> opts into light mode. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not(.light) {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-.dark {
   --background: #0a0a0a;
   --foreground: #ededed;
+}
+
+.light {
+  --background: #ffffff;
+  --foreground: #171717;
 }
 
 html,
@@ -31,3 +25,9 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* Short landscape viewports (e.g. an iPhone on its side next to the coffee machine). */
+@custom-variant landscape-phone (@media (orientation: landscape) and (max-height: 500px));
+
+/* Applies while the main dashboard is on the page (it renders its own theme/GitHub controls). */
+@custom-variant with-dashboard (body:has([data-dashboard]) &);

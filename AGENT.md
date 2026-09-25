@@ -21,15 +21,15 @@ This project provides a real-time dashboard to monitor when the last pot of coff
 ### Architecture
 - **`src/app/page.tsx`**: Entry point (Server Component). Fetches initial brew status and renders the `Dashboard`.
 - **`src/app/analyze/page.tsx`**: Publicly accessible consumption analytics dashboard.
-- **`src/components/Dashboard.tsx`**: Main UI (Client Component). Orchestrates the dashboard using custom hooks.
+- **`src/components/Dashboard.tsx`**: Main UI (Client Component). Orchestrates the dashboard using custom hooks. Optimized as a no-scroll two-column kiosk on landscape phones via the `landscape-phone:` custom variant (see `globals.css`).
 - **`src/hooks/`**: Specialized client hooks for timer logic (`useTimer`), brew status polling (`useBrewStatus`), admin authentication (`useAdminAuth`), and theme-aware body styling (`useBodyBackground`).
 - **`src/lib/`**: Shared logic including Redis storage (`storage.ts`), calculation helpers (`brew-utils.ts`), common thresholds (`constants.ts`), and styling utilities (`utils.ts`).
 - **`src/app/actions.ts`**: Server Actions for data fetching and mutation. Includes Slack notification logic, brew analytics calculation (grams, frequency, density), and admin password verification.
-- **`src/components/AggregateRhythm.tsx`**: Visualizes consumption density over weekly, monthly, and yearly intervals.
-- **`src/components/CoffeeBurnChart.tsx`**: Tracks daily coffee consumption in grams (Big: 340g, Small: 180g) with bar charts.
+- **`src/components/AggregateRhythm.tsx`**: Heatmap of brews per 30-min slot (7–18h, Copenhagen time) over weekly, monthly, and yearly units; data-derived legend and All/Big/Small filter. Pure bucketing logic (`bucketBrews`) is exported for tests.
+- **`src/components/CoffeeBurnChart.tsx`**: Tracks daily coffee consumption in grams (Big: 340g, Small: 180g) with bar charts, current-period highlight and average line.
 - **`src/components/StatTile.tsx`**: Reusable component for displaying key metrics with icons.
 - **`src/components/CollapsibleSection.tsx`**: Layout wrapper for expandable analytics sections.
-- **`src/app/globals.css`**: Tailwind 4 configuration and global styles.
+- **`src/app/globals.css`**: Tailwind 4 configuration, custom variants, and global styles. Dark mode is the default (`<html class="dark">` + pre-paint script in `layout.tsx`; `localStorage.theme = "light"` opts out).
 
 ## Building and Running
 

@@ -23,8 +23,9 @@ describe('BrewTimeline Component', () => {
     render(<BrewTimeline history={mockHistory} />);
     
     expect(screen.getByText('Daily Rhythm')).toBeInTheDocument();
-    expect(screen.getByText('Actual vs. Typical')).toBeInTheDocument();
-    expect(screen.getByText('You Are Here')).toBeInTheDocument();
+    expect(screen.getByText('Today vs. a typical Wed')).toBeInTheDocument();
+    // 11:00 UTC = 12:00 Copenhagen (CET)
+    expect(screen.getByTestId('now-indicator')).toHaveTextContent('Now 12:00');
     
     expect(screen.getByText(/Pot #1 @ 09:30/)).toBeInTheDocument();
     expect(screen.getByText(/Pot #2 @ 11:15/)).toBeInTheDocument();
@@ -44,22 +45,42 @@ describe('BrewTimeline Component', () => {
     expect(screen.getByText(/You're right on schedule with your typical rhythm/)).toBeInTheDocument();
   });
 
-  it('splits the timeline on hover', async () => {
+  it('always shows labelled Today / Typical rows and a pot-size legend', () => {
     render(<BrewTimeline history={mockHistory} />);
-    
-    // Check that track labels are NOT present initially
-    expect(screen.queryByTestId('track-label-actual')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('track-label-typical')).not.toBeInTheDocument();
-    
-    // Find the timeline container to hover
-    const timelineContainer = screen.getByTestId('timeline-container');
-    
-    fireEvent.mouseEnter(timelineContainer);
-    
-    // Labels should be present on hover
-    expect(await screen.findByTestId('track-label-actual')).toBeInTheDocument();
-    expect(await screen.findByTestId('track-label-typical')).toBeInTheDocument();
-    
-    fireEvent.mouseLeave(timelineContainer);
+
+    expect(screen.getByTestId('timeline-container')).toBeInTheDocument();
+    expect(screen.getByTestId('track-label-actual')).toHaveTextContent('Today');
+    expect(screen.getByTestId('track-label-typical')).toHaveTextContent('Typical Wed');
+    expect(screen.getByText('Big pot')).toBeInTheDocument();
+    expect(screen.getByText('Small pot')).toBeInTheDocument();
+  });
+
+  it('pins a marker tooltip open on tap and closes it on a second tap', () => {
+    render(<BrewTimeline history={mockHistory} />);
+
+    const marker = screen.getByRole('button', { name: /Pot 1 at 09:30, big/ });
+    const tooltip = screen.getByText(/Pot #1 @ 09:30/).parentElement as HTMLElement;
+    expect(tooltip).toHaveClass('opacity-0');
+
+    fireEvent.click(marker);
+    expect(tooltip).toHaveClass('opacity-100');
+
+    fireEvent.click(marker);
+    expect(tooltip).toHaveClass('opacity-0');
+  });
+
+  it('toggles the prediction explanation on tap', () => {
+    render(
+      <BrewTimeline
+        history={mockHistory}
+        predictedNextBrew={{ time: '14:30', sequenceIndex: 3, dayName: 'Wednesday' }}
+      />
+    );
+
+    const infoButton = screen.getByRole('button', { name: /How is this predicted/ });
+    expect(infoButton).toHaveAttribute('aria-expanded', 'false');
+    fireEvent.click(infoButton);
+    expect(infoButton).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByRole('tooltip')).toHaveTextContent(/pot #3 on a Wednesday/);
   });
 });
